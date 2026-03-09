@@ -12,12 +12,12 @@ export function AuthBar() {
 
   if (!session) {
     return (
-      <button
-        onClick={() => signIn("google")}
+      <a
+        href="/auth/signin"
         className="text-sm px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
       >
-        Sign in with Google
-      </button>
+        Sign in
+      </a>
     );
   }
 
