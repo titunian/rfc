@@ -14,7 +14,7 @@ export const plans = pgTable("plans", {
   content: text("content").notNull(),
   authorName: text("author_name"),
   authorEmail: text("author_email"),
-  accessRule: text("access_rule").default("anyone").notNull(),
+  accessRule: text("access_rule").default("authenticated").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at"),
   expiresAt: timestamp("expires_at"),

@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
         content,
         authorName: user.name || null,
         authorEmail: user.email,
-        accessRule: accessRule || "anyone",
+        accessRule: accessRule || "authenticated",
         expiresAt,
       })
       .returning();
@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
     content,
     authorName: null as string | null,
     authorEmail: null as string | null,
-    accessRule: accessRule || "anyone",
+    accessRule: accessRule || "authenticated",
     createdAt: new Date().toISOString(),
     updatedAt: null as string | null,
     expiresAt: expiresAt?.toISOString() || null,

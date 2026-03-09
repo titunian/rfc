@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Source_Serif_4 } from "next/font/google";
 import { AuthProvider } from "@/components/session-provider";
+import "highlight.js/styles/github-dark.css";
 import "./globals.css";
 
 const inter = Inter({

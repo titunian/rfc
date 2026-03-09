@@ -2,24 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
-/* highlight.js theme for code blocks */
-@import "highlight.js/styles/github-dark.css";
-
 :root {
   --bg: #ffffff;
-  --bg-warm: #fafaf8;
+  --bg-warm: #faf9f7;
   --fg: #1a1a1a;
-  --fg-secondary: #4a4a4a;
-  --muted: #8a8a8a;
-  --border: #e8e8e8;
-  --border-light: #f0f0f0;
+  --fg-secondary: #374151;
+  --muted: #9ca3af;
+  --border: #e5e7eb;
+  --border-light: #f3f4f6;
   --accent: #2563eb;
   --accent-light: #dbeafe;
-  --comment-highlight: #fef08a;
+  --comment-highlight: rgba(250, 204, 21, 0.22);
+  --comment-highlight-hover: rgba(250, 204, 21, 0.38);
+  --comment-highlight-active: rgba(250, 204, 21, 0.48);
   --blockquote-bg: #f8f7f4;
-  --blockquote-border: #d4a574;
-  --code-inline-bg: #f5f3ef;
-  --table-stripe: #fafaf8;
+  --blockquote-border: #c4a882;
+  --code-inline-bg: #f3f4f6;
+  --table-stripe: #fafaf9;
 }
 
 body {
@@ -28,29 +27,37 @@ body {
 }
 
 /* ========================================
-   iA Writer-Inspired Prose Styles
+   Editorial Prose — iA Writer-inspired
    ======================================== */
 
 .prose {
   font-family: var(--font-serif), Georgia, "Times New Roman", serif;
-  font-size: 18px;
-  line-height: 1.85;
+  font-size: 1.125rem;       /* 18px */
+  line-height: 1.82;
   max-width: 68ch;
   color: var(--fg);
   font-weight: 400;
   letter-spacing: -0.003em;
   -webkit-font-smoothing: antialiased;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* --- Headings --- */
-.prose h1 {
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
   font-family: var(--font-inter), system-ui, sans-serif;
-  font-size: 2.25em;
-  font-weight: 700;
-  line-height: 1.2;
-  margin: 2.5em 0 0.8em;
-  letter-spacing: -0.025em;
   color: var(--fg);
+  font-weight: 700;
+}
+
+.prose h1 {
+  font-size: 2.1em;
+  line-height: 1.18;
+  margin: 2.5em 0 0.7em;
+  letter-spacing: -0.03em;
 }
 
 .prose h1:first-child {
@@ -58,70 +65,82 @@ body {
 }
 
 .prose h2 {
-  font-family: var(--font-inter), system-ui, sans-serif;
-  font-size: 1.625em;
-  font-weight: 600;
-  line-height: 1.3;
-  margin: 2em 0 0.6em;
-  letter-spacing: -0.02em;
-  color: var(--fg);
+  font-size: 1.5em;
+  font-weight: 650;
+  line-height: 1.28;
+  margin: 2.2em 0 0.6em;
+  letter-spacing: -0.022em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .prose h3 {
-  font-family: var(--font-inter), system-ui, sans-serif;
-  font-size: 1.25em;
-  font-weight: 600;
-  line-height: 1.4;
-  margin: 1.75em 0 0.5em;
+  font-size: 1.2em;
+  font-weight: 620;
+  line-height: 1.35;
+  margin: 1.8em 0 0.5em;
   letter-spacing: -0.015em;
-  color: var(--fg);
 }
 
 .prose h4 {
-  font-family: var(--font-inter), system-ui, sans-serif;
-  font-size: 1.1em;
+  font-size: 1.05em;
   font-weight: 600;
   line-height: 1.4;
   margin: 1.5em 0 0.4em;
   color: var(--fg-secondary);
+  text-transform: none;
 }
 
 /* --- Body text --- */
 .prose p {
-  margin: 1.25em 0;
+  margin: 1.2em 0;
 }
 
 .prose > p:first-child {
   margin-top: 0;
 }
 
+.prose strong {
+  font-weight: 650;
+  color: var(--fg);
+}
+
+.prose em {
+  font-style: italic;
+}
+
 /* --- Links --- */
 .prose a {
   color: var(--accent);
   text-decoration: underline;
+  text-decoration-color: rgba(37, 99, 235, 0.3);
   text-decoration-thickness: 1px;
-  text-underline-offset: 2px;
-  transition: color 0.15s;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.15s;
 }
 
 .prose a:hover {
-  color: #1d4ed8;
+  text-decoration-color: var(--accent);
 }
 
 /* --- Lists --- */
 .prose ul,
 .prose ol {
-  margin: 1.25em 0;
-  padding-left: 1.75em;
+  margin: 1.2em 0;
+  padding-left: 1.6em;
 }
 
 .prose li {
-  margin: 0.4em 0;
+  margin: 0.35em 0;
   line-height: 1.75;
 }
 
 .prose li > p {
-  margin: 0.5em 0;
+  margin: 0.4em 0;
+}
+
+.prose li::marker {
+  color: var(--muted);
 }
 
 /* Task lists (GFM checkboxes) */
@@ -140,11 +159,13 @@ body {
   appearance: none;
   width: 16px;
   height: 16px;
-  border: 2px solid var(--border);
-  border-radius: 3px;
+  border: 1.5px solid var(--border);
+  border-radius: 4px;
   flex-shrink: 0;
-  margin-top: 2px;
+  margin-top: 3px;
   position: relative;
+  cursor: default;
+  transition: all 0.15s;
 }
 
 .prose input[type="checkbox"]:checked {
@@ -155,24 +176,25 @@ body {
 .prose input[type="checkbox"]:checked::after {
   content: "";
   position: absolute;
-  left: 3px;
-  top: 0px;
+  left: 3.5px;
+  top: 0.5px;
   width: 5px;
   height: 9px;
   border: solid white;
-  border-width: 0 2px 2px 0;
+  border-width: 0 1.5px 1.5px 0;
   transform: rotate(45deg);
 }
 
 /* --- Inline code --- */
 .prose :not(pre) > code {
   background: var(--code-inline-bg);
-  padding: 0.15em 0.4em;
-  border-radius: 4px;
+  padding: 0.15em 0.45em;
+  border-radius: 5px;
   font-size: 0.875em;
-  font-family: "SF Mono", "Fira Code", "Fira Mono", Menlo, monospace;
-  font-weight: 400;
+  font-family: "SF Mono", "Fira Code", "Fira Mono", ui-monospace, Menlo, monospace;
+  font-weight: 450;
   color: var(--fg-secondary);
+  border: 1px solid var(--border-light);
 }
 
 /* --- Code blocks --- */
@@ -180,13 +202,12 @@ body {
   background: #0d1117;
   color: #e6edf3;
   padding: 20px 24px;
-  border-radius: 10px;
+  border-radius: 12px;
   overflow-x: auto;
   margin: 1.75em 0;
   font-size: 0.875em;
   line-height: 1.7;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.04);
 }
 
 .prose pre code {
@@ -195,9 +216,11 @@ body {
   color: inherit;
   font-size: inherit;
   border-radius: 0;
+  border: none;
+  font-weight: 400;
 }
 
-/* Override highlight.js background to match our pre */
+/* Override highlight.js bg to match */
 .prose pre .hljs {
   background: transparent;
   padding: 0;
@@ -207,7 +230,7 @@ body {
 .prose blockquote {
   border-left: 3px solid var(--blockquote-border);
   background: var(--blockquote-bg);
-  padding: 1em 1.25em;
+  padding: 0.9em 1.2em;
   margin: 1.75em 0;
   border-radius: 0 8px 8px 0;
   color: var(--fg-secondary);
@@ -215,7 +238,7 @@ body {
 }
 
 .prose blockquote p {
-  margin: 0.5em 0;
+  margin: 0.4em 0;
 }
 
 .prose blockquote p:first-child {
@@ -226,6 +249,11 @@ body {
   margin-bottom: 0;
 }
 
+.prose blockquote strong {
+  font-style: normal;
+  color: var(--fg);
+}
+
 /* --- Tables --- */
 .prose table {
   border-collapse: separate;
@@ -233,27 +261,28 @@ body {
   width: 100%;
   margin: 1.75em 0;
   font-size: 0.9em;
-  border-radius: 8px;
+  border-radius: 10px;
   overflow: hidden;
   border: 1px solid var(--border);
+  font-family: var(--font-inter), system-ui, sans-serif;
 }
 
 .prose th {
   background: var(--bg-warm);
   font-weight: 600;
-  font-family: var(--font-inter), system-ui, sans-serif;
-  font-size: 0.85em;
+  font-size: 0.8em;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--fg-secondary);
+  letter-spacing: 0.05em;
+  color: var(--muted);
   padding: 10px 16px;
   text-align: left;
-  border-bottom: 2px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
 
 .prose td {
   padding: 10px 16px;
   border-bottom: 1px solid var(--border-light);
+  color: var(--fg-secondary);
 }
 
 .prose tr:nth-child(even) td {
@@ -268,7 +297,13 @@ body {
 .prose hr {
   border: none;
   height: 1px;
-  background: linear-gradient(to right, transparent, var(--border), transparent);
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--border) 20%,
+    var(--border) 80%,
+    transparent
+  );
   margin: 3em 0;
 }
 
@@ -288,7 +323,7 @@ body {
   padding: 24px;
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 12px;
   overflow-x: auto;
 }
 
@@ -317,37 +352,53 @@ body {
   z-index: 10;
   background: linear-gradient(
     to bottom,
-    rgba(250, 250, 248, 0) 0%,
-    rgba(250, 250, 248, 0.7) 20%,
-    rgba(250, 250, 248, 0.95) 40%,
-    rgba(250, 250, 248, 1) 60%
+    rgba(250, 249, 247, 0) 0%,
+    rgba(250, 249, 247, 0.7) 20%,
+    rgba(250, 249, 247, 0.95) 40%,
+    rgba(250, 249, 247, 1) 60%
   );
 }
 
 /* ========================================
-   Comment System
+   Comment Inline Highlights
    ======================================== */
 
 .comment-anchor {
   background: var(--comment-highlight);
   cursor: pointer;
   border-radius: 2px;
-  transition: background 0.15s;
+  padding: 1px 0;
+  transition: background 0.15s ease;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
+
 .comment-anchor:hover {
-  background: #fde047;
+  background: var(--comment-highlight-hover);
 }
+
 .comment-anchor.active {
-  background: #facc15;
-  box-shadow: 0 0 0 2px #facc15;
+  background: var(--comment-highlight-active);
+  box-shadow: 0 1px 0 0 rgba(250, 204, 21, 0.5);
 }
+
+/* ========================================
+   Selection Popover
+   ======================================== */
 
 .selection-popover {
   position: absolute;
   z-index: 50;
-  animation: fadeIn 0.15s ease-out;
+  animation: fadeInUp 0.15s ease-out;
 }
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

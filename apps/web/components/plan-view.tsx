@@ -148,6 +148,98 @@ export function PlanView({ plan }: { plan: Plan }) {
     );
   };
 
+  // ── Inline comment highlighting ──────────────────────────────
+  const applyHighlights = useCallback(() => {
+    const el = contentRef.current;
+    if (!el) return;
+
+    // Remove existing highlights
+    el.querySelectorAll(".comment-anchor").forEach((span) => {
+      const parent = span.parentNode;
+      if (parent) {
+        while (span.firstChild) {
+          parent.insertBefore(span.firstChild, span);
+        }
+        parent.removeChild(span);
+        parent.normalize();
+      }
+    });
+
+    // Apply highlights for unresolved comments with anchor text
+    const toHighlight = comments.filter((c) => !c.resolved && c.anchorText);
+
+    for (const comment of toHighlight) {
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
+        acceptNode: (node) => {
+          let p = node.parentElement;
+          while (p && p !== el) {
+            if (
+              p.tagName === "PRE" ||
+              p.tagName === "CODE" ||
+              p.classList.contains("comment-anchor")
+            ) {
+              return NodeFilter.FILTER_REJECT;
+            }
+            p = p.parentElement;
+          }
+          return NodeFilter.FILTER_ACCEPT;
+        },
+      });
+
+      let textNode: Node | null;
+      let found = false;
+      while ((textNode = walker.nextNode()) && !found) {
+        const text = textNode.textContent || "";
+        const idx = text.indexOf(comment.anchorText!);
+        if (idx !== -1) {
+          try {
+            const range = document.createRange();
+            range.setStart(textNode, idx);
+            range.setEnd(textNode, idx + comment.anchorText!.length);
+
+            const span = document.createElement("span");
+            span.className = `comment-anchor${comment.id === activeCommentId ? " active" : ""}`;
+            span.dataset.commentId = comment.id;
+
+            range.surroundContents(span);
+            found = true;
+          } catch {
+            // surroundContents can fail if range crosses element boundaries
+          }
+        }
+      }
+    }
+  }, [comments, activeCommentId]);
+
+  useEffect(() => {
+    if (canView) {
+      const timeout = setTimeout(applyHighlights, 80);
+      return () => clearTimeout(timeout);
+    }
+  }, [applyHighlights, canView]);
+
+  // Event delegation for clicking on highlighted text
+  useEffect(() => {
+    const el = contentRef.current;
+    if (!el || !canView) return;
+
+    const handleClick = (e: Event) => {
+      const target = (e.target as HTMLElement).closest(
+        ".comment-anchor"
+      ) as HTMLElement;
+      if (target?.dataset.commentId) {
+        setActiveCommentId((prev) =>
+          prev === target.dataset.commentId!
+            ? null
+            : target.dataset.commentId!
+        );
+      }
+    };
+
+    el.addEventListener("click", handleClick);
+    return () => el.removeEventListener("click", handleClick);
+  }, [canView]);
+
   const formatDate = (iso: string) => {
     const d = new Date(iso);
     return d.toLocaleDateString("en-US", {
