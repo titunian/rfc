@@ -18,7 +18,7 @@ const CONFIG_DIR = join(homedir(), ".rfc");
 const CONFIG_FILE = join(CONFIG_DIR, "config.json");
 
 const DEFAULT_CONFIG: RfcConfig = {
-  apiUrl: "http://localhost:3141",
+  apiUrl: "https://web-gray-five-98.vercel.app",
 };
 
 export function getConfigDir(): string {

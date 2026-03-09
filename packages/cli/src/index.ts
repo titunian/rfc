@@ -9,6 +9,7 @@ import { openCommand } from "./commands/open";
 import { commentsCommand } from "./commands/comments";
 import { configCommand } from "./commands/config";
 import { pullCommand } from "./commands/pull";
+import { loginCommand } from "./commands/login";
 
 const program = new Command();
 
@@ -60,6 +61,11 @@ program
   .command("comments <slug>")
   .description("View comments on an RFC")
   .action(commentsCommand);
+
+program
+  .command("login")
+  .description("Authenticate with the rfc server via browser")
+  .action(loginCommand);
 
 program
   .command("config <action> [key] [value]")
