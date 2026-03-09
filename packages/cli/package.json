@@ -1,0 +1,23 @@
+{
+  "name": "@rfc-tool/cli",
+  "version": "0.1.0",
+  "description": "rfc — publish markdown plans, get feedback",
+  "bin": {
+    "rfc": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "commander": "^12.0.0",
+    "open": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.5.0"
+  }
+}
