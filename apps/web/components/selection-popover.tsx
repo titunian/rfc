@@ -91,7 +91,7 @@ export function SelectionPopover({
       className="selection-popover"
       style={{ top, left, transform: "translateX(-50%)" }}
     >
-      <div className="bg-white border border-[var(--border)] rounded-lg shadow-xl p-3 w-[300px]">
+      <div className="bg-white border border-[var(--border)] rounded-lg shadow-xl p-3 w-[300px] font-sans">
         <input
           type="text"
           value={authorName}

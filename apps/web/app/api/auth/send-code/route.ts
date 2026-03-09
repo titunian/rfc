@@ -40,8 +40,9 @@ export async function POST(req: NextRequest) {
   const resendKey = process.env.RESEND_API_KEY;
   if (resendKey) {
     const resend = new Resend(resendKey);
-    await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || "rfc <onboarding@resend.dev>",
+    const fromAddress = process.env.RESEND_FROM_EMAIL || "rfc <onboarding@resend.dev>";
+    const { error: sendError } = await resend.emails.send({
+      from: fromAddress,
       to: [email],
       subject: `Your rfc sign-in code: ${code}`,
       html: `
@@ -55,6 +56,13 @@ export async function POST(req: NextRequest) {
         </div>
       `,
     });
+    if (sendError) {
+      console.error("[Resend error]", sendError);
+      return NextResponse.json(
+        { error: `Failed to send email: ${sendError.message}` },
+        { status: 500 }
+      );
+    }
   } else {
     // Dev fallback: log to console
     console.log(`[DEV] OTP for ${email}: ${code}`);

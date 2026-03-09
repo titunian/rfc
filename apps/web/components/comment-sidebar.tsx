@@ -25,7 +25,7 @@ export function CommentSidebar({
   const resolved = comments.filter((c) => c.resolved);
 
   return (
-    <aside className="w-[380px] border-l border-[var(--border)] bg-white sticky top-[53px] h-[calc(100vh-53px)] overflow-y-auto">
+    <aside className="w-[380px] border-l border-[var(--border)] bg-white/95 backdrop-blur-sm sticky top-[53px] h-[calc(100vh-53px)] overflow-y-auto font-sans">
       <div className="p-4 border-b border-[var(--border)]">
         <h2 className="text-sm font-semibold">
           Comments{" "}
@@ -112,7 +112,7 @@ function CommentCard({
 
   return (
     <div
-      className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
+      className={`p-4 cursor-pointer hover:bg-[var(--bg-warm)] transition-colors ${
         isActive ? "bg-yellow-50 border-l-2 border-yellow-400" : ""
       } ${comment.resolved ? "opacity-60" : ""}`}
       onClick={onClick}
