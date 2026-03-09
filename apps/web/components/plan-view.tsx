@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -52,6 +52,16 @@ export function PlanView({ plan }: { plan: Plan }) {
   } | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
+
+  // Strip first H1 from content if it matches plan title (avoids double title)
+  const displayContent = useMemo(() => {
+    if (!plan.title || !plan.content) return plan.content;
+    const match = plan.content.match(/^#\s+(.+?)(?:\n|$)/);
+    if (match && match[1].trim() === plan.title.trim()) {
+      return plan.content.replace(/^#\s+.+?\n?/, "").trimStart();
+    }
+    return plan.content;
+  }, [plan.content, plan.title]);
 
   const fetchComments = useCallback(async () => {
     const res = await fetch(`/api/plans/${plan.id}/comments`);
@@ -249,43 +259,54 @@ export function PlanView({ plan }: { plan: Plan }) {
     });
   };
 
+  const unresolvedCount = comments.filter((c) => !c.resolved).length;
+
   return (
     <div className="min-h-screen bg-[var(--bg-warm)]">
       {/* Header */}
-      <header className="border-b border-[var(--border)] bg-white/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-[1400px] mx-auto px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <a href="/" className="text-lg font-semibold tracking-tight font-sans text-[var(--fg)] hover:text-[var(--fg-secondary)] transition-colors">
-              rfc
-            </a>
-            <span className="text-[var(--border)]">/</span>
-            <span className="text-sm text-[var(--muted)] font-sans">
-              {plan.authorName || "Anonymous"}
-            </span>
-          </div>
+      <header className="border-b border-[var(--border-light)] bg-white/80 backdrop-blur-md sticky top-0 z-40">
+        <div className="max-w-[1400px] mx-auto px-6 h-[52px] flex items-center justify-between">
+          <a
+            href="/"
+            className="text-[15px] font-semibold tracking-tight font-sans text-[var(--fg)] hover:text-[var(--fg-secondary)] transition-colors"
+          >
+            rfc
+          </a>
           <div className="flex items-center gap-3">
             {status !== "loading" && !isAuthenticated && (
               <a
                 href={`/auth/signin?callbackUrl=/p/${plan.slug}`}
-                className="text-sm px-4 py-1.5 bg-[var(--fg)] text-white rounded-lg hover:bg-gray-800 transition-colors font-sans"
+                className="text-[13px] px-3.5 py-1.5 bg-[var(--fg)] text-white rounded-lg hover:bg-gray-800 transition-colors font-sans font-medium"
               >
                 Sign in
               </a>
             )}
             {isAuthenticated && (
-              <span className="text-sm text-[var(--muted)] font-sans">
+              <span className="text-[13px] text-[var(--muted)] font-sans">
                 {session.user?.name || session.user?.email}
               </span>
             )}
             {canView && (
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="text-sm px-3 py-1.5 rounded-md border border-[var(--border)] hover:bg-gray-50 transition-colors font-sans"
+                className="text-[13px] h-8 px-3 rounded-lg border border-[var(--border)] hover:bg-gray-50 transition-colors font-sans flex items-center gap-1.5"
               >
-                {sidebarOpen ? "Hide" : "Show"} Comments
-                {comments.length > 0 && (
-                  <span className="ml-1.5 bg-gray-100 text-[var(--muted)] text-xs px-1.5 py-0.5 rounded-full">
-                    {comments.filter((c) => !c.resolved).length}
+                <svg
+                  className="w-4 h-4 text-[var(--muted)]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"
+                  />
+                </svg>
+                {unresolvedCount > 0 && (
+                  <span className="min-w-[18px] h-[18px] flex items-center justify-center text-[11px] font-semibold bg-[var(--fg)] text-white rounded-full px-1">
+                    {unresolvedCount}
                   </span>
                 )}
               </button>
@@ -297,18 +318,26 @@ export function PlanView({ plan }: { plan: Plan }) {
       <div className="max-w-[1400px] mx-auto flex">
         {/* Main content */}
         <main
-          className={`flex-1 px-6 py-12 transition-all ${
-            sidebarOpen && canView ? "max-w-[calc(100%-380px)]" : ""
+          className={`flex-1 px-6 py-16 transition-all ${
+            sidebarOpen && canView ? "max-w-[calc(100%-340px)]" : ""
           }`}
         >
           {/* Title block — always visible */}
-          <div className="max-w-[68ch] mx-auto mb-10">
-            <h1 className="text-4xl font-bold tracking-tight font-sans leading-tight mb-3 text-[var(--fg)]">
+          <div className="max-w-[68ch] mx-auto mb-8">
+            <h1 className="text-[2.5rem] font-bold tracking-tight font-sans leading-[1.15] mb-4 text-[var(--fg)]">
               {plan.title || "Untitled RFC"}
             </h1>
-            <div className="flex items-center gap-2 text-sm text-[var(--muted)] font-sans">
-              {plan.authorName && <span>{plan.authorName}</span>}
-              {plan.authorName && <span aria-hidden="true">·</span>}
+            <div className="flex items-center gap-2.5 text-[13px] text-[var(--muted)] font-sans">
+              {plan.authorName && (
+                <span className="font-medium text-[var(--fg-secondary)]">
+                  {plan.authorName}
+                </span>
+              )}
+              {plan.authorName && (
+                <span className="text-[var(--border)]" aria-hidden="true">
+                  ·
+                </span>
+              )}
               <time>{formatDate(plan.createdAt)}</time>
             </div>
           </div>
@@ -342,15 +371,15 @@ export function PlanView({ plan }: { plan: Plan }) {
                         />
                       </svg>
                     </div>
-                    <h2 className="text-xl font-semibold font-sans mb-2">
-                      Sign in to read this RFC
+                    <h2 className="text-xl font-semibold font-sans mb-2 text-[var(--fg)]">
+                      Sign in to continue reading
                     </h2>
-                    <p className="text-sm text-[var(--muted)] font-sans mb-6">
-                      This document requires authentication to view the full content.
+                    <p className="text-[14px] text-[var(--muted)] font-sans mb-6 leading-relaxed">
+                      This RFC requires authentication.
                     </p>
                     <a
                       href={`/auth/signin?callbackUrl=/p/${plan.slug}`}
-                      className="inline-block px-6 py-2.5 bg-[var(--fg)] text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors font-sans"
+                      className="inline-block px-6 py-2.5 bg-[var(--fg)] text-white text-[14px] font-medium rounded-xl hover:bg-gray-800 transition-colors font-sans"
                     >
                       Sign in with email
                     </a>
@@ -361,7 +390,7 @@ export function PlanView({ plan }: { plan: Plan }) {
 
             {status === "loading" && !isPublic && (
               <div className="py-20 text-center">
-                <div className="text-sm text-[var(--muted)] font-sans animate-pulse">
+                <div className="text-[14px] text-[var(--muted)] font-sans animate-pulse">
                   Loading…
                 </div>
               </div>
@@ -409,7 +438,7 @@ export function PlanView({ plan }: { plan: Plan }) {
                     },
                   }}
                 >
-                  {plan.content}
+                  {displayContent}
                 </ReactMarkdown>
               </div>
             )}

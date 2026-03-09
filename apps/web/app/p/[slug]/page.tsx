@@ -62,7 +62,7 @@ export default async function PlanPage({
         content: plan.content,
         authorName: plan.authorName,
         authorEmail: plan.authorEmail,
-        accessRule: plan.accessRule || "anyone",
+        accessRule: plan.accessRule || "authenticated",
         createdAt: plan.createdAt,
       }}
     />

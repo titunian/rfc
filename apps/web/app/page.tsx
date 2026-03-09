@@ -1,107 +1,110 @@
-import { readLocalDB, isProductionDB, getDb } from "@/lib/db";
-import { plans } from "@/lib/schema";
-import { desc } from "drizzle-orm";
+import { CopyCommand } from "@/components/copy-command";
 import { AuthBar } from "@/components/auth-bar";
 
 export const dynamic = "force-dynamic";
 
-async function getPlans() {
-  if (isProductionDB()) {
-    const db = getDb();
-    const rows = await db
-      .select({
-        id: plans.id,
-        slug: plans.slug,
-        title: plans.title,
-        content: plans.content,
-        createdAt: plans.createdAt,
-      })
-      .from(plans)
-      .orderBy(desc(plans.createdAt))
-      .limit(20);
-
-    return rows.map((r) => ({
-      ...r,
-      createdAt: r.createdAt.toISOString(),
-    }));
-  }
-
-  const localDb = readLocalDB();
-  return localDb.plans
-    .sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )
-    .slice(0, 20);
-}
-
-export default async function Home() {
-  const allPlans = await getPlans();
-
-  const formatDate = (iso: string) =>
-    new Date(iso).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
-
+export default function Home() {
   return (
-    <div className="min-h-screen bg-white">
-      <header className="border-b border-[var(--border)]">
-        <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div>
-            <span className="text-lg font-semibold tracking-tight">rfc</span>
-            <span className="text-sm text-[var(--muted)] ml-2">
-              Request for Comments
-            </span>
-          </div>
-          <AuthBar />
-        </div>
+    <div className="min-h-screen bg-[var(--bg-warm)] flex flex-col">
+      {/* Minimal nav */}
+      <header className="px-6 py-4 flex items-center justify-between max-w-3xl w-full mx-auto">
+        <span className="text-[15px] font-semibold tracking-tight font-sans text-[var(--fg)]">
+          rfc
+        </span>
+        <AuthBar />
       </header>
 
-      <main className="max-w-3xl mx-auto px-6 py-12">
-        <h1 className="text-3xl font-bold tracking-tight mb-2">
-          Published RFCs
-        </h1>
-        <p className="text-[var(--muted)] mb-8">
-          Publish from your terminal:{" "}
-          <code className="bg-gray-100 px-2 py-0.5 rounded text-sm">
-            rfc push plan.md
-          </code>
-        </p>
+      {/* Hero */}
+      <main className="flex-1 flex flex-col items-center justify-center px-6 -mt-16">
+        <div className="text-center max-w-xl">
+          {/* Logo mark */}
+          <div className="mb-8">
+            <h1 className="text-6xl font-bold tracking-tighter font-sans text-[var(--fg)]">
+              rfc
+            </h1>
+          </div>
 
-        {allPlans.length === 0 ? (
-          <div className="text-center py-20 text-[var(--muted)]">
-            <p className="text-lg mb-4">No RFCs yet.</p>
-            <pre className="inline-block bg-gray-900 text-gray-100 px-4 py-3 rounded-lg text-sm font-mono text-left">
-              {`# Push your first RFC\nrfc push plan.md`}
-            </pre>
+          {/* Tagline */}
+          <p className="text-[19px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-2">
+            Publish plans from your terminal.
+          </p>
+          <p className="text-[19px] text-[var(--muted)] font-sans leading-relaxed mb-12">
+            Share a link. Collect inline feedback.
+          </p>
+
+          {/* Terminal */}
+          <div className="bg-[#0d1117] rounded-2xl p-5 mx-auto max-w-md shadow-[0_4px_24px_rgba(0,0,0,0.12)] text-left">
+            <div className="flex items-center gap-1.5 mb-4">
+              <div className="w-2.5 h-2.5 rounded-full bg-[#ff5f57]/80" />
+              <div className="w-2.5 h-2.5 rounded-full bg-[#febc2e]/80" />
+              <div className="w-2.5 h-2.5 rounded-full bg-[#28c840]/80" />
+            </div>
+            <CopyCommand command="npx rfc-tool push plan.md" />
           </div>
-        ) : (
-          <div className="divide-y divide-[var(--border)]">
-            {allPlans.map((plan) => (
-              <a
-                key={plan.id}
-                href={`/p/${plan.slug}`}
-                className="block py-4 hover:bg-gray-50 -mx-3 px-3 rounded-lg transition-colors"
-              >
-                <div className="flex items-center justify-between">
-                  <h2 className="font-medium">
-                    {plan.title || "Untitled RFC"}
-                  </h2>
-                  <span className="text-xs text-[var(--muted)] shrink-0 ml-4">
-                    {formatDate(plan.createdAt)}
-                  </span>
-                </div>
-                <p className="text-sm text-[var(--muted)] mt-1 line-clamp-1">
-                  {plan.content.slice(0, 120).replace(/[#*`_\[\]]/g, "")}
-                </p>
-              </a>
-            ))}
+
+          {/* Flow */}
+          <div className="mt-14 flex items-center justify-center gap-2 text-[13px] text-[var(--muted)] font-sans flex-wrap">
+            <span className="px-2.5 py-1 rounded-full bg-white border border-[var(--border-light)]">
+              Write markdown
+            </span>
+            <svg
+              className="w-3.5 h-3.5 text-[var(--border)] shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+              />
+            </svg>
+            <span className="px-2.5 py-1 rounded-full bg-white border border-[var(--border-light)]">
+              Push
+            </span>
+            <svg
+              className="w-3.5 h-3.5 text-[var(--border)] shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+              />
+            </svg>
+            <span className="px-2.5 py-1 rounded-full bg-white border border-[var(--border-light)]">
+              Share link
+            </span>
+            <svg
+              className="w-3.5 h-3.5 text-[var(--border)] shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+              />
+            </svg>
+            <span className="px-2.5 py-1 rounded-full bg-white border border-[var(--border-light)]">
+              Get feedback
+            </span>
           </div>
-        )}
+        </div>
       </main>
+
+      {/* Footer */}
+      <footer className="py-8 text-center">
+        <p className="text-[12px] text-[var(--muted)]/60 font-sans">
+          Open source
+        </p>
+      </footer>
     </div>
   );
 }

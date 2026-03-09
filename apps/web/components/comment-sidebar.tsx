@@ -197,7 +197,7 @@ function CommentCard({
     >
       {/* Quoted anchor text */}
       {comment.anchorText && (
-        <div className="text-[12px] text-amber-700/60 bg-amber-50/60 rounded-md px-2.5 py-1.5 mb-2.5 line-clamp-2 font-serif italic border-l-2 border-amber-300/50">
+        <div className="text-[11px] text-gray-500 bg-gray-50/80 rounded px-2 py-1.5 mb-2.5 line-clamp-2 font-sans leading-relaxed border-l-2 border-gray-200">
           &ldquo;{comment.anchorText}&rdquo;
         </div>
       )}
