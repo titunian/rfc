@@ -31,7 +31,12 @@ export function loadConfig(): OrfcConfig {
   }
   try {
     const raw = readFileSync(CONFIG_FILE, "utf-8");
-    return { ...DEFAULT_CONFIG, ...JSON.parse(raw) };
+    const config = { ...DEFAULT_CONFIG, ...JSON.parse(raw) };
+    // Auto-migrate: old versions saved naked domain which breaks auth on redirect
+    if (config.apiUrl === "https://orfc.dev") {
+      config.apiUrl = "https://www.orfc.dev";
+    }
+    return config;
   } catch {
     return { ...DEFAULT_CONFIG };
   }
