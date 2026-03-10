@@ -132,9 +132,21 @@ export async function pushCommand(
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     console.error(`\n  ✗ ${message}`);
-    console.error(
-      "  Make sure the orfc server is running: cd apps/web && npm run dev\n"
-    );
+    if (message.includes("Unauthorized") || message.includes("401")) {
+      console.error("  Run `orfc login` to authenticate first.\n");
+    } else if (
+      message.includes("fetch failed") ||
+      message.includes("ECONNREFUSED") ||
+      message.includes("ENOTFOUND")
+    ) {
+      console.error(
+        "  Could not connect to orfc.dev. Check your internet connection.\n"
+      );
+    } else {
+      console.error(
+        "  Run `orfc login` if you haven't authenticated yet.\n"
+      );
+    }
     process.exit(1);
   }
 }
