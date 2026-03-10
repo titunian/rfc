@@ -245,6 +245,285 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        {/* Documentation */}
+        <div id="docs" className="w-full max-w-2xl mx-auto px-6 pb-24 pt-8">
+          <p className="text-[11px] uppercase tracking-[0.15em] text-[var(--muted)] font-sans font-medium mb-10 text-center">
+            Documentation
+          </p>
+
+          <div className="space-y-12 text-left">
+            {/* Getting started */}
+            <section>
+              <h2 className="text-[18px] font-semibold text-[var(--fg)] font-sans mb-3 tracking-tight">
+                Getting started
+              </h2>
+              <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-4">
+                Install the CLI globally, then authenticate once with your email.
+              </p>
+              <div className="bg-[#0d1117] rounded-xl p-4 font-mono text-[13px] text-gray-300 space-y-1.5 mb-2">
+                <div><span className="text-gray-500 select-none">$ </span>npm install -g @orfc/cli</div>
+                <div><span className="text-gray-500 select-none">$ </span>orfc login</div>
+                <div className="text-green-400/70">✓ Authenticated as you@company.com</div>
+              </div>
+              <p className="text-[13px] text-[var(--muted)] font-sans leading-relaxed">
+                Your API key is saved to <code className="text-[12px] bg-[var(--code-inline-bg)] px-1.5 py-0.5 rounded border border-[var(--border-light)]">~/.orfc/config.json</code>. You only need to log in once.
+              </p>
+            </section>
+
+            {/* Publishing */}
+            <section>
+              <h2 className="text-[18px] font-semibold text-[var(--fg)] font-sans mb-3 tracking-tight">
+                Publishing a plan
+              </h2>
+              <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-4">
+                Push any markdown file to get a shareable link. The title is auto-detected from the first <code className="text-[12px] bg-[var(--code-inline-bg)] px-1.5 py-0.5 rounded border border-[var(--border-light)]"># heading</code>.
+              </p>
+              <div className="bg-[#0d1117] rounded-xl p-4 font-mono text-[13px] text-gray-300 space-y-1.5 mb-4">
+                <div><span className="text-gray-500 select-none">$ </span>orfc push plan.md</div>
+                <div className="text-green-400/70">✓ Published → https://orfc.dev/p/xK7mQ2</div>
+                <div className="text-gray-500 text-[12px]"># link copied to clipboard, browser opens automatically</div>
+              </div>
+              <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-3">
+                You can also pipe from stdin, set a custom title, or update an existing plan:
+              </p>
+              <div className="bg-[#0d1117] rounded-xl p-4 font-mono text-[13px] text-gray-300 space-y-1.5">
+                <div><span className="text-gray-500 select-none">$ </span>cat plan.md | orfc push</div>
+                <div><span className="text-gray-500 select-none">$ </span>orfc push plan.md --title &quot;Q2 Architecture&quot;</div>
+                <div><span className="text-gray-500 select-none">$ </span>orfc push plan.md --update xK7mQ2 <span className="text-gray-500"># update existing</span></div>
+                <div><span className="text-gray-500 select-none">$ </span>orfc push plan.md --expires 7d <span className="text-gray-500"># auto-expire in 7 days</span></div>
+              </div>
+            </section>
+
+            {/* Access control */}
+            <section>
+              <h2 className="text-[18px] font-semibold text-[var(--fg)] font-sans mb-3 tracking-tight">
+                Access control
+              </h2>
+              <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-4">
+                By default, plans require sign-in to view. You can make them public or restrict to specific people.
+              </p>
+              <div className="space-y-4">
+                <div className="border border-[var(--border-light)] rounded-xl p-4">
+                  <div className="text-[13px] font-medium text-[var(--fg)] font-sans mb-1">
+                    Authenticated <span className="text-[12px] text-[var(--muted)] font-normal ml-1">(default)</span>
+                  </div>
+                  <p className="text-[13px] text-[var(--muted)] font-sans leading-relaxed mb-2">
+                    Anyone with a valid email sign-in can view the plan.
+                  </p>
+                  <div className="bg-[#0d1117] rounded-lg p-3 font-mono text-[12px] text-gray-400">
+                    $ orfc push plan.md
+                  </div>
+                </div>
+
+                <div className="border border-[var(--border-light)] rounded-xl p-4">
+                  <div className="text-[13px] font-medium text-[var(--fg)] font-sans mb-1">
+                    Public
+                  </div>
+                  <p className="text-[13px] text-[var(--muted)] font-sans leading-relaxed mb-2">
+                    Anyone with the link can view, no sign-in required.
+                  </p>
+                  <div className="bg-[#0d1117] rounded-lg p-3 font-mono text-[12px] text-gray-400">
+                    $ orfc push plan.md --access anyone
+                  </div>
+                </div>
+
+                <div className="border border-[var(--border-light)] rounded-xl p-4">
+                  <div className="text-[13px] font-medium text-[var(--fg)] font-sans mb-1">
+                    Domain-restricted
+                  </div>
+                  <p className="text-[13px] text-[var(--muted)] font-sans leading-relaxed mb-2">
+                    Only people with matching email domains can view. The author always has access.
+                  </p>
+                  <div className="bg-[#0d1117] rounded-lg p-3 font-mono text-[12px] text-gray-400 space-y-1">
+                    <div>$ orfc push plan.md --viewers &quot;@company.com&quot;</div>
+                    <div>$ orfc push plan.md --viewers &quot;alice@co.com,bob@co.com&quot;</div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Notifications */}
+            <section>
+              <h2 className="text-[18px] font-semibold text-[var(--fg)] font-sans mb-3 tracking-tight">
+                Notifying reviewers
+              </h2>
+              <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-4">
+                Send an email to reviewers when you publish, so they know to review.
+              </p>
+              <div className="bg-[#0d1117] rounded-xl p-4 font-mono text-[13px] text-gray-300 space-y-1.5">
+                <div><span className="text-gray-500 select-none">$ </span>orfc push plan.md --to reviewer@company.com</div>
+                <div><span className="text-gray-500 select-none">$ </span>orfc push plan.md --to &quot;alice@co.com,bob@co.com&quot;</div>
+              </div>
+            </section>
+
+            {/* Reviewing comments */}
+            <section>
+              <h2 className="text-[18px] font-semibold text-[var(--fg)] font-sans mb-3 tracking-tight">
+                Reviewing feedback
+              </h2>
+              <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-4">
+                Reviewers open the link in their browser, highlight text, and leave inline comments. You can pull those comments back into your markdown.
+              </p>
+              <div className="bg-[#0d1117] rounded-xl p-4 font-mono text-[13px] text-gray-300 space-y-1.5 mb-4">
+                <div><span className="text-gray-500 select-none">$ </span>orfc pull xK7mQ2</div>
+                <div className="text-gray-400 text-[12px]">{`<!-- [COMMENT by reviewer@co.com]`}</div>
+                <div className="text-gray-400 text-[12px]">{`On: "the specific text they highlighted"`}</div>
+                <div className="text-gray-400 text-[12px]">{`> Their feedback here`}</div>
+                <div className="text-gray-400 text-[12px]">{`-->`}</div>
+              </div>
+              <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-3">
+                Pipe to a file for easy revision:
+              </p>
+              <div className="bg-[#0d1117] rounded-xl p-4 font-mono text-[13px] text-gray-300 space-y-1.5">
+                <div><span className="text-gray-500 select-none">$ </span>orfc pull xK7mQ2 &gt; feedback.md</div>
+                <div><span className="text-gray-500 select-none">$ </span>orfc comments xK7mQ2 <span className="text-gray-500"># view comments in terminal</span></div>
+              </div>
+            </section>
+
+            {/* Managing plans */}
+            <section>
+              <h2 className="text-[18px] font-semibold text-[var(--fg)] font-sans mb-3 tracking-tight">
+                Managing plans
+              </h2>
+              <div className="bg-[#0d1117] rounded-xl p-4 font-mono text-[13px] text-gray-300 space-y-1.5">
+                <div><span className="text-gray-500 select-none">$ </span>orfc list <span className="text-gray-500"># list all your published plans</span></div>
+                <div><span className="text-gray-500 select-none">$ </span>orfc open xK7mQ2 <span className="text-gray-500"># open in browser</span></div>
+                <div><span className="text-gray-500 select-none">$ </span>orfc delete xK7mQ2 <span className="text-gray-500"># permanently delete</span></div>
+              </div>
+            </section>
+
+            {/* AI Agent workflow */}
+            <section>
+              <h2 className="text-[18px] font-semibold text-[var(--fg)] font-sans mb-3 tracking-tight">
+                AI agent workflow
+              </h2>
+              <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-4">
+                AI agents (Cursor, Claude Code, Windsurf) can use orfc to share implementation plans for human review before executing. This is the typical flow:
+              </p>
+              <div className="space-y-3">
+                <div className="flex gap-3 items-start">
+                  <span className="text-[12px] font-mono text-[var(--muted)] bg-[var(--border-light)] rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                  <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed">
+                    Agent generates a markdown plan for the implementation
+                  </p>
+                </div>
+                <div className="flex gap-3 items-start">
+                  <span className="text-[12px] font-mono text-[var(--muted)] bg-[var(--border-light)] rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                  <div>
+                    <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-1.5">
+                      Agent publishes and notifies the reviewer
+                    </p>
+                    <div className="bg-[#0d1117] rounded-lg p-3 font-mono text-[12px] text-gray-400">
+                      orfc push plan.md --viewers &quot;@company.com&quot; --to you@company.com
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-3 items-start">
+                  <span className="text-[12px] font-mono text-[var(--muted)] bg-[var(--border-light)] rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                  <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed">
+                    Human reviews on orfc.dev, leaves inline comments on specific sections
+                  </p>
+                </div>
+                <div className="flex gap-3 items-start">
+                  <span className="text-[12px] font-mono text-[var(--muted)] bg-[var(--border-light)] rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">4</span>
+                  <div>
+                    <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-1.5">
+                      Agent pulls feedback and reads inline comments
+                    </p>
+                    <div className="bg-[#0d1117] rounded-lg p-3 font-mono text-[12px] text-gray-400">
+                      orfc pull xK7mQ2 &gt; feedback.md
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-3 items-start">
+                  <span className="text-[12px] font-mono text-[var(--muted)] bg-[var(--border-light)] rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">5</span>
+                  <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed">
+                    Agent addresses each comment, revises the plan, and re-publishes
+                  </p>
+                </div>
+                <div className="flex gap-3 items-start">
+                  <span className="text-[12px] font-mono text-[var(--muted)] bg-[var(--border-light)] rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">6</span>
+                  <div>
+                    <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-1.5">
+                      Agent updates the existing plan with revisions
+                    </p>
+                    <div className="bg-[#0d1117] rounded-lg p-3 font-mono text-[12px] text-gray-400">
+                      orfc push plan.md --update xK7mQ2
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Configuration */}
+            <section>
+              <h2 className="text-[18px] font-semibold text-[var(--fg)] font-sans mb-3 tracking-tight">
+                Configuration
+              </h2>
+              <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-4">
+                Config is stored at <code className="text-[12px] bg-[var(--code-inline-bg)] px-1.5 py-0.5 rounded border border-[var(--border-light)]">~/.orfc/config.json</code>. Set defaults so you don't have to repeat flags.
+              </p>
+              <div className="bg-[#0d1117] rounded-xl p-4 font-mono text-[13px] text-gray-300 space-y-1.5">
+                <div><span className="text-gray-500 select-none">$ </span>orfc config show</div>
+                <div><span className="text-gray-500 select-none">$ </span>orfc config set defaultAccess anyone</div>
+                <div><span className="text-gray-500 select-none">$ </span>orfc config set defaultExpiry 7d</div>
+                <div><span className="text-gray-500 select-none">$ </span>orfc config set slackWebhook https://hooks.slack.com/...</div>
+              </div>
+            </section>
+
+            {/* CLI Reference */}
+            <section>
+              <h2 className="text-[18px] font-semibold text-[var(--fg)] font-sans mb-3 tracking-tight">
+                CLI reference
+              </h2>
+              <div className="border border-[var(--border-light)] rounded-xl overflow-hidden">
+                <table className="w-full text-[13px] font-sans">
+                  <thead>
+                    <tr className="border-b border-[var(--border-light)]">
+                      <th className="text-left p-3 text-[11px] uppercase tracking-wider text-[var(--muted)] font-medium bg-[var(--bg-warm)]">Command</th>
+                      <th className="text-left p-3 text-[11px] uppercase tracking-wider text-[var(--muted)] font-medium bg-[var(--bg-warm)]">Description</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-[var(--fg-secondary)]">
+                    <tr className="border-b border-[var(--border-light)]">
+                      <td className="p-3 font-mono text-[12px]">orfc login</td>
+                      <td className="p-3">Authenticate via browser</td>
+                    </tr>
+                    <tr className="border-b border-[var(--border-light)]">
+                      <td className="p-3 font-mono text-[12px]">orfc push &lt;file&gt;</td>
+                      <td className="p-3">Publish a markdown file</td>
+                    </tr>
+                    <tr className="border-b border-[var(--border-light)]">
+                      <td className="p-3 font-mono text-[12px]">orfc pull &lt;slug&gt;</td>
+                      <td className="p-3">Pull plan with inline comments</td>
+                    </tr>
+                    <tr className="border-b border-[var(--border-light)]">
+                      <td className="p-3 font-mono text-[12px]">orfc comments &lt;slug&gt;</td>
+                      <td className="p-3">View comments in terminal</td>
+                    </tr>
+                    <tr className="border-b border-[var(--border-light)]">
+                      <td className="p-3 font-mono text-[12px]">orfc list</td>
+                      <td className="p-3">List all your plans</td>
+                    </tr>
+                    <tr className="border-b border-[var(--border-light)]">
+                      <td className="p-3 font-mono text-[12px]">orfc open &lt;slug&gt;</td>
+                      <td className="p-3">Open plan in browser</td>
+                    </tr>
+                    <tr className="border-b border-[var(--border-light)]">
+                      <td className="p-3 font-mono text-[12px]">orfc delete &lt;slug&gt;</td>
+                      <td className="p-3">Delete a plan permanently</td>
+                    </tr>
+                    <tr>
+                      <td className="p-3 font-mono text-[12px]">orfc config &lt;action&gt;</td>
+                      <td className="p-3">View or modify config</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        </div>
       </main>
 
       {/* Footer */}

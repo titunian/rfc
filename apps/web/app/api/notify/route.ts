@@ -24,8 +24,10 @@ export async function POST(req: NextRequest) {
       });
       results.email = true;
     } catch (err) {
-      console.error("Email notification failed:", err);
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("Email notification failed:", msg);
       results.email = false;
+      (results as Record<string, unknown>).emailError = msg;
     }
   }
 

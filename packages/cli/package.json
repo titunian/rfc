@@ -1,7 +1,14 @@
 {
   "name": "@orfc/cli",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "orfc — publish markdown plans, get feedback",
+  "keywords": ["markdown", "feedback", "review", "rfc", "cli", "collaboration"],
+  "homepage": "https://orfc.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/titunian/rfc"
+  },
+  "license": "MIT",
   "bin": {
     "orfc": "./dist/index.js"
   },
@@ -12,6 +19,9 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "commander": "^12.0.0",
     "open": "^10.0.0"

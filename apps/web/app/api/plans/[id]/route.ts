@@ -66,6 +66,7 @@ export async function PUT(
     };
     if (body.title !== undefined) updates.title = body.title;
     if (body.content !== undefined) updates.content = body.content;
+    if (body.accessRule !== undefined) updates.accessRule = body.accessRule;
 
     const [plan] = await db
       .update(plans)
@@ -77,7 +78,7 @@ export async function PUT(
       return NextResponse.json({ error: "Plan not found" }, { status: 404 });
     }
 
-    const appUrl = process.env.APP_URL || req.nextUrl.origin;
+    const appUrl = (process.env.APP_URL || req.nextUrl.origin).trim();
     return NextResponse.json({
       id: plan.id,
       slug: plan.slug,
@@ -99,7 +100,7 @@ export async function PUT(
   plan.updatedAt = new Date().toISOString();
   writeLocalDB(localDb);
 
-  const appUrl = process.env.APP_URL || req.nextUrl.origin;
+  const appUrl = (process.env.APP_URL || req.nextUrl.origin).trim();
   return NextResponse.json({
     id: plan.id,
     slug: plan.slug,

@@ -6,15 +6,48 @@ import {
   getDb,
 } from "@/lib/db";
 import { comments, plans } from "@/lib/schema";
-import { getAuthUser } from "@/lib/auth";
+import { getAuthUser, checkAccess } from "@/lib/auth";
 import { eq, asc } from "drizzle-orm";
 import { randomUUID } from "crypto";
+
+async function getPlanAccess(planId: string, userEmail: string | null) {
+  if (!isProductionDB()) return true;
+
+  const db = getDb();
+  const [plan] = await db
+    .select({
+      accessRule: plans.accessRule,
+      allowedViewers: plans.allowedViewers,
+      authorEmail: plans.authorEmail,
+    })
+    .from(plans)
+    .where(eq(plans.id, planId))
+    .limit(1);
+
+  if (!plan) return false;
+
+  return checkAccess(
+    {
+      accessRule: plan.accessRule,
+      allowedViewers: plan.allowedViewers,
+      authorEmail: plan.authorEmail,
+    },
+    userEmail
+  );
+}
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   if (isProductionDB()) {
+    // Check access
+    const user = await getAuthUser(req);
+    const hasAccess = await getPlanAccess(params.id, user?.email || null);
+    if (!hasAccess) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const db = getDb();
     const rows = await db
       .select()
@@ -65,9 +98,16 @@ export async function POST(
 
   if (isProductionDB()) {
     const user = await getAuthUser(req);
-    // In production, require auth to comment
-    const name = user?.name || authorName || "Anonymous";
+
+    // Check access before allowing comment
+    const hasAccess = await getPlanAccess(params.id, user?.email || null);
+    if (!hasAccess) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Use email as display name for authenticated users
     const email = user?.email || null;
+    const name = email || authorName || "Anonymous";
 
     const db = getDb();
 

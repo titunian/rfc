@@ -8,17 +8,11 @@ export function SelectionPopover({
   onDismiss,
 }: {
   rect: DOMRect;
-  onComment: (text: string, authorName: string) => void;
+  onComment: (text: string) => void;
   onDismiss: () => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [commentText, setCommentText] = useState("");
-  const [authorName, setAuthorName] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("rfc-author-name") || "";
-    }
-    return "";
-  });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -43,10 +37,7 @@ export function SelectionPopover({
 
   const submit = () => {
     if (commentText.trim()) {
-      if (authorName.trim()) {
-        localStorage.setItem("rfc-author-name", authorName.trim());
-      }
-      onComment(commentText.trim(), authorName.trim() || "Anonymous");
+      onComment(commentText.trim());
       setCommentText("");
       setIsExpanded(false);
     }
@@ -92,13 +83,6 @@ export function SelectionPopover({
       style={{ top, left, transform: "translateX(-50%)" }}
     >
       <div className="bg-white border border-[var(--border)] rounded-lg shadow-xl p-3 w-[300px] font-sans">
-        <input
-          type="text"
-          value={authorName}
-          onChange={(e) => setAuthorName(e.target.value)}
-          placeholder="Your name"
-          className="w-full text-sm border border-[var(--border)] rounded-md p-2 mb-2 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
-        />
         <textarea
           ref={textareaRef}
           value={commentText}

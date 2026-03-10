@@ -35,7 +35,7 @@ function parseExpiry(expiresIn: string | undefined): Date | null {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { title, content, accessRule, expiresIn } = body;
+  const { title, content, accessRule, allowedViewers, expiresIn } = body;
 
   if (!content) {
     return NextResponse.json(
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
   }
 
   const slug = nanoid(10);
-  const appUrl = process.env.APP_URL || req.nextUrl.origin;
+  const appUrl = (process.env.APP_URL || req.nextUrl.origin).trim();
   const expiresAt = parseExpiry(expiresIn);
 
   if (isProductionDB()) {
@@ -64,6 +64,7 @@ export async function POST(req: NextRequest) {
         authorName: user.name || null,
         authorEmail: user.email,
         accessRule: accessRule || "authenticated",
+        allowedViewers: allowedViewers || null,
         expiresAt,
       })
       .returning();
@@ -86,6 +87,7 @@ export async function POST(req: NextRequest) {
     authorName: null as string | null,
     authorEmail: null as string | null,
     accessRule: accessRule || "authenticated",
+    allowedViewers: allowedViewers || null,
     createdAt: new Date().toISOString(),
     updatedAt: null as string | null,
     expiresAt: expiresAt?.toISOString() || null,

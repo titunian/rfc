@@ -32,10 +32,14 @@ export function generateApiKey(): { key: string; hash: string; prefix: string } 
 export async function validateApiKey(
   authHeader: string | null
 ): Promise<{ email: string } | null> {
-  if (!authHeader?.startsWith("Bearer orfc_")) return null;
+  // Accept both orfc_ and legacy rfc_ prefixed keys
+  const hasValidPrefix =
+    authHeader?.startsWith("Bearer orfc_") ||
+    authHeader?.startsWith("Bearer rfc_");
+  if (!hasValidPrefix) return null;
   if (!isProductionDB()) return null;
 
-  const key = authHeader.slice(7); // Remove "Bearer "
+  const key = authHeader!.slice(7); // Remove "Bearer "
   const hash = createHash("sha256").update(key).digest("hex");
 
   const db = getDb();
@@ -51,21 +55,55 @@ export async function validateApiKey(
 
 // --- Access control ---
 
+/**
+ * Check if a user can access a plan.
+ *
+ * Access logic:
+ *  1. accessRule "anyone" → public, no auth needed
+ *  2. If allowedViewers is set → user must be logged in AND email must match
+ *     Supports "@domain.com" patterns and specific "user@example.com" entries
+ *     Plan author always has access
+ *  3. accessRule "authenticated" → any logged-in user
+ */
 export function checkAccess(
-  accessRule: string,
+  {
+    accessRule,
+    allowedViewers,
+    authorEmail,
+  }: {
+    accessRule: string;
+    allowedViewers?: string | null;
+    authorEmail?: string | null;
+  },
   userEmail: string | null | undefined
 ): boolean {
   if (!accessRule || accessRule === "anyone") return true;
   if (!userEmail) return false;
 
-  // Domain-based: "@company.com"
-  if (accessRule.startsWith("@")) {
-    return userEmail.endsWith(accessRule);
+  const email = userEmail.toLowerCase();
+
+  // Author always has access to their own plan
+  if (authorEmail && email === authorEmail.toLowerCase()) return true;
+
+  // If allowedViewers is set, restrict to those patterns
+  if (allowedViewers) {
+    const patterns = allowedViewers
+      .split(",")
+      .map((p) => p.trim().toLowerCase())
+      .filter(Boolean);
+
+    return patterns.some((pattern) => {
+      if (pattern.startsWith("@")) {
+        // Domain pattern: "@pavoai.com"
+        return email.endsWith(pattern);
+      }
+      // Exact email match
+      return email === pattern;
+    });
   }
 
-  // Comma-separated emails
-  const allowed = accessRule.split(",").map((e) => e.trim().toLowerCase());
-  return allowed.includes(userEmail.toLowerCase());
+  // "authenticated" — any logged-in user
+  return true;
 }
 
 // --- Get authenticated user from either session or API key ---

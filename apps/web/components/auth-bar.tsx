@@ -20,6 +20,13 @@ export function AuthBar() {
 
   return (
     <div className="flex items-center gap-3 font-sans">
+      <a
+        href="/dashboard"
+        className="text-[13px] text-[var(--fg-secondary)] hover:text-[var(--fg)] transition-colors font-medium"
+      >
+        My docs
+      </a>
+      <span className="text-[var(--border)]">·</span>
       <span className="text-[13px] text-[var(--muted)]">
         {session.user?.name || session.user?.email}
       </span>

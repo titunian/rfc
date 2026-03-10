@@ -72,6 +72,7 @@ export class ApiClient {
     title?: string;
     content: string;
     accessRule?: string;
+    allowedViewers?: string;
     expiresIn?: string;
   }): Promise<PlanResponse> {
     const res = await this.request("/api/plans", {

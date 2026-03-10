@@ -15,6 +15,7 @@ export const plans = pgTable("plans", {
   authorName: text("author_name"),
   authorEmail: text("author_email"),
   accessRule: text("access_rule").default("authenticated").notNull(),
+  allowedViewers: text("allowed_viewers"),  // comma-separated emails or @domain patterns
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at"),
   expiresAt: timestamp("expires_at"),

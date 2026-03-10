@@ -13,12 +13,20 @@ type Comment = {
 };
 
 function getInitials(name: string) {
+  // If it's an email, use first char of local part
+  if (name.includes("@")) {
+    return name[0].toUpperCase();
+  }
   return name
     .split(" ")
     .map((w) => w[0])
     .slice(0, 2)
     .join("")
     .toUpperCase();
+}
+
+function getDisplayName(comment: Comment) {
+  return comment.authorEmail || comment.authorName;
 }
 
 const AVATAR_COLORS = [
@@ -205,14 +213,14 @@ function CommentCard({
       {/* Author row + content */}
       <div className="flex items-start gap-2.5">
         <div
-          className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5 ${getAvatarColor(comment.authorName)}`}
+          className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5 ${getAvatarColor(getDisplayName(comment))}`}
         >
-          {getInitials(comment.authorName)}
+          {getInitials(getDisplayName(comment))}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
             <span className="text-[13px] font-medium text-[var(--fg)] font-sans truncate">
-              {comment.authorName}
+              {getDisplayName(comment)}
             </span>
             <span className="text-[11px] text-gray-400 font-sans shrink-0">
               {formatTime(comment.createdAt)}

@@ -9,6 +9,7 @@ export async function pushCommand(
   options: {
     title?: string;
     access?: string;
+    viewers?: string;
     expires?: string;
     open?: boolean;
     update?: string;
@@ -53,7 +54,7 @@ export async function pushCommand(
 
   const config = loadConfig();
   const title = options.title || inferredTitle || "Untitled Plan";
-  const accessRule = options.access || config.defaultAccess || "anyone";
+  const accessRule = options.access || config.defaultAccess || "authenticated";
   const expiresIn = options.expires || config.defaultExpiry;
 
   try {
@@ -76,9 +77,13 @@ export async function pushCommand(
         title,
         content,
         accessRule,
+        allowedViewers: options.viewers,
         expiresIn,
       });
       console.log(`\n  ✓ Published: ${plan.url}`);
+      if (options.viewers) {
+        console.log(`  ✓ Restricted to: ${options.viewers}`);
+      }
     }
 
     const copied = copyToClipboard(plan.url);

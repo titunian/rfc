@@ -17,8 +17,8 @@ export async function sendReviewRequest(opts: {
 
   const { to, fromName, title, url } = opts;
 
-  await resend.emails.send({
-    from: `orfc <${process.env.RESEND_FROM_EMAIL || "noreply@orfc.dev"}>`,
+  const { data, error } = await resend.emails.send({
+    from: `orfc <${process.env.RESEND_FROM_EMAIL || "noreply@mail.orfc.dev"}>`,
     to,
     subject: `${fromName} wants your feedback: ${title}`,
     html: `
@@ -34,6 +34,13 @@ export async function sendReviewRequest(opts: {
       </div>
     `,
   });
+
+  if (error) {
+    console.error("Resend error:", JSON.stringify(error));
+    throw new Error(`Email failed: ${error.message}`);
+  }
+
+  console.log("Email sent:", JSON.stringify(data));
 }
 
 export async function sendCommentNotification(opts: {
@@ -47,8 +54,8 @@ export async function sendCommentNotification(opts: {
 
   const { to, commenterName, title, commentText, url } = opts;
 
-  await resend.emails.send({
-    from: `orfc <${process.env.RESEND_FROM_EMAIL || "noreply@orfc.dev"}>`,
+  const { data, error } = await resend.emails.send({
+    from: `orfc <${process.env.RESEND_FROM_EMAIL || "noreply@mail.orfc.dev"}>`,
     to: [to],
     subject: `New comment on "${title}" from ${commenterName}`,
     html: `
@@ -63,4 +70,11 @@ export async function sendCommentNotification(opts: {
       </div>
     `,
   });
+
+  if (error) {
+    console.error("Resend comment notification error:", JSON.stringify(error));
+    throw new Error(`Email failed: ${error.message}`);
+  }
+
+  console.log("Comment notification sent:", JSON.stringify(data));
 }

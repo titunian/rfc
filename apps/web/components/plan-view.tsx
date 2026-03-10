@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
@@ -17,6 +17,7 @@ type Plan = {
   authorName: string | null;
   authorEmail: string | null;
   accessRule: string;
+  allowedViewers?: string | null;
   createdAt: string;
 };
 
@@ -33,12 +34,42 @@ type Comment = {
   createdAt: string;
 };
 
-export function PlanView({ plan }: { plan: Plan }) {
+type TocItem = {
+  id: string;
+  text: string;
+  level: number;
+};
+
+function extractToc(markdown: string): TocItem[] {
+  const items: TocItem[] = [];
+  const lines = markdown.split("\n");
+  for (const line of lines) {
+    const match = line.match(/^(#{1,4})\s+(.+)/);
+    if (match) {
+      const level = match[1].length;
+      const text = match[2].replace(/[*_`~\[\]()#>]/g, "").trim();
+      const id = text
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, "")
+        .replace(/\s+/g, "-");
+      items.push({ id, text, level });
+    }
+  }
+  return items;
+}
+
+export function PlanView({
+  plan,
+  serverAuthed,
+}: {
+  plan: Plan;
+  serverAuthed: boolean;
+}) {
   const { data: session, status } = useSession();
   const isAuthenticated = !!session?.user;
   const isPublic = plan.accessRule === "anyone";
-  const canView = isPublic || isAuthenticated;
-  const showAuthGate = !canView && status !== "loading";
+  const canView = serverAuthed && (isPublic || isAuthenticated);
+  const showAuthGate = !serverAuthed && status !== "loading";
 
   const [comments, setComments] = useState<Comment[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -50,6 +81,7 @@ export function PlanView({ plan }: { plan: Plan }) {
     offsetStart: number;
     offsetEnd: number;
   } | null>(null);
+  const [activeTocId, setActiveTocId] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -58,10 +90,42 @@ export function PlanView({ plan }: { plan: Plan }) {
     if (!plan.title || !plan.content) return plan.content;
     const match = plan.content.match(/^#\s+(.+?)(?:\n|$)/);
     if (match && match[1].trim() === plan.title.trim()) {
-      return plan.content.replace(/^#\s+.+?\n?/, "").trimStart();
+      return plan.content.replace(/^#[^\n]+\n?/, "").trimStart();
     }
     return plan.content;
   }, [plan.content, plan.title]);
+
+  // Extract TOC from content
+  const toc = useMemo(() => extractToc(displayContent), [displayContent]);
+
+  // TOC scroll spy
+  useEffect(() => {
+    if (!canView || toc.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setActiveTocId(entry.target.id);
+          }
+        }
+      },
+      { rootMargin: "-80px 0px -70% 0px", threshold: 0 }
+    );
+
+    // Wait for headings to render with IDs
+    const timer = setTimeout(() => {
+      for (const item of toc) {
+        const el = document.getElementById(item.id);
+        if (el) observer.observe(el);
+      }
+    }, 200);
+
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, [toc, canView]);
 
   const fetchComments = useCallback(async () => {
     const res = await fetch(`/api/plans/${plan.id}/comments`);
@@ -127,7 +191,7 @@ export function PlanView({ plan }: { plan: Plan }) {
     }
   }, [handleTextSelection, canView]);
 
-  const handleAddComment = async (commentText: string, authorName: string) => {
+  const handleAddComment = async (commentText: string) => {
     if (!selection) return;
 
     const res = await fetch(`/api/plans/${plan.id}/comments`, {
@@ -135,7 +199,6 @@ export function PlanView({ plan }: { plan: Plan }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         content: commentText,
-        authorName: authorName || "Anonymous",
         anchorText: selection.text,
         anchorBlockIndex: selection.blockIndex,
         anchorOffsetStart: selection.offsetStart,
@@ -260,6 +323,8 @@ export function PlanView({ plan }: { plan: Plan }) {
   };
 
   const unresolvedCount = comments.filter((c) => !c.resolved).length;
+  const authorDisplay = plan.authorEmail || plan.authorName;
+  const showToc = canView && toc.length > 2;
 
   return (
     <div className="min-h-screen bg-[var(--bg-warm)]">
@@ -270,7 +335,7 @@ export function PlanView({ plan }: { plan: Plan }) {
             href="/"
             className="text-[15px] font-semibold tracking-tight font-sans text-[var(--fg)] hover:text-[var(--fg-secondary)] transition-colors"
           >
-            rfc
+            orfc
           </a>
           <div className="flex items-center gap-3">
             {status !== "loading" && !isAuthenticated && (
@@ -282,9 +347,23 @@ export function PlanView({ plan }: { plan: Plan }) {
               </a>
             )}
             {isAuthenticated && (
-              <span className="text-[13px] text-[var(--muted)] font-sans">
-                {session.user?.name || session.user?.email}
-              </span>
+              <>
+                <a
+                  href="/dashboard"
+                  className="text-[13px] text-[var(--muted)] hover:text-[var(--fg)] font-sans transition-colors"
+                >
+                  My docs
+                </a>
+                <span className="text-[13px] text-[var(--muted)] font-sans">
+                  {session.user?.email}
+                </span>
+                <button
+                  onClick={() => signOut({ callbackUrl: `/p/${plan.slug}` })}
+                  className="text-[12px] text-[var(--muted)] hover:text-[var(--fg)] font-sans transition-colors"
+                >
+                  Log out
+                </button>
+              </>
             )}
             {canView && (
               <button
@@ -316,24 +395,61 @@ export function PlanView({ plan }: { plan: Plan }) {
       </header>
 
       <div className="max-w-[1400px] mx-auto flex">
+        {/* Table of Contents — left sidebar */}
+        {showToc && (
+          <nav className="w-[220px] shrink-0 sticky top-[53px] h-[calc(100vh-53px)] overflow-y-auto py-8 pl-6 pr-2 hidden lg:block">
+            <p className="text-[11px] uppercase tracking-[0.1em] text-[var(--muted)] font-sans font-medium mb-3">
+              On this page
+            </p>
+            <ul className="space-y-0.5">
+              {toc.map((item) => (
+                <li key={item.id}>
+                  <a
+                    href={`#${item.id}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const el = document.getElementById(item.id);
+                      if (el) {
+                        el.scrollIntoView({ behavior: "smooth", block: "start" });
+                        setActiveTocId(item.id);
+                      }
+                    }}
+                    className={`block text-[12px] font-sans py-1 transition-colors leading-snug truncate ${
+                      item.level === 1 ? "pl-0 font-medium" : ""
+                    }${item.level === 2 ? "pl-0" : ""}${
+                      item.level === 3 ? "pl-3" : ""
+                    }${item.level === 4 ? "pl-6" : ""} ${
+                      activeTocId === item.id
+                        ? "text-[var(--fg)] font-medium"
+                        : "text-[var(--muted)] hover:text-[var(--fg-secondary)]"
+                    }`}
+                  >
+                    {item.text}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
+
         {/* Main content */}
         <main
-          className={`flex-1 px-6 py-16 transition-all ${
+          className={`flex-1 px-6 py-10 transition-all min-w-0 ${
             sidebarOpen && canView ? "max-w-[calc(100%-340px)]" : ""
           }`}
         >
-          {/* Title block — always visible */}
-          <div className="max-w-[68ch] mx-auto mb-8">
-            <h1 className="text-[2.5rem] font-bold tracking-tight font-sans leading-[1.15] mb-4 text-[var(--fg)]">
-              {plan.title || "Untitled RFC"}
+          {/* Title block */}
+          <div className="max-w-[68ch] mx-auto mb-6">
+            <h1 className="text-[1.5rem] font-semibold tracking-[-0.02em] font-sans leading-[1.3] mb-2 text-[var(--fg)]">
+              {plan.title || "Untitled"}
             </h1>
-            <div className="flex items-center gap-2.5 text-[13px] text-[var(--muted)] font-sans">
-              {plan.authorName && (
+            <div className="flex items-center gap-2 text-[12px] text-[var(--muted)] font-sans">
+              {authorDisplay && (
                 <span className="font-medium text-[var(--fg-secondary)]">
-                  {plan.authorName}
+                  {authorDisplay}
                 </span>
               )}
-              {plan.authorName && (
+              {authorDisplay && (
                 <span className="text-[var(--border)]" aria-hidden="true">
                   ·
                 </span>
@@ -345,50 +461,90 @@ export function PlanView({ plan }: { plan: Plan }) {
           {/* Content area with auth gating */}
           <div className="max-w-[68ch] mx-auto relative">
             {showAuthGate && (
-              <>
-                <div className="auth-gate-blur" aria-hidden="true">
+              <div className="relative">
+                {/* Blurred preview — only shows truncated server content */}
+                <div
+                  className="select-none pointer-events-none"
+                  aria-hidden="true"
+                  style={{
+                    filter: "blur(5px)",
+                    WebkitFilter: "blur(5px)",
+                    maskImage:
+                      "linear-gradient(to bottom, black 0%, transparent 80%)",
+                    WebkitMaskImage:
+                      "linear-gradient(to bottom, black 0%, transparent 80%)",
+                    maxHeight: "300px",
+                    overflow: "hidden",
+                  }}
+                >
                   <div className="prose">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {plan.content.slice(0, 800)}
+                      {plan.content}
                     </ReactMarkdown>
                   </div>
                 </div>
 
-                <div className="auth-gate-overlay">
+                {/* Overlay — differentiate signed-in-no-access vs not-signed-in */}
+                <div className="absolute inset-0 flex items-center justify-center z-10">
                   <div className="text-center px-6 py-10 max-w-md">
-                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                    <div className="w-14 h-14 rounded-2xl bg-white border border-[var(--border)] flex items-center justify-center mx-auto mb-5 shadow-sm">
                       <svg
-                        className="w-5 h-5 text-[var(--muted)]"
+                        className="w-6 h-6 text-[var(--fg)]"
                         fill="none"
                         viewBox="0 0 24 24"
                         strokeWidth={1.5}
                         stroke="currentColor"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
-                        />
+                        {isAuthenticated ? (
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+                          />
+                        ) : (
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
+                          />
+                        )}
                       </svg>
                     </div>
-                    <h2 className="text-xl font-semibold font-sans mb-2 text-[var(--fg)]">
-                      Sign in to continue reading
-                    </h2>
-                    <p className="text-[14px] text-[var(--muted)] font-sans mb-6 leading-relaxed">
-                      This RFC requires authentication.
-                    </p>
-                    <a
-                      href={`/auth/signin?callbackUrl=/p/${plan.slug}`}
-                      className="inline-block px-6 py-2.5 bg-[var(--fg)] text-white text-[14px] font-medium rounded-xl hover:bg-gray-800 transition-colors font-sans"
-                    >
-                      Sign in with email
-                    </a>
+                    {isAuthenticated ? (
+                      <>
+                        <h2 className="text-[18px] font-semibold font-sans mb-2 text-[var(--fg)]">
+                          You don&apos;t have access
+                        </h2>
+                        <p className="text-[14px] text-[var(--muted)] font-sans mb-2 leading-relaxed">
+                          This document is restricted. Your account
+                          ({session?.user?.email}) is not in the allowed viewers list.
+                        </p>
+                        <p className="text-[13px] text-[var(--muted)] font-sans leading-relaxed">
+                          Contact the author to request access.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <h2 className="text-[18px] font-semibold font-sans mb-2 text-[var(--fg)]">
+                          Sign in to continue reading
+                        </h2>
+                        <p className="text-[14px] text-[var(--muted)] font-sans mb-6 leading-relaxed">
+                          This document requires authentication to view.
+                        </p>
+                        <a
+                          href={`/auth/signin?callbackUrl=/p/${plan.slug}`}
+                          className="inline-block px-6 py-2.5 bg-[var(--fg)] text-white text-[14px] font-medium rounded-xl hover:bg-gray-800 transition-colors font-sans shadow-sm"
+                        >
+                          Sign in with email
+                        </a>
+                      </>
+                    )}
                   </div>
                 </div>
-              </>
+              </div>
             )}
 
-            {status === "loading" && !isPublic && (
+            {status === "loading" && !isPublic && !serverAuthed && (
               <div className="py-20 text-center">
                 <div className="text-[14px] text-[var(--muted)] font-sans animate-pulse">
                   Loading…
@@ -402,6 +558,55 @@ export function PlanView({ plan }: { plan: Plan }) {
                   remarkPlugins={[remarkGfm]}
                   rehypePlugins={[rehypeHighlight]}
                   components={{
+                    // Add IDs to headings for TOC navigation
+                    h1: ({ children, ...props }) => {
+                      const text = getTextContent(children);
+                      const id = text
+                        .toLowerCase()
+                        .replace(/[^\w\s-]/g, "")
+                        .replace(/\s+/g, "-");
+                      return (
+                        <h1 id={id} {...props}>
+                          {children}
+                        </h1>
+                      );
+                    },
+                    h2: ({ children, ...props }) => {
+                      const text = getTextContent(children);
+                      const id = text
+                        .toLowerCase()
+                        .replace(/[^\w\s-]/g, "")
+                        .replace(/\s+/g, "-");
+                      return (
+                        <h2 id={id} {...props}>
+                          {children}
+                        </h2>
+                      );
+                    },
+                    h3: ({ children, ...props }) => {
+                      const text = getTextContent(children);
+                      const id = text
+                        .toLowerCase()
+                        .replace(/[^\w\s-]/g, "")
+                        .replace(/\s+/g, "-");
+                      return (
+                        <h3 id={id} {...props}>
+                          {children}
+                        </h3>
+                      );
+                    },
+                    h4: ({ children, ...props }) => {
+                      const text = getTextContent(children);
+                      const id = text
+                        .toLowerCase()
+                        .replace(/[^\w\s-]/g, "")
+                        .replace(/\s+/g, "-");
+                      return (
+                        <h4 id={id} {...props}>
+                          {children}
+                        </h4>
+                      );
+                    },
                     code(props) {
                       const { className, children, ...rest } = props;
                       const match = /language-(\w+)/.exec(className || "");
@@ -466,4 +671,15 @@ export function PlanView({ plan }: { plan: Plan }) {
       )}
     </div>
   );
+}
+
+// Helper to extract plain text from React children
+function getTextContent(children: React.ReactNode): string {
+  if (typeof children === "string") return children;
+  if (typeof children === "number") return String(children);
+  if (Array.isArray(children)) return children.map(getTextContent).join("");
+  if (children && typeof children === "object" && "props" in children) {
+    return getTextContent((children as React.ReactElement).props.children);
+  }
+  return "";
 }

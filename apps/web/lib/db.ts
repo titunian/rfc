@@ -38,6 +38,7 @@ export interface LocalPlan {
   authorName: string | null;
   authorEmail: string | null;
   accessRule: string;
+  allowedViewers: string | null;
   createdAt: string;
   updatedAt: string | null;
   expiresAt: string | null;
