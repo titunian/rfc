@@ -81,7 +81,8 @@ program
   .option("--viewers <patterns>", "Restrict who can view. Use \"@domain.com\" for domain-based access or comma-separated emails. Implies authenticated access. Author always has access.")
   .option("-u, --update <slug>", "Update an existing plan by its slug instead of creating a new one")
   .option("--to <emails>", "Email notification to reviewers (comma-separated email addresses)")
-  .option("--slack <webhook>", "Send notification to a Slack webhook URL")
+  .option("--slack <webhook>", "Send notification to a Slack webhook URL (legacy, no thread sync)")
+  .option("--slack-channel <channel>", "Post RFC to a Slack channel (e.g., #engineering or C0123ABC). Enables thread sync — replies become RFC comments.")
   .option("--expires <duration>", "Auto-expire the plan after a duration (e.g., 7d, 24h, 30m)")
   .option("--no-open", "Don't auto-open the published URL in the browser")
   .action(pushCommand);
@@ -152,7 +153,8 @@ program
     "    apiUrl          Server URL (default: https://orfc.dev)\n" +
     "    defaultAccess   Default access rule for new plans (anyone | authenticated)\n" +
     "    defaultExpiry   Default expiry for new plans (e.g., 7d)\n" +
-    "    slackWebhook    Default Slack webhook URL for notifications\n\n" +
+    "    slackWebhook    Default Slack webhook URL for notifications (legacy)\n" +
+    "    slackChannel    Default Slack channel for posting RFCs (enables thread sync)\n\n" +
     "  Example:\n" +
     "    orfc config set defaultAccess anyone\n" +
     "    orfc config show"

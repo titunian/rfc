@@ -39,6 +39,8 @@ export interface LocalPlan {
   authorEmail: string | null;
   accessRule: string;
   allowedViewers: string | null;
+  slackChannelId: string | null;
+  slackMessageTs: string | null;
   createdAt: string;
   updatedAt: string | null;
   expiresAt: string | null;
@@ -54,6 +56,7 @@ export interface LocalComment {
   anchorBlockIndex: number | null;
   anchorOffsetStart: number | null;
   anchorOffsetEnd: number | null;
+  source: string;
   resolved: boolean;
   createdAt: string;
 }

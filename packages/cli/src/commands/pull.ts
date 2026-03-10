@@ -5,6 +5,7 @@ interface CommentItem {
   authorName: string;
   content: string;
   anchorText: string | null;
+  source: string;
   resolved: boolean;
 }
 
@@ -56,7 +57,8 @@ export function annotateMarkdown(
       }
     }
 
-    const commentBlock = `\n\n<!-- [COMMENT by ${c.authorName}]\nOn: "${anchor}"\n> ${c.content.replace(/\n/g, "\n> ")}\n-->`;
+    const sourceTag = c.source === "slack" ? " (via Slack)" : "";
+    const commentBlock = `\n\n<!-- [COMMENT by ${c.authorName}${sourceTag}]\nOn: "${anchor}"\n> ${c.content.replace(/\n/g, "\n> ")}\n-->`;
 
     if (matchIdx !== -1) {
       // Find end of the paragraph (next blank line or end of string)
@@ -81,7 +83,8 @@ export function annotateMarkdown(
   if (general.length > 0) {
     result += "\n\n<!-- === GENERAL COMMENTS === -->";
     for (const c of general) {
-      result += `\n\n<!-- [COMMENT by ${c.authorName}]\n> ${c.content.replace(/\n/g, "\n> ")}\n-->`;
+      const srcTag = c.source === "slack" ? " (via Slack)" : "";
+    result += `\n\n<!-- [COMMENT by ${c.authorName}${srcTag}]\n> ${c.content.replace(/\n/g, "\n> ")}\n-->`;
     }
   }
 

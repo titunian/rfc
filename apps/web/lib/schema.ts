@@ -16,6 +16,8 @@ export const plans = pgTable("plans", {
   authorEmail: text("author_email"),
   accessRule: text("access_rule").default("authenticated").notNull(),
   allowedViewers: text("allowed_viewers"),  // comma-separated emails or @domain patterns
+  slackChannelId: text("slack_channel_id"),
+  slackMessageTs: text("slack_message_ts"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at"),
   expiresAt: timestamp("expires_at"),
@@ -33,6 +35,7 @@ export const comments = pgTable("comments", {
   anchorBlockIndex: integer("anchor_block_index"),
   anchorOffsetStart: integer("anchor_offset_start"),
   anchorOffsetEnd: integer("anchor_offset_end"),
+  source: text("source").default("web").notNull(), // "web" | "slack"
   resolved: boolean("resolved").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

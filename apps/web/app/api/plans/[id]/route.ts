@@ -67,6 +67,10 @@ export async function PUT(
     if (body.title !== undefined) updates.title = body.title;
     if (body.content !== undefined) updates.content = body.content;
     if (body.accessRule !== undefined) updates.accessRule = body.accessRule;
+    if (body.slackChannelId !== undefined)
+      updates.slackChannelId = body.slackChannelId;
+    if (body.slackMessageTs !== undefined)
+      updates.slackMessageTs = body.slackMessageTs;
 
     const [plan] = await db
       .update(plans)
@@ -97,6 +101,10 @@ export async function PUT(
 
   if (body.title !== undefined) plan.title = body.title;
   if (body.content !== undefined) plan.content = body.content;
+  if (body.slackChannelId !== undefined)
+    plan.slackChannelId = body.slackChannelId;
+  if (body.slackMessageTs !== undefined)
+    plan.slackMessageTs = body.slackMessageTs;
   plan.updatedAt = new Date().toISOString();
   writeLocalDB(localDb);
 

@@ -88,6 +88,8 @@ export async function POST(req: NextRequest) {
     authorEmail: null as string | null,
     accessRule: accessRule || "authenticated",
     allowedViewers: allowedViewers || null,
+    slackChannelId: null as string | null,
+    slackMessageTs: null as string | null,
     createdAt: new Date().toISOString(),
     updatedAt: null as string | null,
     expiresAt: expiresAt?.toISOString() || null,
