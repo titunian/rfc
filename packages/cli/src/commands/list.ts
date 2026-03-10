@@ -8,11 +8,11 @@ export async function listCommand() {
     const data = await api.listPlans();
 
     if (!data.plans?.length) {
-      console.log("\n  No RFCs published yet.\n");
+      console.log("\n  No plans published yet.\n");
       return;
     }
 
-    console.log(`\n  Your RFCs (${data.plans.length}):\n`);
+    console.log(`\n  Your plans (${data.plans.length}):\n`);
 
     for (const plan of data.plans) {
       const date = new Date(plan.createdAt).toLocaleDateString("en-US", {

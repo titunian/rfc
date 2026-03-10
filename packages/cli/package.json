@@ -1,9 +1,9 @@
 {
-  "name": "@rfc-tool/cli",
+  "name": "@orfc/cli",
   "version": "0.1.0",
-  "description": "rfc — publish markdown plans, get feedback",
+  "description": "orfc — publish markdown plans, get feedback",
   "bin": {
-    "rfc": "./dist/index.js"
+    "orfc": "./dist/index.js"
   },
   "scripts": {
     "build": "tsc",

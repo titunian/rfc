@@ -1,5 +1,4 @@
 import type { NextAuthOptions } from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { getDb, isProductionDB } from "@/lib/db";
 import { verificationCodes } from "@/lib/schema";
@@ -7,14 +6,6 @@ import { eq, and, gt } from "drizzle-orm";
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
-      ? [
-          GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-          }),
-        ]
-      : []),
     CredentialsProvider({
       id: "email-otp",
       name: "Email",

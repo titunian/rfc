@@ -15,7 +15,7 @@ function prompt(question: string): Promise<string> {
 }
 
 export async function initCommand() {
-  console.log("\n  rfc — setup\n");
+  console.log("\n  orfc — setup\n");
 
   const config = loadConfig();
 
@@ -26,12 +26,12 @@ export async function initCommand() {
   if (name) config.name = name;
 
   const apiKey = await prompt(
-    "  API key (get one at your rfc server, or leave blank for local): "
+    "  API key (get one at your orfc server, or leave blank for local): "
   );
   if (apiKey) config.apiKey = apiKey;
 
   saveConfig(config);
 
   console.log(`\n  ✓ Config saved to ${getConfigDir()}/config.json`);
-  console.log("  You're ready to go! Try: rfc push plan.md\n");
+  console.log("  You're ready to go! Try: orfc push plan.md\n");
 }

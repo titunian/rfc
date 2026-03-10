@@ -1,5 +1,5 @@
 {
-  "name": "rfc",
+  "name": "orfc",
   "private": true,
   "workspaces": [
     "apps/*",

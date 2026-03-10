@@ -14,13 +14,13 @@ import { loginCommand } from "./commands/login";
 const program = new Command();
 
 program
-  .name("rfc")
+  .name("orfc")
   .description("Publish markdown plans, get feedback from your team.")
   .version("0.1.0");
 
 program
   .command("init")
-  .description("Configure rfc (server URL, name)")
+  .description("Configure orfc (server URL, name)")
   .action(initCommand);
 
 program
@@ -29,7 +29,7 @@ program
   .option("-t, --title <title>", "RFC title (auto-detected from # heading)")
   .option("--no-open", "Don't auto-open in browser")
   .option("--expires <duration>", "Expiry duration (e.g., 7d, 24h, 30m)")
-  .option("-u, --update <slug>", "Update an existing RFC instead of creating new")
+  .option("-u, --update <slug>", "Update an existing plan instead of creating new")
   .option("--to <emails>", "Email reviewers (comma-separated)")
   .option("--slack <webhook>", "Send to Slack webhook URL")
   .action(pushCommand);
@@ -43,28 +43,28 @@ program
 program
   .command("list")
   .alias("ls")
-  .description("List your published RFCs")
+  .description("List your published plans")
   .action(listCommand);
 
 program
   .command("delete <slug>")
   .alias("rm")
-  .description("Delete a published RFC")
+  .description("Delete a published plan")
   .action(deleteCommand);
 
 program
   .command("open <slug>")
-  .description("Open an RFC in the browser")
+  .description("Open a plan in the browser")
   .action(openCommand);
 
 program
   .command("comments <slug>")
-  .description("View comments on an RFC")
+  .description("View comments on a plan")
   .action(commentsCommand);
 
 program
   .command("login")
-  .description("Authenticate with the rfc server via browser")
+  .description("Authenticate with the orfc server via browser")
   .action(loginCommand);
 
 program

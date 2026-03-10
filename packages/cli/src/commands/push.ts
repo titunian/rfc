@@ -39,7 +39,7 @@ export async function pushCommand(
       process.exit(1);
     }
   } else {
-    console.error("  ✗ Pass a file: rfc push plan.md");
+    console.error("  ✗ Pass a file: orfc push plan.md");
     process.exit(1);
   }
 
@@ -52,7 +52,7 @@ export async function pushCommand(
   }
 
   const config = loadConfig();
-  const title = options.title || inferredTitle || "Untitled RFC";
+  const title = options.title || inferredTitle || "Untitled Plan";
   const accessRule = options.access || config.defaultAccess || "anyone";
   const expiresIn = options.expires || config.defaultExpiry;
 
@@ -66,7 +66,7 @@ export async function pushCommand(
       const { plans } = await api.listPlans();
       const match = plans.find((p) => p.slug === options.update);
       if (!match) {
-        console.error(`\n  ✗ RFC not found: ${options.update}`);
+        console.error(`\n  ✗ Plan not found: ${options.update}`);
         process.exit(1);
       }
       plan = await api.updatePlan(match.id, { title, content });
@@ -119,7 +119,7 @@ export async function pushCommand(
           console.log("  ✓ Sent to Slack");
         }
       } catch {
-        console.error("  ⚠ Notification failed (RFC still published)");
+        console.error("  ⚠ Notification failed (plan still published)");
       }
     }
 
@@ -128,7 +128,7 @@ export async function pushCommand(
     const message = err instanceof Error ? err.message : String(err);
     console.error(`\n  ✗ ${message}`);
     console.error(
-      "  Make sure the rfc server is running: cd apps/web && npm run dev\n"
+      "  Make sure the orfc server is running: cd apps/web && npm run dev\n"
     );
     process.exit(1);
   }

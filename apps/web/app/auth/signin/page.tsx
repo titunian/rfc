@@ -54,7 +54,7 @@ function SignInForm() {
   return (
     <div className="w-full max-w-sm px-6">
       <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold tracking-tight">rfc</h1>
+        <h1 className="text-2xl font-bold tracking-tight">orfc</h1>
         <p className="text-sm text-[var(--muted)] mt-1">Sign in to continue</p>
       </div>
 

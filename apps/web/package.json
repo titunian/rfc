@@ -1,5 +1,5 @@
 {
-  "name": "@rfc-tool/web",
+  "name": "@orfc/web",
   "version": "0.1.0",
   "private": true,
   "scripts": {

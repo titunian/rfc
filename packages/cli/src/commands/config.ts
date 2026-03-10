@@ -11,7 +11,7 @@ const CONFIG_KEYS: Record<string, string> = {
 export function configCommand(action: string, key?: string, value?: string) {
   if (action === "show") {
     const config = loadConfig();
-    console.log("\n  rfc config:\n");
+    console.log("\n  orfc config:\n");
     console.log(`  api-url:           ${config.apiUrl}`);
     console.log(`  email:             ${config.email || "(not set)"}`);
     console.log(`  name:              ${config.name || "(not set)"}`);
@@ -36,7 +36,7 @@ export function configCommand(action: string, key?: string, value?: string) {
 
   if (action === "set") {
     if (!key || !value) {
-      console.error("\n  Usage: rfc config set <key> <value>\n");
+      console.error("\n  Usage: orfc config set <key> <value>\n");
       console.log("  Available keys:");
       for (const k of Object.keys(CONFIG_KEYS)) {
         console.log(`    ${k}`);
@@ -61,5 +61,5 @@ export function configCommand(action: string, key?: string, value?: string) {
     return;
   }
 
-  console.error("\n  Usage: rfc config <show|set> [key] [value]\n");
+  console.error("\n  Usage: orfc config <show|set> [key] [value]\n");
 }

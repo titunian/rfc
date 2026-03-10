@@ -65,12 +65,12 @@ function CliAuthFlow() {
   if (!port || !state) {
     return (
       <div className="w-full max-w-sm px-6 text-center">
-        <h1 className="text-2xl font-bold tracking-tight mb-2">rfc</h1>
+        <h1 className="text-2xl font-bold tracking-tight mb-2">orfc</h1>
         <p className="text-sm text-[var(--muted)]">
           This page should be opened by the CLI.
         </p>
         <p className="text-sm text-[var(--muted)] mt-2">
-          Run <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono">rfc login</code> in
+          Run <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono">orfc login</code> in
           your terminal to authenticate.
         </p>
       </div>
@@ -81,7 +81,7 @@ function CliAuthFlow() {
   if (step === "generating") {
     return (
       <div className="w-full max-w-sm px-6 text-center">
-        <h1 className="text-2xl font-bold tracking-tight mb-2">rfc</h1>
+        <h1 className="text-2xl font-bold tracking-tight mb-2">orfc</h1>
         <p className="text-sm text-[var(--muted)]">Setting up your CLI...</p>
         <div className="mt-4 animate-pulse text-[var(--muted)]">●●●</div>
       </div>
@@ -92,7 +92,7 @@ function CliAuthFlow() {
   if (step === "done") {
     return (
       <div className="w-full max-w-sm px-6 text-center">
-        <h1 className="text-2xl font-bold tracking-tight mb-2">rfc</h1>
+        <h1 className="text-2xl font-bold tracking-tight mb-2">orfc</h1>
         <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
           <p className="text-sm font-medium text-green-800">
             ✓ Authenticated!
@@ -109,7 +109,7 @@ function CliAuthFlow() {
   if (step === "error") {
     return (
       <div className="w-full max-w-sm px-6 text-center">
-        <h1 className="text-2xl font-bold tracking-tight mb-2">rfc</h1>
+        <h1 className="text-2xl font-bold tracking-tight mb-2">orfc</h1>
         <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-sm text-red-700">{error}</p>
         </div>
@@ -169,7 +169,7 @@ function CliAuthFlow() {
   return (
     <div className="w-full max-w-sm px-6">
       <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold tracking-tight">rfc</h1>
+        <h1 className="text-2xl font-bold tracking-tight">orfc</h1>
         <p className="text-sm text-[var(--muted)] mt-1">
           Sign in to authenticate your CLI
         </p>

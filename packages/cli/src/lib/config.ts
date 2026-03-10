@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { homedir } from "os";
 import { join } from "path";
 
-export interface RfcConfig {
+export interface OrfcConfig {
   apiKey?: string;
   apiUrl: string;
   email?: string;
@@ -14,18 +14,18 @@ export interface RfcConfig {
   [key: string]: unknown;
 }
 
-const CONFIG_DIR = join(homedir(), ".rfc");
+const CONFIG_DIR = join(homedir(), ".orfc");
 const CONFIG_FILE = join(CONFIG_DIR, "config.json");
 
-const DEFAULT_CONFIG: RfcConfig = {
-  apiUrl: "https://web-gray-five-98.vercel.app",
+const DEFAULT_CONFIG: OrfcConfig = {
+  apiUrl: "https://orfc.dev",
 };
 
 export function getConfigDir(): string {
   return CONFIG_DIR;
 }
 
-export function loadConfig(): RfcConfig {
+export function loadConfig(): OrfcConfig {
   if (!existsSync(CONFIG_FILE)) {
     return { ...DEFAULT_CONFIG };
   }
@@ -37,7 +37,7 @@ export function loadConfig(): RfcConfig {
   }
 }
 
-export function saveConfig(config: RfcConfig): void {
+export function saveConfig(config: OrfcConfig): void {
   if (!existsSync(CONFIG_DIR)) {
     mkdirSync(CONFIG_DIR, { recursive: true });
   }

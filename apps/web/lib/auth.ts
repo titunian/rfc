@@ -23,7 +23,7 @@ export async function requireSession() {
 
 export function generateApiKey(): { key: string; hash: string; prefix: string } {
   const raw = randomBytes(24).toString("base64url");
-  const key = `rfc_${raw}`;
+  const key = `orfc_${raw}`;
   const hash = createHash("sha256").update(key).digest("hex");
   const prefix = key.slice(0, 8);
   return { key, hash, prefix };
@@ -32,7 +32,7 @@ export function generateApiKey(): { key: string; hash: string; prefix: string } 
 export async function validateApiKey(
   authHeader: string | null
 ): Promise<{ email: string } | null> {
-  if (!authHeader?.startsWith("Bearer rfc_")) return null;
+  if (!authHeader?.startsWith("Bearer orfc_")) return null;
   if (!isProductionDB()) return null;
 
   const key = authHeader.slice(7); // Remove "Bearer "

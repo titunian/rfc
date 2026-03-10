@@ -9,7 +9,7 @@ export default function Home() {
       {/* Minimal nav */}
       <header className="px-6 py-4 flex items-center justify-between max-w-4xl w-full mx-auto">
         <span className="text-[15px] font-semibold tracking-tight font-sans text-[var(--fg)]">
-          rfc
+          orfc
         </span>
         <AuthBar />
       </header>
@@ -18,7 +18,7 @@ export default function Home() {
       <main className="flex-1 flex flex-col items-center px-6 pt-20 pb-16">
         <div className="text-center max-w-2xl">
           <h1 className="text-7xl font-bold tracking-tighter font-sans text-[var(--fg)] mb-6">
-            rfc
+            orfc
           </h1>
 
           <p className="text-[20px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-1">
@@ -43,7 +43,7 @@ export default function Home() {
                 <div className="w-2.5 h-2.5 rounded-full bg-[#febc2e]/80" />
                 <div className="w-2.5 h-2.5 rounded-full bg-[#28c840]/80" />
               </div>
-              <CopyCommand command="npm install -g rfc-tool" />
+              <CopyCommand command="npm install -g @orfc/cli" />
             </div>
           </div>
 
@@ -53,21 +53,21 @@ export default function Home() {
               <div className="space-y-1.5 font-mono text-[14px]">
                 <div>
                   <span className="text-gray-500 select-none">$ </span>
-                  <span className="text-gray-300">rfc login</span>
+                  <span className="text-gray-300">orfc login</span>
                 </div>
                 <div className="text-green-400/70 text-[13px]">
                   ✓ Authenticated
                 </div>
                 <div className="pt-2">
                   <span className="text-gray-500 select-none">$ </span>
-                  <span className="text-gray-300">rfc push plan.md</span>
+                  <span className="text-gray-300">orfc push plan.md</span>
                 </div>
                 <div className="text-green-400/70 text-[13px]">
-                  ✓ Published → https://rfc.dev/p/xK7mQ2
+                  ✓ Published → https://orfc.dev/p/xK7mQ2
                 </div>
                 <div className="pt-2">
                   <span className="text-gray-500 select-none">$ </span>
-                  <span className="text-gray-300">rfc pull xK7mQ2</span>
+                  <span className="text-gray-300">orfc pull xK7mQ2</span>
                 </div>
                 <div className="text-green-400/70 text-[13px]">
                   ✓ 3 comments pulled → feedback.md
