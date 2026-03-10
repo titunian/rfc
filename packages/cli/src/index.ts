@@ -10,6 +10,7 @@ import { commentsCommand } from "./commands/comments";
 import { configCommand } from "./commands/config";
 import { pullCommand } from "./commands/pull";
 import { loginCommand } from "./commands/login";
+import { installSkillCommand } from "./commands/install-skill";
 
 const program = new Command();
 
@@ -158,5 +159,16 @@ program
     "    orfc config show"
   )
   .action(configCommand);
+
+program
+  .command("install-skill")
+  .description(
+    "Install the orfc skill for Claude Code.\n" +
+    "  Copies the skill to ~/.claude/skills/orfc/ so you can use /orfc\n" +
+    "  as a slash command in Claude Code.\n\n" +
+    "  This runs automatically on npm install, but you can run it\n" +
+    "  manually to reinstall or update the skill."
+  )
+  .action(installSkillCommand);
 
 program.parse();

@@ -14,10 +14,13 @@
   },
   "scripts": {
     "build": "tsc",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "postinstall": "node scripts/postinstall.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "skills",
+    "scripts"
   ],
   "publishConfig": {
     "access": "public"
