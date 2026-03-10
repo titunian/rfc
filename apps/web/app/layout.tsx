@@ -18,6 +18,7 @@ const sourceSerif = Source_Serif_4({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.orfc.dev"),
   title: "orfc — open request for comments",
   description: "Publish markdown plans, get feedback from your team.",
 };

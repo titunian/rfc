@@ -1,3 +1,5 @@
+import { cache } from "react";
+import type { Metadata } from "next";
 import { readLocalDB, isProductionDB, getDb } from "@/lib/db";
 import { plans } from "@/lib/schema";
 import { eq } from "drizzle-orm";
@@ -6,10 +8,11 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { checkAccess } from "@/lib/auth";
 import { PlanView } from "@/components/plan-view";
+import { extractDescription } from "@/lib/markdown-utils";
 
 export const dynamic = "force-dynamic";
 
-async function getPlan(slug: string) {
+const getPlan = cache(async (slug: string) => {
   if (isProductionDB()) {
     const db = getDb();
     const [plan] = await db
@@ -35,6 +38,49 @@ async function getPlan(slug: string) {
   const localDb = readLocalDB();
   const found = localDb.plans.find((p) => p.slug === slug);
   return found || null;
+});
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}): Promise<Metadata> {
+  const plan = await getPlan(params.slug);
+
+  if (!plan) {
+    return { title: "Not Found — orfc" };
+  }
+
+  const title = plan.title ? `${plan.title} — orfc` : "Untitled Plan — orfc";
+
+  const description = plan.content
+    ? extractDescription(plan.content)
+    : "A plan shared on orfc — open request for comments.";
+
+  const url = `https://www.orfc.dev/p/${plan.slug}`;
+
+  return {
+    title,
+    description,
+    authors: plan.authorName ? [{ name: plan.authorName }] : undefined,
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: "orfc",
+      type: "article",
+      ...(plan.authorName && { authors: [plan.authorName] }),
+      ...(plan.createdAt && { publishedTime: plan.createdAt }),
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+    },
+    alternates: {
+      canonical: url,
+    },
+  };
 }
 
 export default async function PlanPage({

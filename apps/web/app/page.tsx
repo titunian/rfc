@@ -1,4 +1,5 @@
 import { CopyCommand } from "@/components/copy-command";
+import { CopyBlock } from "@/components/copy-block";
 import { AuthBar } from "@/components/auth-bar";
 
 export const dynamic = "force-dynamic";
@@ -454,6 +455,52 @@ export default function Home() {
                   </div>
                 </div>
               </div>
+            </section>
+
+            {/* Copy-paste prompt for agents */}
+            <section>
+              <h2 className="text-[18px] font-semibold text-[var(--fg)] font-sans mb-3 tracking-tight">
+                Agent prompt
+              </h2>
+              <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-4">
+                Copy this prompt into Cursor rules, Claude Code <code className="text-[12px] bg-[var(--code-inline-bg)] px-1.5 py-0.5 rounded border border-[var(--border-light)]">CLAUDE.md</code>, or any AI agent&apos;s system instructions to enable the orfc workflow.
+              </p>
+              <CopyBlock
+                label="Copy agent prompt"
+                content={`## orfc — plan review workflow
+
+Before implementing any non-trivial task, publish your plan for human review using orfc.
+
+### Setup (one-time)
+npm install -g @orfc/cli
+orfc login
+
+### Workflow
+1. Write your implementation plan as a markdown file (plan.md)
+2. Publish it for review:
+   orfc push plan.md --viewers "@company.com" --to reviewer@company.com
+3. Wait for the reviewer to leave inline comments on orfc.dev
+4. Pull the feedback:
+   orfc pull <slug> > feedback.md
+5. Read the comments, address each one, revise your plan
+6. Re-publish the updated plan:
+   orfc push plan.md --update <slug>
+7. Repeat until approved, then implement
+
+### Key flags
+--access anyone          # make public (no sign-in required)
+--viewers "@domain.com"  # restrict to a domain
+--to "a@co.com,b@co.com" # email reviewers
+--update <slug>          # update existing plan
+--title "My Plan"        # custom title
+
+### Commands
+orfc push <file>    # publish a plan
+orfc pull <slug>    # pull plan with inline comments
+orfc comments <slug> # view comments
+orfc list           # list your plans
+orfc --help         # full usage`}
+              />
             </section>
 
             {/* Configuration */}
