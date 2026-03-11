@@ -7,7 +7,7 @@ import {
 } from "@/lib/db";
 import { plans } from "@/lib/schema";
 import { getAuthUser } from "@/lib/auth";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 function nanoid(len: number): string {
@@ -123,6 +123,7 @@ export async function GET(req: NextRequest) {
         expiresAt: plans.expiresAt,
       })
       .from(plans)
+      .where(eq(plans.authorEmail, user.email))
       .orderBy(desc(plans.createdAt));
 
     return NextResponse.json({
