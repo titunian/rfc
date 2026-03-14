@@ -9,26 +9,22 @@ export default function Home() {
     <div className="min-h-screen bg-[var(--bg-warm)] flex flex-col">
       {/* Minimal nav */}
       <header className="px-6 py-4 flex items-center justify-between max-w-4xl w-full mx-auto">
-        <span className="text-[15px] font-semibold tracking-tight font-sans text-[var(--fg)]">
+        <h1 className="text-[15px] font-semibold tracking-tight font-sans text-[var(--fg)]">
           orfc
-        </span>
+        </h1>
         <AuthBar />
       </header>
 
       {/* Hero */}
       <main className="flex-1 flex flex-col items-center px-6 pt-20 pb-16">
         <div className="text-center max-w-2xl">
-          <div 
-            className="text-7xl font-bold tracking-tighter font-sans text-[var(--fg)] mb-8"
-            role="banner"
-            aria-label="orfc - site brand"
-          >
+          <h2 className="text-[28px] font-semibold text-[var(--fg)] font-sans leading-tight mb-6 max-w-xl mx-auto">
+            Turn technical documents into collaborative decisions
+          </h2>
+
+          <div className="text-7xl font-bold tracking-tighter font-sans text-[var(--fg)] mb-8">
             orfc
           </div>
-
-          <h1 className="text-[28px] font-semibold text-[var(--fg)] font-sans leading-tight mb-6 max-w-xl mx-auto">
-            Turn technical documents into collaborative decisions
-          </h1>
           
           <p className="text-[18px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-12 max-w-lg mx-auto">
             Share RFCs, architecture docs, and implementation plans. Get precise inline feedback from your team. Ship with confidence.

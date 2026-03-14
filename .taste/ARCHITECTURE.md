@@ -6,7 +6,7 @@
 
 **Target Users:** Engineering teams, technical writers, and organizations that need structured document review processes.
 
-**Core Problem Solved:** Eliminates the friction of sharing and collecting feedback on technical documents by providing a unified platform with both web and CLI interfaces, supporting markdown documents with inline comments and review workflows.
+**Core Problem Solved:** Eliminates the friction of sharing and collecting feedback on technical documents by providing a unified platform with both web and command-line interfaces, supporting markdown documents with inline comments and collaborative review workflows.
 
 ## Tech Stack
 
@@ -38,7 +38,7 @@ orfc/
 ├── packages/
 │   └── cli/                   # Command-line interface
 │       ├── src/
-│       │   ├── commands/     # CLI command implementations
+│       │   ├── commands/      # CLI command implementations
 │       │   └── lib/          # CLI utilities
 └── turbo.json                # Monorepo configuration
 ```
@@ -60,10 +60,10 @@ orfc/
 - **`/auth/signin`** - Email OTP authentication
 - **`/auth/cli`** - CLI authentication flow
 - **`/dashboard`** - User's plan management dashboard
-- **`/p/[slug]`** - Individual plan/document viewer with comments
+- **`/p/[slug]`** - Individual plan/document viewer
 
 ### API Routes
-- **`/api/auth/*`** - NextAuth endpoints and OTP management
+- **`/api/auth/*`** - Authentication endpoints (NextAuth, OTP, API keys)
 - **`/api/plans`** - CRUD operations for documents
 - **`/api/plans/[id]`** - Individual plan operations
 - **`/api/notify`** - Email and Slack notification system
@@ -76,7 +76,7 @@ orfc/
 - **`comment-sidebar.tsx`** - Inline commenting system with selection-based comments
 - **`selection-popover.tsx`** - Text selection interface for adding comments
 - **`mermaid-block.tsx`** - Mermaid diagram rendering component
-- **`copy-block.tsx` / `copy-command.tsx`** - Code copying utilities
+- **`copy-block.tsx`** & **`copy-command.tsx`** - Code copying utilities
 - **`session-provider.tsx`** - NextAuth session context wrapper
 
 ## Data Flow
@@ -89,12 +89,15 @@ orfc/
 ### Document Management
 1. **CLI Push:** `rfc push` → API call to `/api/plans` → Database storage
 2. **Web View:** Browser request → `/p/[slug]` → Database query → Rendered document
-3. **Comments:** Text selection → Comment creation → Real-time sidebar updates
-4. **Notifications:** Review request → Email via Resend + Slack webhook
+3. **Comments:** Text selection → Comment creation → Real-time updates via API
 
-### Database Operations
+### Notification System
+1. Review request → `/api/notify` → Parallel email (Resend) and Slack webhook calls
+2. Email templates with document links and reviewer instructions
+
+### Database Strategy
 - **Production:** PostgreSQL with Drizzle ORM
-- **Development:** Local SQLite fallback
+- **Development:** Local SQLite fallback for offline development
 - **Migrations:** Drizzle Kit for schema changes
 
 ## Getting Started
@@ -102,29 +105,39 @@ orfc/
 ### Prerequisites
 - Node.js 18+
 - PostgreSQL database (production) or SQLite (development)
-- Environment variables configured
+- Resend API key (for email OTP)
 
-### Development Setup
+### Environment Setup
+```bash
+# Required for production
+DATABASE_URL=postgresql://...
+NEXTAUTH_SECRET=your-secret
+RESEND_API_KEY=re_...
+RESEND_FROM_EMAIL=noreply@yourdomain.com
 
+# Optional
+SLACK_WEBHOOK_URL=https://hooks.slack.com/...
+APP_URL=https://yourdomain.com
+```
+
+### Development Commands
 ```bash
 # Install dependencies
 npm install
 
-# Database setup (production)
-npm run db:generate
-npm run db:push
-
-# Start development servers
+# Start development servers (web + CLI)
 npm run dev
-```
 
-### Environment Variables
-```env
-DATABASE_URL=postgresql://...
-NEXTAUTH_SECRET=your-secret
-NEXTAUTH_URL=http://localhost:3000
-RESEND_API_KEY=re_...
-RESEND_FROM_EMAIL=noreply@yourdomain.com
+# Database operations
+npm run db:generate  # Generate migrations
+npm run db:push      # Push schema changes
+npm run db:migrate   # Run migrations
+
+# Build all packages
+npm run build
+
+# Lint all packages
+npm run lint
 ```
 
 ### CLI Usage
@@ -135,11 +148,13 @@ npm install -g @orfc/cli
 # Authenticate
 rfc login
 
-# Push document
-rfc push plan.md
+# Create and push a plan
+rfc init
+rfc push
 
-# Pull with comments
-rfc pull plan-id
+# View plans
+rfc list
+rfc open [slug]
 ```
 
-The platform supports both authenticated and public document sharing, with configurable access rules and expiration times for enhanced security and collaboration control.
+The application supports both authenticated and local development modes, with automatic fallback to SQLite when no production database is configured.
