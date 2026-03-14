@@ -9,28 +9,25 @@ export default function Home() {
     <div className="min-h-screen bg-[var(--bg-warm)] flex flex-col">
       {/* Minimal nav */}
       <header className="px-6 py-4 flex items-center justify-between max-w-4xl w-full mx-auto">
-        <span className="text-[15px] font-semibold tracking-tight font-sans text-[var(--fg)]">
+        <h1 className="text-[15px] font-semibold tracking-tight font-sans text-[var(--fg)]">
           orfc
-        </span>
+        </h1>
         <AuthBar />
       </header>
 
       {/* Hero */}
       <main className="flex-1 flex flex-col items-center px-6 pt-20 pb-16">
         <div className="text-center max-w-2xl">
-          <h1 className="text-7xl font-bold tracking-tighter font-sans text-[var(--fg)] mb-6">
-            orfc
-          </h1>
+          <h2 className="text-[28px] font-semibold text-[var(--fg)] font-sans leading-tight mb-6 max-w-xl mx-auto">
+            Turn technical documents into collaborative decisions
+          </h2>
 
-          <p className="text-[20px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-1">
-            Your AI agent writes the plan.
-          </p>
-          <p className="text-[20px] text-[var(--muted)] font-sans leading-relaxed mb-4">
-            Your team reviews it.
-          </p>
-          <p className="text-[15px] text-[var(--muted)] font-sans leading-relaxed mb-14 max-w-md mx-auto">
-            Share any markdown — architecture docs, implementation plans, RFCs
-            — and collect inline feedback from your team before you ship.
+          <div className="text-7xl font-bold tracking-tighter font-sans text-[var(--fg)] mb-8">
+            orfc
+          </div>
+          
+          <p className="text-[18px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-12 max-w-lg mx-auto">
+            Share RFCs, architecture docs, and implementation plans. Get precise inline feedback from your team. Ship with confidence.
           </p>
 
           {/* Install */}
