@@ -159,6 +159,7 @@ export async function POST(
     anchorBlockIndex: anchorBlockIndex ?? null,
     anchorOffsetStart: anchorOffsetStart ?? null,
     anchorOffsetEnd: anchorOffsetEnd ?? null,
+    source: "web",
     resolved: false,
     createdAt: new Date().toISOString(),
   };

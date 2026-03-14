@@ -33,6 +33,7 @@ interface CommentItem {
   authorEmail: string | null;
   content: string;
   anchorText: string | null;
+  source: string;
   resolved: boolean;
   createdAt: string;
 }
@@ -140,9 +141,25 @@ export class ApiClient {
     url: string;
     emails?: string[];
     slackWebhook?: string;
-  }): Promise<void> {
+    slackChannel?: string;
+  }): Promise<{ sent: Record<string, unknown> }> {
     const res = await this.request("/api/notify", {
       method: "POST",
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = (await res.json().catch(() => ({ error: res.statusText }))) as { error?: string };
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return res.json() as Promise<{ sent: Record<string, unknown> }>;
+  }
+
+  async updatePlanMeta(
+    id: string,
+    data: { slackChannelId?: string; slackMessageTs?: string }
+  ): Promise<void> {
+    const res = await this.request(`/api/plans/${id}`, {
+      method: "PUT",
       body: JSON.stringify(data),
     });
     if (!res.ok) {

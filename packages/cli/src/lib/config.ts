@@ -8,6 +8,7 @@ export interface OrfcConfig {
   email?: string;
   name?: string;
   slackWebhook?: string;
+  slackChannel?: string;
   defaultReviewers?: string[];
   defaultAccess?: string;
   defaultExpiry?: string;

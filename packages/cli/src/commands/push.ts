@@ -15,6 +15,7 @@ export async function pushCommand(
     update?: string;
     to?: string;
     slack?: string;
+    slackChannel?: string;
   }
 ) {
   let content: string;
@@ -108,20 +109,42 @@ export async function pushCommand(
       .map((e) => e.trim())
       .filter(Boolean);
     const slackWebhook = options.slack || config.slackWebhook;
+    const slackChannel = options.slackChannel || config.slackChannel;
 
-    if (emails?.length || slackWebhook) {
+    if (emails?.length || slackWebhook || slackChannel) {
       try {
-        await api.notify({
+        const result = await api.notify({
           title,
           url: plan.url,
           emails,
-          slackWebhook,
+          slackWebhook: slackChannel ? undefined : slackWebhook,
+          slackChannel,
         });
         if (emails?.length) {
           console.log(`  ✓ Emailed ${emails.length} reviewer(s)`);
         }
-        if (slackWebhook) {
-          console.log("  ✓ Sent to Slack");
+        if (slackWebhook && !slackChannel) {
+          console.log("  ✓ Sent to Slack (webhook)");
+        }
+
+        // If channel-based Slack posting succeeded, store the thread ref on the plan
+        const slackThread = result.sent?.slackThread as
+          | { channel: string; ts: string }
+          | undefined;
+        if (slackThread) {
+          try {
+            await api.updatePlanMeta(plan.id, {
+              slackChannelId: slackThread.channel,
+              slackMessageTs: slackThread.ts,
+            });
+            console.log(
+              "  ✓ Posted to Slack channel — thread replies will sync as comments"
+            );
+          } catch {
+            console.error(
+              "  ⚠ Slack posted but failed to save thread reference"
+            );
+          }
         }
       } catch {
         console.error("  ⚠ Notification failed (plan still published)");

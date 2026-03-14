@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { sendReviewRequest } from "@/lib/email";
-import { sendSlackNotification } from "@/lib/slack";
+import { sendSlackNotification, postRfcToChannel } from "@/lib/slack";
 
 export async function POST(req: NextRequest) {
   const user = await getAuthUser(req);
@@ -10,9 +10,9 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { title, url, emails, slackWebhook } = body;
+  const { title, url, emails, slackWebhook, slackChannel } = body;
 
-  const results: { email?: boolean; slack?: boolean } = {};
+  const results: Record<string, unknown> = {};
 
   if (emails?.length) {
     try {
@@ -27,11 +27,28 @@ export async function POST(req: NextRequest) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("Email notification failed:", msg);
       results.email = false;
-      (results as Record<string, unknown>).emailError = msg;
+      results.emailError = msg;
     }
   }
 
-  if (slackWebhook) {
+  // Prefer channel-based posting (enables thread tracking) over legacy webhook
+  if (slackChannel) {
+    try {
+      const thread = await postRfcToChannel({
+        channel: slackChannel,
+        fromName: user.name || user.email,
+        title,
+        url,
+      });
+      results.slack = true;
+      results.slackThread = thread; // { channel, ts }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("Slack channel post failed:", msg);
+      results.slack = false;
+      results.slackError = msg;
+    }
+  } else if (slackWebhook) {
     try {
       await sendSlackNotification({
         webhookUrl: slackWebhook,
