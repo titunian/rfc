@@ -72,7 +72,7 @@ export function PlanView({
   const showAuthGate = !serverAuthed && status !== "loading";
 
   const [comments, setComments] = useState<Comment[]>([]);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
   const [selection, setSelection] = useState<{
     text: string;
@@ -330,7 +330,7 @@ export function PlanView({
     <div className="min-h-screen bg-[var(--bg-warm)]">
       {/* Header */}
       <header className="border-b border-[var(--border-light)] bg-white/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-[1400px] mx-auto px-6 h-[52px] flex items-center justify-between">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-[52px] flex items-center justify-between">
           <a
             href="/"
             className="text-[15px] font-semibold tracking-tight font-sans text-[var(--fg)] hover:text-[var(--fg-secondary)] transition-colors"
@@ -434,13 +434,13 @@ export function PlanView({
 
         {/* Main content */}
         <main
-          className={`flex-1 px-6 py-10 transition-all min-w-0 ${
-            sidebarOpen && canView ? "max-w-[calc(100%-340px)]" : ""
+          className={`flex-1 px-4 sm:px-6 py-10 transition-all min-w-0 ${
+            sidebarOpen && canView ? "lg:max-w-[calc(100%-340px)]" : ""
           }`}
         >
           {/* Title block */}
           <div className="max-w-[68ch] mx-auto mb-6">
-            <h1 className="text-[1.5rem] font-semibold tracking-[-0.02em] font-sans leading-[1.3] mb-2 text-[var(--fg)]">
+            <h1 className="text-[1.25rem] sm:text-[1.5rem] font-semibold tracking-[-0.02em] font-sans leading-[1.3] mb-2 text-[var(--fg)]">
               {plan.title || "Untitled"}
             </h1>
             <div className="flex items-center gap-2 text-[12px] text-[var(--muted)] font-sans">
@@ -651,12 +651,21 @@ export function PlanView({
         </main>
 
         {sidebarOpen && canView && (
-          <CommentSidebar
-            comments={comments}
-            activeCommentId={activeCommentId}
-            onCommentClick={setActiveCommentId}
-            onResolve={handleResolve}
-          />
+          <>
+            {/* Mobile overlay backdrop */}
+            <div
+              className="fixed inset-0 bg-black/20 z-40 lg:hidden"
+              onClick={() => setSidebarOpen(false)}
+            />
+            <div className="fixed right-0 top-[53px] h-[calc(100vh-53px)] z-50 lg:relative lg:top-auto lg:h-auto lg:z-auto">
+              <CommentSidebar
+                comments={comments}
+                activeCommentId={activeCommentId}
+                onCommentClick={setActiveCommentId}
+                onResolve={handleResolve}
+              />
+            </div>
+          </>
         )}
       </div>
 
