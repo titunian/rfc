@@ -61,6 +61,21 @@ export async function PUT(
     }
 
     const db = getDb();
+
+    // Verify ownership
+    const [existing] = await db
+      .select({ authorEmail: plans.authorEmail })
+      .from(plans)
+      .where(eq(plans.id, params.id))
+      .limit(1);
+
+    if (!existing) {
+      return NextResponse.json({ error: "Plan not found" }, { status: 404 });
+    }
+    if (existing.authorEmail !== user.email) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const updates: Record<string, unknown> = {
       updatedAt: new Date(),
     };
@@ -121,6 +136,21 @@ export async function DELETE(
     }
 
     const db = getDb();
+
+    // Verify ownership
+    const [existing] = await db
+      .select({ authorEmail: plans.authorEmail })
+      .from(plans)
+      .where(eq(plans.id, params.id))
+      .limit(1);
+
+    if (!existing) {
+      return NextResponse.json({ error: "Plan not found" }, { status: 404 });
+    }
+    if (existing.authorEmail !== user.email) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const [deleted] = await db
       .delete(plans)
       .where(eq(plans.id, params.id))

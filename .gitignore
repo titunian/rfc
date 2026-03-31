@@ -2,7 +2,9 @@ node_modules
 .next
 dist
 .env
+.env.*
 .env.local
+.env.vercel
 .turbo
 *.tsbuildinfo
 .data
