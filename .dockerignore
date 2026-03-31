@@ -1,0 +1,13 @@
+node_modules
+.next
+dist
+.env*
+.git
+.gitignore
+.vscode
+.turbo
+*.md
+.data
+.vercel
+.vasco
+.taste

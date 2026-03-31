@@ -14,6 +14,12 @@ export default function Home() {
         </span>
         <div className="flex items-center gap-4">
           <a
+            href="/self-host"
+            className="text-[13px] text-[var(--muted)] hover:text-[var(--fg)] transition-colors font-sans"
+          >
+            Self-host
+          </a>
+          <a
             href="https://github.com/titunian/rfc"
             target="_blank"
             rel="noopener noreferrer"
