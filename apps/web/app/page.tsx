@@ -14,7 +14,7 @@ export default function Home() {
         </span>
         <div className="flex items-center gap-4">
           <a
-            href="#self-host"
+            href="/self-host"
             className="text-[13px] text-[var(--muted)] hover:text-[var(--fg)] transition-colors font-sans"
           >
             Self-host
@@ -534,99 +534,6 @@ orfc --help         # full usage`}
                 <div><span className="text-gray-500 select-none">$ </span>orfc config set defaultAccess anyone</div>
                 <div><span className="text-gray-500 select-none">$ </span>orfc config set defaultExpiry 7d</div>
                 <div><span className="text-gray-500 select-none">$ </span>orfc config set slackWebhook https://hooks.slack.com/...</div>
-              </div>
-            </section>
-
-            {/* Self-hosting */}
-            <section id="self-host">
-              <h2 className="text-[18px] font-semibold text-[var(--fg)] font-sans mb-3 tracking-tight">
-                Self-hosting
-              </h2>
-              <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-6">
-                Run orfc on your own infrastructure. Your data, your cloud.
-              </p>
-
-              {/* Docker */}
-              <div className="border border-[var(--border-light)] rounded-xl p-5 mb-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-[var(--fg)]">
-                    <rect x="2" y="2" width="20" height="20" rx="2" />
-                    <path d="M9 8h2v2H9zM13 8h2v2h-2zM9 12h2v2H9zM5 12h2v2H5zM13 12h2v2h-2zM17 12h2v2h-2zM9 4h2v2H9z" fill="currentColor" opacity="0.15" stroke="none" />
-                  </svg>
-                  <span className="text-[14px] font-medium text-[var(--fg)] font-sans">Docker Compose</span>
-                </div>
-                <p className="text-[13px] text-[var(--muted)] font-sans leading-relaxed mb-3">
-                  Includes Postgres. One command to run everything.
-                </p>
-                <div className="bg-[#0d1117] rounded-xl p-4 font-mono text-[13px] text-gray-300 space-y-1.5">
-                  <div><span className="text-gray-500 select-none">$ </span>git clone https://github.com/titunian/rfc.git</div>
-                  <div><span className="text-gray-500 select-none">$ </span>cd rfc</div>
-                  <div className="pt-1"><span className="text-gray-500 select-none"># </span><span className="text-gray-500">create a .env file</span></div>
-                  <div><span className="text-gray-500 select-none">$ </span>cat &gt; .env &lt;&lt; EOF</div>
-                  <div className="text-gray-400 pl-2">NEXTAUTH_SECRET=$(openssl rand -base64 32)</div>
-                  <div className="text-gray-400 pl-2">POSTGRES_PASSWORD=$(openssl rand -hex 16)</div>
-                  <div className="text-gray-400 pl-2">APP_URL=https://your-domain.com</div>
-                  <div className="text-gray-400 pl-2">NEXTAUTH_URL=https://your-domain.com</div>
-                  <div>EOF</div>
-                  <div className="pt-1"><span className="text-gray-500 select-none">$ </span>docker compose up -d</div>
-                  <div className="text-green-400/70 text-[12px]">✓ Running on http://localhost:3141</div>
-                </div>
-                <p className="text-[12px] text-[var(--muted)] font-sans mt-3">
-                  Optional: set <code className="text-[11px] bg-[var(--code-inline-bg)] px-1 py-0.5 rounded">RESEND_API_KEY</code> for email notifications.
-                </p>
-              </div>
-
-              {/* Vercel */}
-              <div className="border border-[var(--border-light)] rounded-xl p-5 mb-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <svg width="18" height="18" viewBox="0 0 76 65" fill="currentColor" className="text-[var(--fg)]">
-                    <path d="M37.5274 0L75.0548 65H0L37.5274 0Z" />
-                  </svg>
-                  <span className="text-[14px] font-medium text-[var(--fg)] font-sans">Vercel + Neon</span>
-                </div>
-                <p className="text-[13px] text-[var(--muted)] font-sans leading-relaxed mb-3">
-                  Serverless deployment with managed Postgres.
-                </p>
-                <div className="space-y-2.5 text-[13px] text-[var(--fg-secondary)] font-sans">
-                  <div className="flex gap-2.5 items-start">
-                    <span className="text-[12px] font-mono text-[var(--muted)] bg-[var(--border-light)] rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
-                    <span>Fork <a href="https://github.com/titunian/rfc" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[var(--fg)]">titunian/rfc</a> on GitHub</span>
-                  </div>
-                  <div className="flex gap-2.5 items-start">
-                    <span className="text-[12px] font-mono text-[var(--muted)] bg-[var(--border-light)] rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
-                    <span>Create a free Postgres database on <a href="https://neon.tech" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[var(--fg)]">neon.tech</a></span>
-                  </div>
-                  <div className="flex gap-2.5 items-start">
-                    <span className="text-[12px] font-mono text-[var(--muted)] bg-[var(--border-light)] rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
-                    <span>Import your fork in <a href="https://vercel.com/new" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[var(--fg)]">Vercel</a> &mdash; set Root Directory to <code className="text-[12px] bg-[var(--code-inline-bg)] px-1 py-0.5 rounded">apps/web</code></span>
-                  </div>
-                  <div className="flex gap-2.5 items-start">
-                    <span className="text-[12px] font-mono text-[var(--muted)] bg-[var(--border-light)] rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">4</span>
-                    <div>
-                      <span>Add environment variables:</span>
-                      <div className="bg-[#0d1117] rounded-lg p-3 font-mono text-[12px] text-gray-400 mt-2 space-y-1">
-                        <div>DATABASE_URL=<span className="text-gray-500">your-neon-connection-string</span></div>
-                        <div>NEXTAUTH_SECRET=<span className="text-gray-500">openssl rand -base64 32</span></div>
-                        <div>NEXTAUTH_URL=<span className="text-gray-500">https://your-domain.com</span></div>
-                        <div>APP_URL=<span className="text-gray-500">https://your-domain.com</span></div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex gap-2.5 items-start">
-                    <span className="text-[12px] font-mono text-[var(--muted)] bg-[var(--border-light)] rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">5</span>
-                    <span>Deploy. Run <code className="text-[12px] bg-[var(--code-inline-bg)] px-1 py-0.5 rounded">npm run db:push</code> to create tables.</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Point CLI */}
-              <div className="bg-[var(--bg-warm)] border border-[var(--border-light)] rounded-xl p-4">
-                <p className="text-[13px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-2">
-                  Point the CLI to your instance:
-                </p>
-                <div className="bg-[#0d1117] rounded-lg p-3 font-mono text-[12px] text-gray-400">
-                  orfc config set apiUrl https://your-domain.com
-                </div>
               </div>
             </section>
 
