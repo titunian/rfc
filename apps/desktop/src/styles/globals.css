@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #ffffff;
+  --bg-sidebar: #f8f8f7;
+  --fg: #1a1a1a;
+  --fg-secondary: #4a4a4a;
+  --muted: #999999;
+  --border: #e5e5e5;
+  --accent: #2563eb;
+  --accent-light: #eff6ff;
+  --editor-width: 68ch;
+}
+
+.dark {
+  --bg: #1a1a1a;
+  --bg-sidebar: #141414;
+  --fg: #e5e5e5;
+  --fg-secondary: #b0b0b0;
+  --muted: #666666;
+  --border: #2a2a2a;
+  --accent: #3b82f6;
+  --accent-light: #1e293b;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* Prevent text selection on drag regions */
+[data-tauri-drag-region] {
+  -webkit-user-select: none;
+  user-select: none;
+}

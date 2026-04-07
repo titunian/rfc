@@ -1,61 +1,9 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
-import { homedir } from "os";
-import { join } from "path";
-
-export interface OrfcConfig {
-  apiKey?: string;
-  apiUrl: string;
-  email?: string;
-  name?: string;
-  slackWebhook?: string;
-  defaultReviewers?: string[];
-  defaultAccess?: string;
-  defaultExpiry?: string;
-  [key: string]: unknown;
-}
-
-const CONFIG_DIR = join(homedir(), ".orfc");
-const CONFIG_FILE = join(CONFIG_DIR, "config.json");
-
-const DEFAULT_CONFIG: OrfcConfig = {
-  apiUrl: "https://www.orfc.dev",
-};
-
-export function getConfigDir(): string {
-  return CONFIG_DIR;
-}
-
-export function loadConfig(): OrfcConfig {
-  if (!existsSync(CONFIG_FILE)) {
-    return { ...DEFAULT_CONFIG };
-  }
-  try {
-    const raw = readFileSync(CONFIG_FILE, "utf-8");
-    const config = { ...DEFAULT_CONFIG, ...JSON.parse(raw) };
-    // Auto-migrate: old versions saved naked domain which breaks auth on redirect
-    if (config.apiUrl === "https://orfc.dev") {
-      config.apiUrl = "https://www.orfc.dev";
-    }
-    return config;
-  } catch {
-    return { ...DEFAULT_CONFIG };
-  }
-}
-
-export function saveConfig(config: OrfcConfig): void {
-  if (!existsSync(CONFIG_DIR)) {
-    mkdirSync(CONFIG_DIR, { recursive: true });
-  }
-  writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2) + "\n");
-}
-
-export function getConfigValue(key: string): string | undefined {
-  const config = loadConfig();
-  return (config as Record<string, unknown>)[key] as string | undefined;
-}
-
-export function setConfigValue(key: string, value: string): void {
-  const config = loadConfig();
-  (config as Record<string, unknown>)[key] = value;
-  saveConfig(config);
-}
+// Re-export everything from the shared @orfc/api package
+export {
+  loadConfig,
+  saveConfig,
+  getConfigDir,
+  getConfigValue,
+  setConfigValue,
+} from "@orfc/api";
+export type { OrfcConfig } from "@orfc/api";

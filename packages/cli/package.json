@@ -23,6 +23,7 @@
     "access": "public"
   },
   "dependencies": {
+    "@orfc/api": "*",
     "commander": "^12.0.0",
     "open": "^10.0.0"
   },
