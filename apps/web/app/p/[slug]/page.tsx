@@ -30,6 +30,7 @@ const getPlan = cache(async (slug: string) => {
       authorEmail: plan.authorEmail,
       accessRule: plan.accessRule,
       allowedViewers: plan.allowedViewers,
+      currentVersion: plan.currentVersion,
       createdAt: plan.createdAt.toISOString(),
       expiresAt: plan.expiresAt?.toISOString() || null,
     };
@@ -133,6 +134,7 @@ export default async function PlanPage({
         authorEmail: plan.authorEmail,
         accessRule: plan.accessRule || "authenticated",
         allowedViewers: plan.allowedViewers,
+        currentVersion: plan.currentVersion,
         createdAt: plan.createdAt,
       }}
       serverAuthed={serverAuthed}

@@ -20,6 +20,7 @@ type Plan = {
   authorEmail: string | null;
   accessRule: string;
   allowedViewers?: string | null;
+  currentVersion?: number;
   createdAt: string;
 };
 
@@ -97,7 +98,7 @@ export function PlanView({
   const [activeTocId, setActiveTocId] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
-  const knownVersionRef = useRef<number | undefined>(undefined);
+  const knownVersionRef = useRef<number | undefined>(initialPlan.currentVersion ?? 1);
 
   // When version history reports a newer version, re-fetch the plan
   const handleVersionChange = useCallback(
