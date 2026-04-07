@@ -10,6 +10,7 @@ import { commentsCommand } from "./commands/comments";
 import { configCommand } from "./commands/config";
 import { pullCommand } from "./commands/pull";
 import { loginCommand } from "./commands/login";
+import { editCommand } from "./commands/edit";
 
 const program = new Command();
 
@@ -51,7 +52,7 @@ program
 
   Config is stored in ~/.orfc/config.json. Use "orfc config show" to view.`
   )
-  .version("0.1.4");
+  .version("0.2.0");
 
 program
   .command("login")
@@ -131,6 +132,19 @@ program
   .alias("rm")
   .description("Permanently delete a published plan and all its comments.")
   .action(deleteCommand);
+
+program
+  .command("edit <slug>")
+  .description(
+    "Pull a plan, open in $EDITOR, and push changes back.\n" +
+    "  Opens the plan content in your default editor. When you save and quit,\n" +
+    "  the updated content is pushed back to the same URL.\n" +
+    "  Previous version is preserved in version history.\n\n" +
+    "  Requires $EDITOR or $VISUAL to be set.\n\n" +
+    "  Example:\n" +
+    "    orfc edit xK7mQ2"
+  )
+  .action(editCommand);
 
 program
   .command("init")

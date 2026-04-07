@@ -39,9 +39,20 @@ export interface LocalPlan {
   authorEmail: string | null;
   accessRule: string;
   allowedViewers: string | null;
+  currentVersion: number;
   createdAt: string;
   updatedAt: string | null;
   expiresAt: string | null;
+}
+
+export interface LocalPlanVersion {
+  id: string;
+  planId: string;
+  version: number;
+  title: string | null;
+  content: string;
+  authorEmail: string | null;
+  createdAt: string;
 }
 
 export interface LocalComment {
@@ -61,6 +72,7 @@ export interface LocalComment {
 interface LocalDB {
   plans: LocalPlan[];
   comments: LocalComment[];
+  planVersions: LocalPlanVersion[];
 }
 
 function ensureDir() {
@@ -72,12 +84,13 @@ function ensureDir() {
 export function readLocalDB(): LocalDB {
   ensureDir();
   if (!existsSync(DB_FILE)) {
-    return { plans: [], comments: [] };
+    return { plans: [], comments: [], planVersions: [] };
   }
   try {
-    return JSON.parse(readFileSync(DB_FILE, "utf-8"));
+    const data = JSON.parse(readFileSync(DB_FILE, "utf-8"));
+    return { plans: [], comments: [], planVersions: [], ...data };
   } catch {
-    return { plans: [], comments: [] };
+    return { plans: [], comments: [], planVersions: [] };
   }
 }
 

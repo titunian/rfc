@@ -44,11 +44,11 @@ export default function Home() {
             Your AI agent writes the plan.
           </p>
           <p className="text-[20px] text-[var(--muted)] font-sans leading-relaxed mb-4">
-            Your team reviews it.
+            Your team reviews it. You iterate.
           </p>
           <p className="text-[15px] text-[var(--muted)] font-sans leading-relaxed mb-14 max-w-md mx-auto">
             Share any markdown — architecture docs, implementation plans, RFCs
-            — and collect inline feedback from your team before you ship.
+            — collect inline feedback, edit in-browser, and track every revision with built-in version history.
           </p>
 
           {/* Install */}
@@ -90,6 +90,13 @@ export default function Home() {
                 </div>
                 <div className="text-green-400/70 text-[13px]">
                   ✓ 3 comments pulled → feedback.md
+                </div>
+                <div className="pt-2">
+                  <span className="text-gray-500 select-none">$ </span>
+                  <span className="text-gray-300">orfc edit xK7mQ2</span>
+                </div>
+                <div className="text-green-400/70 text-[13px]">
+                  ✓ Updated → https://orfc.dev/p/xK7mQ2 (v2)
                 </div>
               </div>
             </div>
@@ -412,6 +419,45 @@ export default function Home() {
               </div>
             </section>
 
+            {/* Editing & Version History */}
+            <section>
+              <h2 className="text-[18px] font-semibold text-[var(--fg)] font-sans mb-3 tracking-tight">
+                Editing & version history
+              </h2>
+              <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-4">
+                Edit plans directly in the browser or from your terminal. Every update automatically preserves the previous version.
+              </p>
+              <div className="space-y-4">
+                <div className="border border-[var(--border-light)] rounded-xl p-4">
+                  <div className="text-[13px] font-medium text-[var(--fg)] font-sans mb-1">
+                    Web editing
+                  </div>
+                  <p className="text-[13px] text-[var(--muted)] font-sans leading-relaxed">
+                    Plan authors see an Edit button on their documents. Click to switch to a markdown editor with live preview. Cmd+S to save.
+                  </p>
+                </div>
+                <div className="border border-[var(--border-light)] rounded-xl p-4">
+                  <div className="text-[13px] font-medium text-[var(--fg)] font-sans mb-1">
+                    CLI editing
+                  </div>
+                  <p className="text-[13px] text-[var(--muted)] font-sans leading-relaxed mb-2">
+                    Pull, edit in your terminal editor, and push back in one command.
+                  </p>
+                  <div className="bg-[#0d1117] rounded-lg p-3 font-mono text-[12px] text-gray-400">
+                    $ orfc edit xK7mQ2 <span className="text-gray-500"># opens in $EDITOR</span>
+                  </div>
+                </div>
+                <div className="border border-[var(--border-light)] rounded-xl p-4">
+                  <div className="text-[13px] font-medium text-[var(--fg)] font-sans mb-1">
+                    Version history
+                  </div>
+                  <p className="text-[13px] text-[var(--muted)] font-sans leading-relaxed">
+                    Click History on any plan to see all previous versions with diffs. Every update — from the web, CLI, or an AI agent — is tracked.
+                  </p>
+                </div>
+              </div>
+            </section>
+
             {/* AI Agent workflow */}
             <section>
               <h2 className="text-[18px] font-semibold text-[var(--fg)] font-sans mb-3 tracking-tight">
@@ -515,9 +561,14 @@ orfc login
 ### Commands
 orfc push <file>    # publish a plan
 orfc pull <slug>    # pull plan with inline comments
+orfc edit <slug>    # pull, edit in $EDITOR, push back
 orfc comments <slug> # view comments
 orfc list           # list your plans
-orfc --help         # full usage`}
+orfc --help         # full usage
+
+### Version history
+Every --update automatically preserves the previous version.
+Reviewers can view all past versions and diffs on the web.`}
               />
             </section>
 
@@ -574,6 +625,10 @@ orfc --help         # full usage`}
                     <tr className="border-b border-[var(--border-light)]">
                       <td className="p-3 font-mono text-[12px]">orfc open &lt;slug&gt;</td>
                       <td className="p-3">Open plan in browser</td>
+                    </tr>
+                    <tr className="border-b border-[var(--border-light)]">
+                      <td className="p-3 font-mono text-[12px]">orfc edit &lt;slug&gt;</td>
+                      <td className="p-3">Pull, edit in $EDITOR, push back</td>
                     </tr>
                     <tr className="border-b border-[var(--border-light)]">
                       <td className="p-3 font-mono text-[12px]">orfc delete &lt;slug&gt;</td>

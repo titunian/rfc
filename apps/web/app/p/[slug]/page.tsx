@@ -120,6 +120,8 @@ export default async function PlanPage({
   // Truncate content server-side so unauthorized users can't inspect full text
   const content = serverAuthed ? plan.content : plan.content.slice(0, 600);
 
+  const isOwner = !!(userEmail && plan.authorEmail && userEmail === plan.authorEmail);
+
   return (
     <PlanView
       plan={{
@@ -134,6 +136,7 @@ export default async function PlanPage({
         createdAt: plan.createdAt,
       }}
       serverAuthed={serverAuthed}
+      isOwner={isOwner}
     />
   );
 }

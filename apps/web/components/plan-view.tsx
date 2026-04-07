@@ -8,6 +8,8 @@ import rehypeHighlight from "rehype-highlight";
 import { CommentSidebar } from "./comment-sidebar";
 import { SelectionPopover } from "./selection-popover";
 import { MermaidBlock } from "./mermaid-block";
+import { PlanEditor } from "./plan-editor";
+import { VersionHistory } from "./version-history";
 
 type Plan = {
   id: string;
@@ -59,12 +61,17 @@ function extractToc(markdown: string): TocItem[] {
 }
 
 export function PlanView({
-  plan,
+  plan: initialPlan,
   serverAuthed,
+  isOwner = false,
 }: {
   plan: Plan;
   serverAuthed: boolean;
+  isOwner?: boolean;
 }) {
+  const [plan, setPlan] = useState(initialPlan);
+  const [editing, setEditing] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const { data: session, status } = useSession();
   const isAuthenticated = !!session?.user;
   const isPublic = plan.accessRule === "anyone";
@@ -185,11 +192,11 @@ export function PlanView({
   }, []);
 
   useEffect(() => {
-    if (canView) {
+    if (canView && !editing) {
       document.addEventListener("mouseup", handleTextSelection);
       return () => document.removeEventListener("mouseup", handleTextSelection);
     }
-  }, [handleTextSelection, canView]);
+  }, [handleTextSelection, canView, editing]);
 
   const handleAddComment = async (commentText: string) => {
     if (!selection) return;
@@ -365,9 +372,57 @@ export function PlanView({
                 </button>
               </>
             )}
-            {canView && (
+            {canView && isOwner && !editing && (
               <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
+                onClick={() => setEditing(true)}
+                className="text-[13px] h-8 px-3 rounded-lg border border-[var(--border)] hover:bg-gray-50 transition-colors font-sans flex items-center gap-1.5"
+              >
+                <svg
+                  className="w-4 h-4 text-[var(--muted)]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"
+                  />
+                </svg>
+                Edit
+              </button>
+            )}
+            {canView && !editing && (
+              <button
+                onClick={() => {
+                  setHistoryOpen(!historyOpen);
+                  if (!historyOpen) setSidebarOpen(false);
+                }}
+                className="text-[13px] h-8 px-3 rounded-lg border border-[var(--border)] hover:bg-gray-50 transition-colors font-sans flex items-center gap-1.5"
+              >
+                <svg
+                  className="w-4 h-4 text-[var(--muted)]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                History
+              </button>
+            )}
+            {canView && !editing && (
+              <button
+                onClick={() => {
+                  setSidebarOpen(!sidebarOpen);
+                  if (!sidebarOpen) setHistoryOpen(false);
+                }}
                 className="text-[13px] h-8 px-3 rounded-lg border border-[var(--border)] hover:bg-gray-50 transition-colors font-sans flex items-center gap-1.5"
               >
                 <svg
@@ -435,9 +490,24 @@ export function PlanView({
         {/* Main content */}
         <main
           className={`flex-1 px-4 sm:px-6 py-10 transition-all min-w-0 ${
-            sidebarOpen && canView ? "lg:max-w-[calc(100%-340px)]" : ""
+            (sidebarOpen || historyOpen) && canView && !editing ? "lg:max-w-[calc(100%-340px)]" : ""
           }`}
         >
+          {/* Editor mode */}
+          {editing && canView && (
+            <PlanEditor
+              plan={plan}
+              onSave={(newContent, newTitle) => {
+                setPlan({ ...plan, content: newContent, title: newTitle || plan.title });
+                setEditing(false);
+              }}
+              onCancel={() => setEditing(false)}
+            />
+          )}
+
+          {/* Read mode */}
+          {!editing && (
+          <>
           {/* Title block */}
           <div className="max-w-[68ch] mx-auto mb-6">
             <h1 className="text-[1.25rem] sm:text-[1.5rem] font-semibold tracking-[-0.02em] font-sans leading-[1.3] mb-2 text-[var(--fg)]">
@@ -648,9 +718,11 @@ export function PlanView({
               </div>
             )}
           </div>
+          </>
+          )}
         </main>
 
-        {sidebarOpen && canView && (
+        {sidebarOpen && canView && !editing && (
           <>
             {/* Mobile overlay backdrop */}
             <div
@@ -667,9 +739,24 @@ export function PlanView({
             </div>
           </>
         )}
+
+        {historyOpen && canView && !editing && (
+          <>
+            <div
+              className="fixed inset-0 bg-black/20 z-40 lg:hidden"
+              onClick={() => setHistoryOpen(false)}
+            />
+            <div className="fixed right-0 top-[53px] h-[calc(100vh-53px)] z-50 lg:relative lg:top-auto lg:h-auto lg:z-auto">
+              <VersionHistory
+                planId={plan.id}
+                onClose={() => setHistoryOpen(false)}
+              />
+            </div>
+          </>
+        )}
       </div>
 
-      {canView && selection && (
+      {canView && !editing && selection && (
         <div ref={popoverRef}>
           <SelectionPopover
             rect={selection.rect}

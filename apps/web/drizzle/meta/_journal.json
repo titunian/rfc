@@ -8,6 +8,13 @@
       "when": 1773130169210,
       "tag": "0000_youthful_apocalypse",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1775552517137,
+      "tag": "0001_chubby_madelyne_pryor",
+      "breakpoints": true
     }
   ]
 }

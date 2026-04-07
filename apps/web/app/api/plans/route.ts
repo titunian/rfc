@@ -88,6 +88,7 @@ export async function POST(req: NextRequest) {
     authorEmail: null as string | null,
     accessRule: accessRule || "authenticated",
     allowedViewers: allowedViewers || null,
+    currentVersion: 1,
     createdAt: new Date().toISOString(),
     updatedAt: null as string | null,
     expiresAt: expiresAt?.toISOString() || null,

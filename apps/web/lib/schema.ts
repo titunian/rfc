@@ -16,6 +16,7 @@ export const plans = pgTable("plans", {
   authorEmail: text("author_email"),
   accessRule: text("access_rule").default("authenticated").notNull(),
   allowedViewers: text("allowed_viewers"),  // comma-separated emails or @domain patterns
+  currentVersion: integer("current_version").default(1).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at"),
   expiresAt: timestamp("expires_at"),
@@ -34,6 +35,18 @@ export const comments = pgTable("comments", {
   anchorOffsetStart: integer("anchor_offset_start"),
   anchorOffsetEnd: integer("anchor_offset_end"),
   resolved: boolean("resolved").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const planVersions = pgTable("plan_versions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  planId: uuid("plan_id")
+    .notNull()
+    .references(() => plans.id, { onDelete: "cascade" }),
+  version: integer("version").notNull(),
+  title: text("title"),
+  content: text("content").notNull(),
+  authorEmail: text("author_email"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

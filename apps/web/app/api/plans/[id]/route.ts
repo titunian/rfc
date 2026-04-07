@@ -4,10 +4,12 @@ import {
   writeLocalDB,
   isProductionDB,
   getDb,
+  LocalPlanVersion,
 } from "@/lib/db";
-import { plans } from "@/lib/schema";
+import { plans, planVersions } from "@/lib/schema";
 import { getAuthUser } from "@/lib/auth";
 import { eq } from "drizzle-orm";
+import { randomUUID } from "crypto";
 
 export async function GET(
   req: NextRequest,
@@ -62,9 +64,9 @@ export async function PUT(
 
     const db = getDb();
 
-    // Verify ownership
+    // Verify ownership — fetch full plan for version snapshotting
     const [existing] = await db
-      .select({ authorEmail: plans.authorEmail })
+      .select()
       .from(plans)
       .where(eq(plans.id, params.id))
       .limit(1);
@@ -76,8 +78,32 @@ export async function PUT(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    // Optimistic concurrency check
+    if (body.expectedVersion !== undefined && body.expectedVersion !== existing.currentVersion) {
+      return NextResponse.json(
+        { error: "Conflict", currentVersion: existing.currentVersion },
+        { status: 409 }
+      );
+    }
+
+    // Snapshot current content as a version before overwriting
+    if (body.content !== undefined && body.content !== existing.content) {
+      await db.insert(planVersions).values({
+        planId: existing.id,
+        version: existing.currentVersion,
+        title: existing.title,
+        content: existing.content,
+        authorEmail: existing.authorEmail,
+      });
+    }
+
+    const newVersion = (body.content !== undefined && body.content !== existing.content)
+      ? existing.currentVersion + 1
+      : existing.currentVersion;
+
     const updates: Record<string, unknown> = {
       updatedAt: new Date(),
+      currentVersion: newVersion,
     };
     if (body.title !== undefined) updates.title = body.title;
     if (body.content !== undefined) updates.content = body.content;
@@ -99,6 +125,7 @@ export async function PUT(
       slug: plan.slug,
       url: `${appUrl}/p/${plan.slug}`,
       title: plan.title,
+      version: plan.currentVersion,
       updatedAt: plan.updatedAt?.toISOString(),
     });
   }
@@ -108,6 +135,32 @@ export async function PUT(
   const plan = localDb.plans.find((p) => p.id === params.id);
   if (!plan) {
     return NextResponse.json({ error: "Plan not found" }, { status: 404 });
+  }
+
+  // Ensure currentVersion exists for plans created before this feature
+  if (!plan.currentVersion) plan.currentVersion = 1;
+
+  // Optimistic concurrency check
+  if (body.expectedVersion !== undefined && body.expectedVersion !== plan.currentVersion) {
+    return NextResponse.json(
+      { error: "Conflict", currentVersion: plan.currentVersion },
+      { status: 409 }
+    );
+  }
+
+  // Snapshot current content before overwriting
+  if (body.content !== undefined && body.content !== plan.content) {
+    const snapshot: LocalPlanVersion = {
+      id: randomUUID(),
+      planId: plan.id,
+      version: plan.currentVersion,
+      title: plan.title,
+      content: plan.content,
+      authorEmail: plan.authorEmail,
+      createdAt: new Date().toISOString(),
+    };
+    localDb.planVersions.push(snapshot);
+    plan.currentVersion += 1;
   }
 
   if (body.title !== undefined) plan.title = body.title;
@@ -121,6 +174,7 @@ export async function PUT(
     slug: plan.slug,
     url: `${appUrl}/p/${plan.slug}`,
     title: plan.title,
+    version: plan.currentVersion,
     updatedAt: plan.updatedAt,
   });
 }
