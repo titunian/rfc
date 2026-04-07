@@ -98,26 +98,32 @@ export function PlanView({
   const [activeTocId, setActiveTocId] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
-  const knownVersionRef = useRef<number | undefined>(initialPlan.currentVersion ?? 1);
-
-  // When version history reports a newer version, re-fetch the plan
-  const handleVersionChange = useCallback(
-    async (version: number) => {
-      if (
-        knownVersionRef.current !== undefined &&
-        version > knownVersionRef.current
-      ) {
-        const res = await fetch(`/api/plans/${plan.id}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.plan) {
-            setPlan(data.plan);
-          } else if (data.content) {
-            setPlan(data);
-          }
+  // Always fetch fresh content on mount — server render may be cached/stale
+  useEffect(() => {
+    async function refreshPlan() {
+      const res = await fetch(`/api/plans/${initialPlan.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        const fresh = data.content ? data : data.plan;
+        if (fresh && fresh.content) {
+          setPlan((prev) => ({ ...prev, ...fresh }));
         }
       }
-      knownVersionRef.current = version;
+    }
+    refreshPlan();
+  }, [initialPlan.id]);
+
+  // When version history reports a newer version, re-fetch
+  const handleVersionChange = useCallback(
+    async (version: number) => {
+      const res = await fetch(`/api/plans/${plan.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        const fresh = data.content ? data : data.plan;
+        if (fresh && fresh.content) {
+          setPlan((prev) => ({ ...prev, ...fresh }));
+        }
+      }
     },
     [plan.id]
   );

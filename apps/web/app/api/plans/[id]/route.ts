@@ -11,6 +11,8 @@ import { getAuthUser } from "@/lib/auth";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
