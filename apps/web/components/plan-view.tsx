@@ -72,6 +72,12 @@ export function PlanView({
   const [plan, setPlan] = useState(initialPlan);
   const [editing, setEditing] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [previewVersion, setPreviewVersion] = useState<{
+    content: string;
+    version: number;
+    title: string | null;
+    versionId: string;
+  } | null>(null);
   const { data: session, status } = useSession();
   const isAuthenticated = !!session?.user;
   const isPublic = plan.accessRule === "anyone";
@@ -116,14 +122,17 @@ export function PlanView({
   );
 
   // Strip first H1 from content if it matches plan title (avoids double title)
+  const activeTitle = previewVersion ? previewVersion.title : plan.title;
   const displayContent = useMemo(() => {
-    if (!plan.title || !plan.content) return plan.content;
-    const match = plan.content.match(/^#\s+(.+?)(?:\n|$)/);
-    if (match && match[1].trim() === plan.title.trim()) {
-      return plan.content.replace(/^#[^\n]+\n?/, "").trimStart();
+    const content = previewVersion ? previewVersion.content : plan.content;
+    const title = previewVersion ? previewVersion.title : plan.title;
+    if (!title || !content) return content;
+    const match = content.match(/^#\s+(.+?)(?:\n|$)/);
+    if (match && match[1].trim() === title.trim()) {
+      return content.replace(/^#[^\n]+\n?/, "").trimStart();
     }
-    return plan.content;
-  }, [plan.content, plan.title]);
+    return content;
+  }, [plan.content, plan.title, previewVersion]);
 
   // Extract TOC from content
   const toc = useMemo(() => extractToc(displayContent), [displayContent]);
@@ -538,11 +547,35 @@ export function PlanView({
           {/* Read mode */}
           {!editing && (
           <>
+          {/* Version preview banner */}
+          {previewVersion && (
+            <div className="max-w-[68ch] mx-auto mb-4">
+              <div className="flex items-center justify-between px-4 py-2.5 rounded-lg bg-amber-50 border border-amber-200">
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-[13px] font-sans text-amber-800">
+                    Viewing <span className="font-semibold">v{previewVersion.version}</span>
+                    {previewVersion.title && <span className="text-amber-600"> — {previewVersion.title}</span>}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setPreviewVersion(null)}
+                  className="text-[12px] font-sans font-medium text-amber-700 hover:text-amber-900 px-2.5 py-1 rounded-md hover:bg-amber-100 transition-colors"
+                >
+                  Back to current
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Title block */}
           <div className="max-w-[68ch] mx-auto mb-6">
             <h1 className="text-[1.25rem] sm:text-[1.5rem] font-semibold tracking-[-0.02em] font-sans leading-[1.3] mb-2 text-[var(--fg)]">
-              {plan.title || "Untitled"}
+              {activeTitle || "Untitled"}
             </h1>
+            {!previewVersion && (
             <div className="flex items-center gap-2 text-[12px] text-[var(--muted)] font-sans">
               {authorDisplay && (
                 <span className="font-medium text-[var(--fg-secondary)]">
@@ -556,6 +589,7 @@ export function PlanView({
               )}
               <time>{formatDate(plan.createdAt)}</time>
             </div>
+            )}
           </div>
 
           {/* Content area with auth gating */}
@@ -779,8 +813,16 @@ export function PlanView({
             <div className="fixed right-0 top-[53px] h-[calc(100vh-53px)] z-50 lg:relative lg:top-auto lg:h-auto lg:z-auto">
               <VersionHistory
                 planId={plan.id}
-                onClose={() => setHistoryOpen(false)}
+                onClose={() => {
+                  setHistoryOpen(false);
+                  setPreviewVersion(null);
+                }}
                 onVersionChange={handleVersionChange}
+                onPreviewVersion={(content, version, title, versionId) => {
+                  setPreviewVersion({ content, version, title, versionId });
+                }}
+                onClearPreview={() => setPreviewVersion(null)}
+                previewingVersionId={previewVersion?.versionId || null}
               />
             </div>
           </>

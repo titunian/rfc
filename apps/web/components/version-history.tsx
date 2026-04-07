@@ -73,20 +73,27 @@ export function VersionHistory({
   currentVersion,
   onClose,
   onVersionChange,
+  onPreviewVersion,
+  onClearPreview,
+  previewingVersionId,
 }: {
   planId: string;
   currentVersion?: number;
   onClose: () => void;
   onVersionChange?: (version: number) => void;
+  onPreviewVersion?: (content: string, version: number, title: string | null, versionId: string) => void;
+  onClearPreview?: () => void;
+  previewingVersionId?: string | null;
 }) {
   const [versions, setVersions] = useState<VersionSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
   const [versionContent, setVersionContent] = useState<string | null>(null);
   const [diff, setDiff] = useState<DiffLine[] | null>(null);
-  const [viewMode, setViewMode] = useState<"content" | "diff">("diff");
+  const [viewMode, setViewMode] = useState<"diff" | "content">("diff");
   const [liveCurrentVersion, setLiveCurrentVersion] = useState(currentVersion);
   const [loadingContent, setLoadingContent] = useState(false);
+  const [loadingPreview, setLoadingPreview] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchVersions() {
@@ -111,13 +118,24 @@ export function VersionHistory({
     setDiff(null);
     setLoadingContent(true);
 
-    if (viewMode === "content") {
-      const res = await fetch(`/api/plans/${planId}/versions/${versionId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setVersionContent(data.content);
+    const version = versions.find((v) => v.id === versionId);
+
+    // Fetch content (for main area preview + source tab)
+    let fetchedContent: string | null = null;
+    setLoadingPreview(versionId);
+    const contentRes = await fetch(`/api/plans/${planId}/versions/${versionId}`);
+    if (contentRes.ok) {
+      const contentData = await contentRes.json();
+      fetchedContent = contentData.content;
+      setVersionContent(contentData.content);
+      if (onPreviewVersion) {
+        onPreviewVersion(contentData.content, version?.version ?? 0, version?.title ?? null, versionId);
       }
-    } else {
+    }
+    setLoadingPreview(null);
+
+    // Also fetch diff for the sidebar diff tab
+    if (viewMode === "diff") {
       const res = await fetch(
         `/api/plans/${planId}/diff?from=${versionId}&to=current`
       );
@@ -254,7 +272,17 @@ export function VersionHistory({
           {/* Version list */}
           <div className="flex-1 overflow-y-auto">
             {/* Current version indicator */}
-            <div className="px-4 py-2.5 border-b border-[var(--border-light)] bg-gray-50/50">
+            <button
+              onClick={() => {
+                setSelectedVersion(null);
+                setDiff(null);
+                setVersionContent(null);
+                if (onClearPreview) onClearPreview();
+              }}
+              className={`w-full text-left px-4 py-2.5 border-b border-[var(--border-light)] transition-colors ${
+                !previewingVersionId ? "bg-emerald-50/50" : "hover:bg-gray-50/50"
+              }`}
+            >
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center justify-center text-[10px] font-bold font-mono bg-emerald-100 text-emerald-700 rounded px-1.5 py-0.5 leading-none">
                   v{liveCurrentVersion}
@@ -262,24 +290,34 @@ export function VersionHistory({
                 <span className="text-[12px] font-sans text-[var(--fg-secondary)] font-medium">
                   Current version
                 </span>
+                {!previewingVersionId && (
+                  <span className="text-[10px] font-sans text-emerald-600 font-medium ml-auto">
+                    viewing
+                  </span>
+                )}
               </div>
-            </div>
+            </button>
 
             <div className="py-1">
-              {versions.map((v) => (
+              {versions.map((v) => {
+                const isPreviewing = previewingVersionId === v.id;
+                const isLoading = loadingPreview === v.id;
+                return (
                 <button
                   key={v.id}
                   onClick={() => handleSelectVersion(v.id)}
                   className={`w-full text-left px-4 py-2.5 transition-colors group ${
-                    selectedVersion === v.id
+                    isPreviewing
                       ? "bg-blue-50/80 border-l-2 border-l-blue-500"
+                      : selectedVersion === v.id
+                      ? "bg-gray-50/80 border-l-2 border-l-gray-300"
                       : "hover:bg-gray-50/80 border-l-2 border-l-transparent"
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-0.5">
                     <span
                       className={`inline-flex items-center justify-center text-[10px] font-bold font-mono rounded px-1.5 py-0.5 leading-none ${
-                        selectedVersion === v.id
+                        isPreviewing
                           ? "bg-blue-100 text-blue-700"
                           : "bg-gray-100 text-gray-500 group-hover:bg-gray-200 group-hover:text-gray-600"
                       }`}
@@ -289,6 +327,14 @@ export function VersionHistory({
                     {v.title && (
                       <span className="text-[12px] font-sans text-[var(--fg)] truncate font-medium">
                         {v.title}
+                      </span>
+                    )}
+                    {isLoading && (
+                      <span className="inline-block w-3 h-3 border border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                    )}
+                    {isPreviewing && !isLoading && (
+                      <span className="text-[10px] font-sans text-blue-500 font-medium">
+                        viewing
                       </span>
                     )}
                   </div>
@@ -304,7 +350,8 @@ export function VersionHistory({
                     )}
                   </div>
                 </button>
-              ))}
+                );
+              })}
             </div>
           </div>
 
