@@ -99,12 +99,10 @@ export function PlanView({
   const [activeTocId, setActiveTocId] = useState<string | null>(null);
   const [focusMode, setFocusMode] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [overflowOpen, setOverflowOpen] = useState(false);
   const { theme, toggleTheme, mounted: themeMounted } = useTheme();
   const contentRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
-  const overflowRef = useRef<HTMLDivElement>(null);
 
   // Focus mode — hide chrome, add body class, ESC to exit
   useEffect(() => {
@@ -129,23 +127,17 @@ export function PlanView({
     return () => window.removeEventListener("keydown", onKey);
   }, [focusMode]);
 
-  // Close popover menus on outside click / ESC
+  // Close user menu on outside click / ESC
   useEffect(() => {
-    if (!userMenuOpen && !overflowOpen) return;
+    if (!userMenuOpen) return;
     const onPointerDown = (e: MouseEvent) => {
       const t = e.target as Node;
-      if (userMenuOpen && userMenuRef.current && !userMenuRef.current.contains(t)) {
+      if (userMenuRef.current && !userMenuRef.current.contains(t)) {
         setUserMenuOpen(false);
-      }
-      if (overflowOpen && overflowRef.current && !overflowRef.current.contains(t)) {
-        setOverflowOpen(false);
       }
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setUserMenuOpen(false);
-        setOverflowOpen(false);
-      }
+      if (e.key === "Escape") setUserMenuOpen(false);
     };
     document.addEventListener("mousedown", onPointerDown);
     window.addEventListener("keydown", onKey);
@@ -153,7 +145,7 @@ export function PlanView({
       document.removeEventListener("mousedown", onPointerDown);
       window.removeEventListener("keydown", onKey);
     };
-  }, [userMenuOpen, overflowOpen]);
+  }, [userMenuOpen]);
   // Always fetch fresh content on mount — server render may be cached/stale
   useEffect(() => {
     async function refreshPlan() {
@@ -516,6 +508,57 @@ export function PlanView({
                   </button>
                 )}
 
+                {/* Focus mode (direct) */}
+                <button
+                  onClick={() => setFocusMode(true)}
+                  title="Focus mode (Esc to exit)"
+                  aria-label="Enter focus mode"
+                  className="h-8 w-8 rounded-lg text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[var(--button-hover)] transition-colors flex items-center justify-center"
+                >
+                  <svg
+                    className="w-[15px] h-[15px]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.7}
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
+                    />
+                  </svg>
+                </button>
+
+                {/* Version history (direct) */}
+                <button
+                  onClick={() => {
+                    setHistoryOpen(!historyOpen);
+                    if (!historyOpen) setSidebarOpen(false);
+                  }}
+                  title="Version history"
+                  aria-label="Version history"
+                  className={`h-8 w-8 rounded-lg transition-colors flex items-center justify-center ${
+                    historyOpen
+                      ? "bg-[var(--button-hover)] text-[var(--fg)]"
+                      : "text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[var(--button-hover)]"
+                  }`}
+                >
+                  <svg
+                    className="w-[15px] h-[15px]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.7}
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </button>
+
                 {/* Comments */}
                 <button
                   onClick={() => {
@@ -549,137 +592,6 @@ export function PlanView({
                     </span>
                   )}
                 </button>
-
-                {/* Overflow menu: focus, history, theme */}
-                <div className="relative" ref={overflowRef}>
-                  <button
-                    onClick={() => {
-                      setOverflowOpen((v) => !v);
-                      setUserMenuOpen(false);
-                    }}
-                    title="More"
-                    aria-label="More actions"
-                    aria-haspopup="menu"
-                    aria-expanded={overflowOpen}
-                    className={`h-8 w-8 rounded-lg transition-colors flex items-center justify-center ${
-                      overflowOpen
-                        ? "bg-[var(--button-hover)] text-[var(--fg)]"
-                        : "text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[var(--button-hover)]"
-                    }`}
-                  >
-                    <svg
-                      className="w-[15px] h-[15px]"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2}
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"
-                      />
-                    </svg>
-                  </button>
-                  {overflowOpen && (
-                    <div
-                      role="menu"
-                      className="absolute right-0 top-[38px] w-52 rounded-lg border border-[var(--border)] bg-[var(--bg)] shadow-[0_8px_24px_rgba(0,0,0,0.08)] py-1 z-50 font-sans"
-                    >
-                      <button
-                        role="menuitem"
-                        onClick={() => {
-                          setFocusMode(true);
-                          setOverflowOpen(false);
-                        }}
-                        className="w-full text-left flex items-center gap-2.5 px-3 py-2 text-[13px] text-[var(--fg-secondary)] hover:bg-[var(--button-hover)] hover:text-[var(--fg)] transition-colors"
-                      >
-                        <svg
-                          className="w-4 h-4 text-[var(--muted)]"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={1.7}
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
-                          />
-                        </svg>
-                        Focus mode
-                      </button>
-                      <button
-                        role="menuitem"
-                        onClick={() => {
-                          setHistoryOpen(!historyOpen);
-                          if (!historyOpen) setSidebarOpen(false);
-                          setOverflowOpen(false);
-                        }}
-                        className="w-full text-left flex items-center gap-2.5 px-3 py-2 text-[13px] text-[var(--fg-secondary)] hover:bg-[var(--button-hover)] hover:text-[var(--fg)] transition-colors"
-                      >
-                        <svg
-                          className="w-4 h-4 text-[var(--muted)]"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={1.7}
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
-                          />
-                        </svg>
-                        Version history
-                      </button>
-                      <div className="h-px bg-[var(--border-light)] my-1" />
-                      <button
-                        role="menuitem"
-                        onClick={() => {
-                          toggleTheme();
-                        }}
-                        className="w-full text-left flex items-center gap-2.5 px-3 py-2 text-[13px] text-[var(--fg-secondary)] hover:bg-[var(--button-hover)] hover:text-[var(--fg)] transition-colors"
-                      >
-                        {themeMounted && theme === "dark" ? (
-                          <>
-                            <svg
-                              className="w-4 h-4 text-[var(--muted)]"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              strokeWidth={1.7}
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
-                              />
-                            </svg>
-                            Light mode
-                          </>
-                        ) : (
-                          <>
-                            <svg
-                              className="w-4 h-4 text-[var(--muted)]"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              strokeWidth={1.7}
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M21.752 15.002A9.72 9.72 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"
-                              />
-                            </svg>
-                            Dark mode
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  )}
-                </div>
               </div>
             )}
 
@@ -687,10 +599,7 @@ export function PlanView({
             {isAuthenticated && (
               <div className="relative" ref={userMenuRef}>
                 <button
-                  onClick={() => {
-                    setUserMenuOpen((v) => !v);
-                    setOverflowOpen(false);
-                  }}
+                  onClick={() => setUserMenuOpen((v) => !v)}
                   title={session.user?.email || "Account"}
                   aria-label="Account menu"
                   aria-haspopup="menu"
@@ -739,6 +648,47 @@ export function PlanView({
                       </svg>
                       My docs
                     </a>
+                    <button
+                      role="menuitem"
+                      onClick={() => toggleTheme()}
+                      className="w-full text-left flex items-center justify-between gap-2.5 px-3 py-2 text-[13px] text-[var(--fg-secondary)] hover:bg-[var(--button-hover)] hover:text-[var(--fg)] transition-colors"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        {themeMounted && theme === "dark" ? (
+                          <svg
+                            className="w-4 h-4 text-[var(--muted)]"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.7}
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            className="w-4 h-4 text-[var(--muted)]"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.7}
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M21.752 15.002A9.72 9.72 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"
+                            />
+                          </svg>
+                        )}
+                        Appearance
+                      </div>
+                      <span className="text-[11px] text-[var(--muted)] font-medium">
+                        {themeMounted ? (theme === "dark" ? "Dark" : "Light") : ""}
+                      </span>
+                    </button>
                     <div className="h-px bg-[var(--border-light)] my-1" />
                     <button
                       role="menuitem"
