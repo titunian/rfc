@@ -23,13 +23,32 @@ export const metadata: Metadata = {
   description: "Publish markdown plans, get feedback from your team.",
 };
 
+// Applied before hydration to avoid FOUC when the user prefers dark mode.
+const themeBootstrap = `
+(function () {
+  try {
+    var stored = localStorage.getItem('orfc-theme');
+    var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var theme = stored || (prefersDark ? 'dark' : 'light');
+    if (theme === 'dark') document.documentElement.classList.add('dark');
+  } catch (e) {}
+})();
+`;
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${sourceSerif.variable}`}>
+    <html
+      lang="en"
+      className={`${inter.variable} ${sourceSerif.variable}`}
+      suppressHydrationWarning
+    >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
+      </head>
       <body className="antialiased font-sans">
         <AuthProvider>{children}</AuthProvider>
       </body>
