@@ -98,9 +98,13 @@ export function PlanView({
   } | null>(null);
   const [activeTocId, setActiveTocId] = useState<string | null>(null);
   const [focusMode, setFocusMode] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [overflowOpen, setOverflowOpen] = useState(false);
   const { theme, toggleTheme, mounted: themeMounted } = useTheme();
   const contentRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const overflowRef = useRef<HTMLDivElement>(null);
 
   // Focus mode — hide chrome, add body class, ESC to exit
   useEffect(() => {
@@ -124,6 +128,32 @@ export function PlanView({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [focusMode]);
+
+  // Close popover menus on outside click / ESC
+  useEffect(() => {
+    if (!userMenuOpen && !overflowOpen) return;
+    const onPointerDown = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (userMenuOpen && userMenuRef.current && !userMenuRef.current.contains(t)) {
+        setUserMenuOpen(false);
+      }
+      if (overflowOpen && overflowRef.current && !overflowRef.current.contains(t)) {
+        setOverflowOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setUserMenuOpen(false);
+        setOverflowOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [userMenuOpen, overflowOpen]);
   // Always fetch fresh content on mount — server render may be cached/stale
   useEffect(() => {
     async function refreshPlan() {
@@ -450,7 +480,7 @@ export function PlanView({
           </a>
 
           {/* Right cluster */}
-          <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
             {status !== "loading" && !isAuthenticated && (
               <a
                 href={`/auth/signin?callbackUrl=/p/${plan.slug}`}
@@ -460,39 +490,9 @@ export function PlanView({
               </a>
             )}
 
-            {isAuthenticated && (
-              <div className="hidden sm:flex items-center gap-2.5 text-[12px] font-sans text-[var(--muted)] min-w-0">
-                <a
-                  href="/dashboard"
-                  className="hover:text-[var(--fg)] transition-colors font-medium"
-                >
-                  My docs
-                </a>
-                <span className="text-[var(--border)]" aria-hidden="true">·</span>
-                <span
-                  className="truncate max-w-[180px] text-[var(--fg-secondary)]"
-                  title={session.user?.email || undefined}
-                >
-                  {session.user?.email}
-                </span>
-                <span className="text-[var(--border)]" aria-hidden="true">·</span>
-                <button
-                  onClick={() => signOut({ callbackUrl: `/p/${plan.slug}` })}
-                  className="hover:text-[var(--fg)] transition-colors"
-                >
-                  Log out
-                </button>
-              </div>
-            )}
-
-            {/* Divider between auth cluster and icon buttons */}
-            {isAuthenticated && canView && !editing && (
-              <div className="hidden sm:block h-5 w-px bg-[var(--border)]" aria-hidden="true" />
-            )}
-
             {/* Icon button cluster */}
             {canView && !editing && (
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-0.5">
                 {isOwner && (
                   <button
                     onClick={() => setEditing(true)}
@@ -516,94 +516,7 @@ export function PlanView({
                   </button>
                 )}
 
-                {/* Focus mode */}
-                <button
-                  onClick={() => setFocusMode(true)}
-                  title="Focus mode (Esc to exit)"
-                  aria-label="Enter focus mode"
-                  className="h-8 w-8 rounded-lg text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[var(--button-hover)] transition-colors flex items-center justify-center"
-                >
-                  <svg
-                    className="w-[15px] h-[15px]"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.7}
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15m11.25 5.25h-4.5m4.5 0v-4.5m0 4.5L15 15"
-                    />
-                  </svg>
-                </button>
-
-                {/* Theme toggle */}
-                <button
-                  onClick={toggleTheme}
-                  title={theme === "dark" ? "Switch to light" : "Switch to dark"}
-                  aria-label="Toggle theme"
-                  className="h-8 w-8 rounded-lg text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[var(--button-hover)] transition-colors flex items-center justify-center"
-                >
-                  {themeMounted && theme === "dark" ? (
-                    <svg
-                      className="w-[15px] h-[15px]"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.7}
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
-                      />
-                    </svg>
-                  ) : (
-                    <svg
-                      className="w-[15px] h-[15px]"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.7}
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M21.752 15.002A9.72 9.72 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"
-                      />
-                    </svg>
-                  )}
-                </button>
-
-                <button
-                  onClick={() => {
-                    setHistoryOpen(!historyOpen);
-                    if (!historyOpen) setSidebarOpen(false);
-                  }}
-                  title="Version history"
-                  aria-label="Version history"
-                  className={`h-8 w-8 rounded-lg transition-colors flex items-center justify-center ${
-                    historyOpen
-                      ? "bg-[var(--button-hover)] text-[var(--fg)]"
-                      : "text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[var(--button-hover)]"
-                  }`}
-                >
-                  <svg
-                    className="w-[15px] h-[15px]"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.7}
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </button>
-
+                {/* Comments */}
                 <button
                   onClick={() => {
                     setSidebarOpen(!sidebarOpen);
@@ -636,6 +549,222 @@ export function PlanView({
                     </span>
                   )}
                 </button>
+
+                {/* Overflow menu: focus, history, theme */}
+                <div className="relative" ref={overflowRef}>
+                  <button
+                    onClick={() => {
+                      setOverflowOpen((v) => !v);
+                      setUserMenuOpen(false);
+                    }}
+                    title="More"
+                    aria-label="More actions"
+                    aria-haspopup="menu"
+                    aria-expanded={overflowOpen}
+                    className={`h-8 w-8 rounded-lg transition-colors flex items-center justify-center ${
+                      overflowOpen
+                        ? "bg-[var(--button-hover)] text-[var(--fg)]"
+                        : "text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[var(--button-hover)]"
+                    }`}
+                  >
+                    <svg
+                      className="w-[15px] h-[15px]"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"
+                      />
+                    </svg>
+                  </button>
+                  {overflowOpen && (
+                    <div
+                      role="menu"
+                      className="absolute right-0 top-[38px] w-52 rounded-lg border border-[var(--border)] bg-[var(--bg)] shadow-[0_8px_24px_rgba(0,0,0,0.08)] py-1 z-50 font-sans"
+                    >
+                      <button
+                        role="menuitem"
+                        onClick={() => {
+                          setFocusMode(true);
+                          setOverflowOpen(false);
+                        }}
+                        className="w-full text-left flex items-center gap-2.5 px-3 py-2 text-[13px] text-[var(--fg-secondary)] hover:bg-[var(--button-hover)] hover:text-[var(--fg)] transition-colors"
+                      >
+                        <svg
+                          className="w-4 h-4 text-[var(--muted)]"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={1.7}
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
+                          />
+                        </svg>
+                        Focus mode
+                      </button>
+                      <button
+                        role="menuitem"
+                        onClick={() => {
+                          setHistoryOpen(!historyOpen);
+                          if (!historyOpen) setSidebarOpen(false);
+                          setOverflowOpen(false);
+                        }}
+                        className="w-full text-left flex items-center gap-2.5 px-3 py-2 text-[13px] text-[var(--fg-secondary)] hover:bg-[var(--button-hover)] hover:text-[var(--fg)] transition-colors"
+                      >
+                        <svg
+                          className="w-4 h-4 text-[var(--muted)]"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={1.7}
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        Version history
+                      </button>
+                      <div className="h-px bg-[var(--border-light)] my-1" />
+                      <button
+                        role="menuitem"
+                        onClick={() => {
+                          toggleTheme();
+                        }}
+                        className="w-full text-left flex items-center gap-2.5 px-3 py-2 text-[13px] text-[var(--fg-secondary)] hover:bg-[var(--button-hover)] hover:text-[var(--fg)] transition-colors"
+                      >
+                        {themeMounted && theme === "dark" ? (
+                          <>
+                            <svg
+                              className="w-4 h-4 text-[var(--muted)]"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              strokeWidth={1.7}
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
+                              />
+                            </svg>
+                            Light mode
+                          </>
+                        ) : (
+                          <>
+                            <svg
+                              className="w-4 h-4 text-[var(--muted)]"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              strokeWidth={1.7}
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M21.752 15.002A9.72 9.72 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"
+                              />
+                            </svg>
+                            Dark mode
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* User avatar menu */}
+            {isAuthenticated && (
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  onClick={() => {
+                    setUserMenuOpen((v) => !v);
+                    setOverflowOpen(false);
+                  }}
+                  title={session.user?.email || "Account"}
+                  aria-label="Account menu"
+                  aria-haspopup="menu"
+                  aria-expanded={userMenuOpen}
+                  className={`h-8 w-8 rounded-full text-[12px] font-semibold font-sans flex items-center justify-center transition-colors ${
+                    userMenuOpen
+                      ? "bg-[var(--fg)] text-[var(--bg)]"
+                      : "bg-[var(--button-hover)] text-[var(--fg-secondary)] hover:bg-[var(--border-light)] hover:text-[var(--fg)]"
+                  }`}
+                >
+                  {(session.user?.email || "?").trim().charAt(0).toUpperCase()}
+                </button>
+                {userMenuOpen && (
+                  <div
+                    role="menu"
+                    className="absolute right-0 top-[38px] w-60 rounded-lg border border-[var(--border)] bg-[var(--bg)] shadow-[0_8px_24px_rgba(0,0,0,0.08)] py-1 z-50 font-sans"
+                  >
+                    <div className="px-3 py-2 border-b border-[var(--border-light)]">
+                      <div className="text-[10px] uppercase tracking-wider text-[var(--muted)] font-medium">
+                        Signed in as
+                      </div>
+                      <div
+                        className="text-[12.5px] text-[var(--fg-secondary)] font-medium truncate mt-0.5"
+                        title={session.user?.email || undefined}
+                      >
+                        {session.user?.email}
+                      </div>
+                    </div>
+                    <a
+                      href="/dashboard"
+                      role="menuitem"
+                      className="flex items-center gap-2.5 px-3 py-2 text-[13px] text-[var(--fg-secondary)] hover:bg-[var(--button-hover)] hover:text-[var(--fg)] transition-colors"
+                    >
+                      <svg
+                        className="w-4 h-4 text-[var(--muted)]"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.7}
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z"
+                        />
+                      </svg>
+                      My docs
+                    </a>
+                    <div className="h-px bg-[var(--border-light)] my-1" />
+                    <button
+                      role="menuitem"
+                      onClick={() => {
+                        setUserMenuOpen(false);
+                        signOut({ callbackUrl: `/p/${plan.slug}` });
+                      }}
+                      className="w-full text-left flex items-center gap-2.5 px-3 py-2 text-[13px] text-[var(--fg-secondary)] hover:bg-[var(--button-hover)] hover:text-[var(--fg)] transition-colors"
+                    >
+                      <svg
+                        className="w-4 h-4 text-[var(--muted)]"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.7}
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"
+                        />
+                      </svg>
+                      Log out
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -11,7 +11,7 @@ export function AuthBar() {
     return (
       <a
         href="/auth/signin"
-        className="text-[13px] px-3.5 py-1.5 bg-[var(--fg)] text-white rounded-lg hover:bg-gray-800 transition-colors font-sans font-medium"
+        className="text-[13px] px-3.5 py-1.5 bg-[var(--fg)] text-[var(--bg)] rounded-lg hover:opacity-90 transition-opacity font-sans font-medium"
       >
         Sign in
       </a>
