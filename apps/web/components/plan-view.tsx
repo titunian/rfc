@@ -10,6 +10,7 @@ import { SelectionPopover } from "./selection-popover";
 import { MermaidBlock } from "./mermaid-block";
 import { PlanEditor } from "./plan-editor";
 import { VersionHistory } from "./version-history";
+import { useTheme } from "@/lib/use-theme";
 
 type Plan = {
   id: string;
@@ -96,8 +97,33 @@ export function PlanView({
     offsetEnd: number;
   } | null>(null);
   const [activeTocId, setActiveTocId] = useState<string | null>(null);
+  const [focusMode, setFocusMode] = useState(false);
+  const { theme, toggleTheme, mounted: themeMounted } = useTheme();
   const contentRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
+
+  // Focus mode — hide chrome, add body class, ESC to exit
+  useEffect(() => {
+    if (focusMode) {
+      document.body.classList.add("focus-mode");
+      setSidebarOpen(false);
+      setHistoryOpen(false);
+    } else {
+      document.body.classList.remove("focus-mode");
+    }
+    return () => {
+      document.body.classList.remove("focus-mode");
+    };
+  }, [focusMode]);
+
+  useEffect(() => {
+    if (!focusMode) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setFocusMode(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [focusMode]);
   // Always fetch fresh content on mount — server render may be cached/stale
   useEffect(() => {
     async function refreshPlan() {
@@ -396,36 +422,60 @@ export function PlanView({
   return (
     <div className="min-h-screen bg-[var(--bg-warm)]">
       {/* Header */}
-      <header className="border-b border-[var(--border-light)] bg-white/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-[52px] flex items-center justify-between">
+      <header
+        data-chrome
+        className="border-b border-[var(--border-light)] sticky top-0 z-40"
+        style={{
+          background: "var(--header-bg)",
+          backdropFilter: "saturate(180%) blur(14px)",
+          WebkitBackdropFilter: "saturate(180%) blur(14px)",
+        }}
+      >
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-[56px] flex items-center justify-between gap-4">
+          {/* Brand */}
           <a
             href="/"
-            className="text-[15px] font-semibold tracking-tight font-sans text-[var(--fg)] hover:text-[var(--fg-secondary)] transition-colors"
+            className="group flex items-center gap-2 shrink-0"
+            aria-label="orfc home"
           >
-            orfc
+            <span
+              className="inline-flex items-center justify-center h-6 w-6 rounded-[7px] bg-[var(--fg)] text-[var(--bg)] text-[11px] font-bold tracking-tight shadow-sm group-hover:scale-105 transition-transform"
+              aria-hidden="true"
+            >
+              o
+            </span>
+            <span className="text-[15px] font-semibold tracking-[-0.01em] font-sans text-[var(--fg)] group-hover:text-[var(--fg-secondary)] transition-colors">
+              orfc
+            </span>
           </a>
-          <div className="flex items-center gap-3">
+
+          {/* Right cluster */}
+          <div className="flex items-center gap-3 min-w-0">
             {status !== "loading" && !isAuthenticated && (
               <a
                 href={`/auth/signin?callbackUrl=/p/${plan.slug}`}
-                className="text-[13px] px-3.5 py-1.5 bg-[var(--fg)] text-white rounded-lg hover:bg-gray-800 transition-colors font-sans font-medium"
+                className="text-[13px] px-3.5 py-1.5 bg-[var(--fg)] text-[var(--bg)] rounded-lg hover:opacity-90 transition-opacity font-sans font-medium"
               >
                 Sign in
               </a>
             )}
+
             {isAuthenticated && (
-              <div className="flex items-center gap-2 text-[12px] font-sans text-[var(--muted)]">
+              <div className="hidden sm:flex items-center gap-2.5 text-[12px] font-sans text-[var(--muted)] min-w-0">
                 <a
                   href="/dashboard"
-                  className="hover:text-[var(--fg)] transition-colors"
+                  className="hover:text-[var(--fg)] transition-colors font-medium"
                 >
                   My docs
                 </a>
-                <span className="text-gray-300">·</span>
-                <span className="truncate max-w-[140px]" title={session.user?.email || undefined}>
+                <span className="text-[var(--border)]" aria-hidden="true">·</span>
+                <span
+                  className="truncate max-w-[180px] text-[var(--fg-secondary)]"
+                  title={session.user?.email || undefined}
+                >
                   {session.user?.email}
                 </span>
-                <span className="text-gray-300">·</span>
+                <span className="text-[var(--border)]" aria-hidden="true">·</span>
                 <button
                   onClick={() => signOut({ callbackUrl: `/p/${plan.slug}` })}
                   className="hover:text-[var(--fg)] transition-colors"
@@ -434,19 +484,27 @@ export function PlanView({
                 </button>
               </div>
             )}
+
+            {/* Divider between auth cluster and icon buttons */}
+            {isAuthenticated && canView && !editing && (
+              <div className="hidden sm:block h-5 w-px bg-[var(--border)]" aria-hidden="true" />
+            )}
+
+            {/* Icon button cluster */}
             {canView && !editing && (
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1">
                 {isOwner && (
                   <button
                     onClick={() => setEditing(true)}
                     title="Edit document"
-                    className="h-8 w-8 rounded-lg border border-[var(--border)] hover:bg-gray-50 transition-colors flex items-center justify-center"
+                    aria-label="Edit document"
+                    className="h-8 w-8 rounded-lg text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[var(--button-hover)] transition-colors flex items-center justify-center"
                   >
                     <svg
-                      className="w-4 h-4 text-[var(--muted)]"
+                      className="w-[15px] h-[15px]"
                       fill="none"
                       viewBox="0 0 24 24"
-                      strokeWidth={1.5}
+                      strokeWidth={1.7}
                       stroke="currentColor"
                     >
                       <path
@@ -457,21 +515,85 @@ export function PlanView({
                     </svg>
                   </button>
                 )}
+
+                {/* Focus mode */}
+                <button
+                  onClick={() => setFocusMode(true)}
+                  title="Focus mode (Esc to exit)"
+                  aria-label="Enter focus mode"
+                  className="h-8 w-8 rounded-lg text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[var(--button-hover)] transition-colors flex items-center justify-center"
+                >
+                  <svg
+                    className="w-[15px] h-[15px]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.7}
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15m11.25 5.25h-4.5m4.5 0v-4.5m0 4.5L15 15"
+                    />
+                  </svg>
+                </button>
+
+                {/* Theme toggle */}
+                <button
+                  onClick={toggleTheme}
+                  title={theme === "dark" ? "Switch to light" : "Switch to dark"}
+                  aria-label="Toggle theme"
+                  className="h-8 w-8 rounded-lg text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[var(--button-hover)] transition-colors flex items-center justify-center"
+                >
+                  {themeMounted && theme === "dark" ? (
+                    <svg
+                      className="w-[15px] h-[15px]"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.7}
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      className="w-[15px] h-[15px]"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.7}
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M21.752 15.002A9.72 9.72 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"
+                      />
+                    </svg>
+                  )}
+                </button>
+
                 <button
                   onClick={() => {
                     setHistoryOpen(!historyOpen);
                     if (!historyOpen) setSidebarOpen(false);
                   }}
                   title="Version history"
-                  className={`h-8 w-8 rounded-lg border border-[var(--border)] hover:bg-gray-50 transition-colors flex items-center justify-center ${
-                    historyOpen ? "bg-gray-100" : ""
+                  aria-label="Version history"
+                  className={`h-8 w-8 rounded-lg transition-colors flex items-center justify-center ${
+                    historyOpen
+                      ? "bg-[var(--button-hover)] text-[var(--fg)]"
+                      : "text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[var(--button-hover)]"
                   }`}
                 >
                   <svg
-                    className="w-4 h-4 text-[var(--muted)]"
+                    className="w-[15px] h-[15px]"
                     fill="none"
                     viewBox="0 0 24 24"
-                    strokeWidth={1.5}
+                    strokeWidth={1.7}
                     stroke="currentColor"
                   >
                     <path
@@ -481,21 +603,25 @@ export function PlanView({
                     />
                   </svg>
                 </button>
+
                 <button
                   onClick={() => {
                     setSidebarOpen(!sidebarOpen);
                     if (!sidebarOpen) setHistoryOpen(false);
                   }}
                   title="Comments"
-                  className={`h-8 w-8 rounded-lg border border-[var(--border)] hover:bg-gray-50 transition-colors flex items-center justify-center relative ${
-                    sidebarOpen ? "bg-gray-100" : ""
+                  aria-label="Comments"
+                  className={`h-8 w-8 rounded-lg transition-colors flex items-center justify-center relative ${
+                    sidebarOpen
+                      ? "bg-[var(--button-hover)] text-[var(--fg)]"
+                      : "text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[var(--button-hover)]"
                   }`}
                 >
                   <svg
-                    className="w-4 h-4 text-[var(--muted)]"
+                    className="w-[15px] h-[15px]"
                     fill="none"
                     viewBox="0 0 24 24"
-                    strokeWidth={1.5}
+                    strokeWidth={1.7}
                     stroke="currentColor"
                   >
                     <path
@@ -505,7 +631,7 @@ export function PlanView({
                     />
                   </svg>
                   {unresolvedCount > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] flex items-center justify-center text-[10px] font-semibold bg-[var(--fg)] text-white rounded-full px-1">
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] flex items-center justify-center text-[10px] font-semibold bg-[var(--accent)] text-white rounded-full px-1 ring-2 ring-[var(--bg-warm)]">
                       {unresolvedCount}
                     </span>
                   )}
@@ -516,10 +642,28 @@ export function PlanView({
         </div>
       </header>
 
+      {/* Focus-mode exit button (floating) */}
+      {focusMode && (
+        <button
+          onClick={() => setFocusMode(false)}
+          title="Exit focus mode (Esc)"
+          aria-label="Exit focus mode"
+          className="fixed top-4 right-4 z-50 h-9 px-3 rounded-lg text-[12px] font-sans font-medium text-[var(--muted)] hover:text-[var(--fg)] bg-[var(--bg)] border border-[var(--border)] hover:bg-[var(--button-hover)] transition-colors flex items-center gap-1.5 shadow-sm"
+        >
+          <svg className="w-[14px] h-[14px]" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l6 6m0-6l-6 6" />
+          </svg>
+          Exit focus
+        </button>
+      )}
+
       <div className="max-w-[1400px] mx-auto flex">
         {/* Table of Contents — left sidebar */}
         {showToc && (
-          <nav className="w-[220px] shrink-0 sticky top-[53px] h-[calc(100vh-53px)] overflow-y-auto py-8 pl-6 pr-2 hidden lg:block">
+          <nav
+            data-chrome
+            className="w-[220px] shrink-0 sticky top-[57px] h-[calc(100vh-57px)] overflow-y-auto py-8 pl-6 pr-2 hidden lg:block"
+          >
             <p className="text-[11px] uppercase tracking-[0.1em] text-[var(--muted)] font-sans font-medium mb-3">
               On this page
             </p>
@@ -649,7 +793,7 @@ export function PlanView({
                 {/* Overlay — differentiate signed-in-no-access vs not-signed-in */}
                 <div className="absolute inset-0 flex items-center justify-center z-10">
                   <div className="text-center px-6 py-10 max-w-md">
-                    <div className="w-14 h-14 rounded-2xl bg-white border border-[var(--border)] flex items-center justify-center mx-auto mb-5 shadow-sm">
+                    <div className="w-14 h-14 rounded-2xl bg-[var(--bg)] border border-[var(--border)] flex items-center justify-center mx-auto mb-5 shadow-sm">
                       <svg
                         className="w-6 h-6 text-[var(--fg)]"
                         fill="none"
@@ -695,7 +839,7 @@ export function PlanView({
                         </p>
                         <a
                           href={`/auth/signin?callbackUrl=/p/${plan.slug}`}
-                          className="inline-block px-6 py-2.5 bg-[var(--fg)] text-white text-[14px] font-medium rounded-xl hover:bg-gray-800 transition-colors font-sans shadow-sm"
+                          className="inline-block px-6 py-2.5 bg-[var(--fg)] text-[var(--bg)] text-[14px] font-medium rounded-xl hover:opacity-90 transition-opacity font-sans shadow-sm"
                         >
                           Sign in with email
                         </a>
@@ -821,7 +965,7 @@ export function PlanView({
               className="fixed inset-0 bg-black/20 z-40 lg:hidden"
               onClick={() => setSidebarOpen(false)}
             />
-            <div className="fixed right-0 top-[53px] h-[calc(100vh-53px)] z-50 lg:relative lg:top-auto lg:h-auto lg:z-auto">
+            <div className="fixed right-0 top-[57px] h-[calc(100vh-57px)] z-50 lg:relative lg:top-auto lg:h-auto lg:z-auto">
               <CommentSidebar
                 comments={comments}
                 activeCommentId={activeCommentId}
@@ -838,7 +982,7 @@ export function PlanView({
               className="fixed inset-0 bg-black/20 z-40 lg:hidden"
               onClick={() => setHistoryOpen(false)}
             />
-            <div className="fixed right-0 top-[53px] h-[calc(100vh-53px)] z-50 lg:relative lg:top-auto lg:h-auto lg:z-auto">
+            <div className="fixed right-0 top-[57px] h-[calc(100vh-57px)] z-50 lg:relative lg:top-auto lg:h-auto lg:z-auto">
               <VersionHistory
                 planId={plan.id}
                 onClose={() => {

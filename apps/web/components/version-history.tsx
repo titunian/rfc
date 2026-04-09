@@ -197,7 +197,7 @@ export function VersionHistory({
   };
 
   return (
-    <div className="w-[360px] shrink-0 border-l border-[var(--border-light)] bg-white h-[calc(100vh-53px)] sticky top-[53px] flex flex-col">
+    <div className="w-[360px] shrink-0 border-l border-[var(--border-light)] bg-[var(--bg)] h-[calc(100vh-57px)] sticky top-[57px] flex flex-col">
       {/* Header */}
       <div className="px-4 py-3 border-b border-[var(--border-light)] flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -359,7 +359,7 @@ export function VersionHistory({
           {selectedVersion && (
             <div className="border-t border-[var(--border-light)] flex-1 overflow-y-auto min-h-[200px] max-h-[50vh]">
               {/* Toggle tabs */}
-              <div className="flex border-b border-[var(--border-light)] sticky top-0 bg-white z-10">
+              <div className="flex border-b border-[var(--border-light)] sticky top-0 bg-[var(--bg)] z-10">
                 <button
                   onClick={() => switchViewMode("diff")}
                   className={`flex-1 text-[12px] font-sans py-2 transition-colors relative ${

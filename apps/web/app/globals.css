@@ -19,11 +19,45 @@
   --blockquote-border: #c4a882;
   --code-inline-bg: #f3f4f6;
   --table-stripe: #fafaf9;
+  --header-bg: rgba(255, 255, 255, 0.72);
+  --button-hover: #f5f4f1;
+}
+
+html.dark {
+  --bg: #0e0e10;
+  --bg-warm: #131316;
+  --fg: #f3f4f6;
+  --fg-secondary: #d1d5db;
+  --muted: #8b8d94;
+  --border: #2a2b30;
+  --border-light: #1e1f23;
+  --accent: #7aa7ff;
+  --accent-light: #1e2a44;
+  --comment-highlight: rgba(250, 204, 21, 0.18);
+  --comment-highlight-hover: rgba(250, 204, 21, 0.30);
+  --comment-highlight-active: rgba(250, 204, 21, 0.42);
+  --blockquote-bg: #1a1a1f;
+  --blockquote-border: #8a7455;
+  --code-inline-bg: #1c1d21;
+  --table-stripe: #17181c;
+  --header-bg: rgba(14, 14, 16, 0.72);
+  --button-hover: #1c1d21;
+}
+
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 body {
   background: var(--bg-warm);
   color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 /* ========================================
@@ -248,17 +282,19 @@ body {
 
 /* --- Blockquotes --- */
 .prose blockquote {
-  border-left: 2px solid var(--border);
-  background: transparent;
-  padding: 0 0 0 1em;
-  margin: 1em 0;
-  border-radius: 0;
-  color: var(--muted);
+  border-left: 3px solid var(--blockquote-border);
+  background: var(--blockquote-bg);
+  padding: 0.6em 1em 0.6em 1.1em;
+  margin: 1.1em 0;
+  border-radius: 0 6px 6px 0;
+  color: var(--fg-secondary);
   font-style: normal;
+  font-weight: 450;
 }
 
 .prose blockquote p {
   margin: 0.3em 0;
+  color: var(--fg-secondary);
 }
 
 .prose blockquote p:first-child {
@@ -269,9 +305,17 @@ body {
   margin-bottom: 0;
 }
 
+.prose blockquote em,
+.prose blockquote i {
+  color: var(--fg-secondary);
+  font-style: italic;
+  font-weight: 450;
+}
+
 .prose blockquote strong {
   font-style: normal;
-  color: var(--fg-secondary);
+  color: var(--fg);
+  font-weight: 600;
 }
 
 /* --- Tables --- */
@@ -388,4 +432,26 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ========================================
+   Focus Mode — distraction-free reading
+   ======================================== */
+
+body.focus-mode {
+  background: var(--bg);
+}
+
+body.focus-mode [data-chrome] {
+  display: none !important;
+}
+
+body.focus-mode .prose {
+  font-size: 1rem;
+  line-height: 1.75;
+  max-width: 64ch;
+}
+
+body.focus-mode .focus-exit {
+  opacity: 1;
 }

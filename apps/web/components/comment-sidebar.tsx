@@ -64,7 +64,7 @@ export function CommentSidebar({
   const resolved = comments.filter((c) => c.resolved);
 
   return (
-    <aside className="w-[340px] shrink-0 sticky top-[53px] h-[calc(100vh-53px)] overflow-y-auto border-l border-[var(--border-light)] bg-[var(--bg-warm)]">
+    <aside className="w-[340px] shrink-0 sticky top-[57px] h-[calc(100vh-57px)] overflow-y-auto border-l border-[var(--border-light)] bg-[var(--bg-warm)]">
       <div className="p-5">
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
