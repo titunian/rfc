@@ -1,10 +1,16 @@
-import React from "react";
 import ReactDOM from "react-dom/client";
 import { App } from "./App";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import "./styles/globals.css";
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+const rootEl = document.getElementById("root");
+if (!rootEl) {
+  document.body.innerHTML =
+    '<pre style="color:#f33;padding:2rem">#root not found</pre>';
+} else {
+  ReactDOM.createRoot(rootEl).render(
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
+  );
+}

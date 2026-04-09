@@ -71,7 +71,13 @@ export class ApiClient {
 
   async updatePlan(
     id: string,
-    data: { title?: string; content: string; expectedVersion?: number }
+    data: {
+      title?: string;
+      content?: string;
+      accessRule?: string;
+      allowedViewers?: string;
+      expectedVersion?: number;
+    }
   ): Promise<PlanResponse> {
     const res = await this.request(`/api/plans/${id}`, {
       method: "PUT",
@@ -102,6 +108,44 @@ export class ApiClient {
     const res = await this.request(`/api/plans/${planId}/comments`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return res.json() as Promise<{ comments: CommentItem[] }>;
+  }
+
+  async addComment(
+    planId: string,
+    data: {
+      content: string;
+      authorName?: string;
+      anchorText?: string;
+      anchorBlockIndex?: number | null;
+      anchorOffsetStart?: number | null;
+      anchorOffsetEnd?: number | null;
+    }
+  ): Promise<CommentItem> {
+    const res = await this.request(`/api/plans/${planId}/comments`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = (await res.json().catch(() => ({ error: res.statusText }))) as { error?: string };
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return res.json() as Promise<CommentItem>;
+  }
+
+  async setCommentResolved(
+    planId: string,
+    commentId: string,
+    resolved: boolean
+  ): Promise<CommentItem> {
+    const res = await this.request(`/api/plans/${planId}/comments/${commentId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ resolved }),
+    });
+    if (!res.ok) {
+      const err = (await res.json().catch(() => ({ error: res.statusText }))) as { error?: string };
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return res.json() as Promise<CommentItem>;
   }
 
   async getVersions(planId: string): Promise<{ currentVersion: number; versions: VersionSummary[] }> {

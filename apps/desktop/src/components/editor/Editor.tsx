@@ -1,73 +1,88 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
-import { useEffect, useCallback } from "react";
+import Link from "@tiptap/extension-link";
+import Typography from "@tiptap/extension-typography";
+import TaskList from "@tiptap/extension-task-list";
+import TaskItem from "@tiptap/extension-task-item";
+import { marked } from "marked";
+import TurndownService from "turndown";
+import { gfm } from "turndown-plugin-gfm";
+import { useEffect, useCallback, useMemo, useRef } from "react";
+import { useEditorStore } from "../../stores/editor-store";
+import { useCloudStore } from "../../stores/cloud-store";
+import { useAppStore } from "../../stores/app-store";
+import {
+  CommentHighlights,
+  updateCommentHighlights,
+  type HighlightComment,
+} from "./CommentHighlights";
+import { SlashCommands } from "./SlashCommands";
 import "../../styles/editor.css";
 
-// Simple markdown → HTML for Tiptap input
+// ── Markdown ↔ HTML ───────────────────────────────────────────────
+
+marked.setOptions({ gfm: true, breaks: false });
+
 function markdownToHtml(md: string): string {
-  return md
-    .replace(/^### (.+)$/gm, "<h3>$1</h3>")
-    .replace(/^## (.+)$/gm, "<h2>$1</h2>")
-    .replace(/^# (.+)$/gm, "<h1>$1</h1>")
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.+?)\*/g, "<em>$1</em>")
-    .replace(/`(.+?)`/g, "<code>$1</code>")
-    .replace(/^> (.+)$/gm, "<blockquote><p>$1</p></blockquote>")
-    .replace(/^- (.+)$/gm, "<li>$1</li>")
-    .replace(/^---$/gm, "<hr>")
-    .replace(/(<li>.*<\/li>)/s, "<ul>$1</ul>")
-    .split("\n\n")
-    .map((block) => {
-      if (block.startsWith("<h") || block.startsWith("<ul") || block.startsWith("<blockquote") || block.startsWith("<hr")) {
-        return block;
-      }
-      if (block.trim()) {
-        return `<p>${block}</p>`;
-      }
-      return "";
-    })
-    .join("");
-}
-
-// HTML → markdown for Tiptap output
-function htmlToMarkdown(html: string): string {
-  const div = document.createElement("div");
-  div.innerHTML = html;
-
-  function process(node: Node): string {
-    if (node.nodeType === Node.TEXT_NODE) {
-      return node.textContent || "";
-    }
-    if (node.nodeType !== Node.ELEMENT_NODE) return "";
-
-    const el = node as HTMLElement;
-    const children = Array.from(el.childNodes).map(process).join("");
-
-    switch (el.tagName) {
-      case "H1": return `# ${children}\n\n`;
-      case "H2": return `## ${children}\n\n`;
-      case "H3": return `### ${children}\n\n`;
-      case "P": return `${children}\n\n`;
-      case "STRONG": return `**${children}**`;
-      case "EM": return `*${children}*`;
-      case "CODE":
-        if (el.parentElement?.tagName === "PRE") return children;
-        return `\`${children}\``;
-      case "PRE": return `\`\`\`\n${children}\n\`\`\`\n\n`;
-      case "BLOCKQUOTE": return children.split("\n").filter(Boolean).map((l) => `> ${l.trim()}`).join("\n") + "\n\n";
-      case "UL": return children;
-      case "OL": return children;
-      case "LI": return `- ${children}\n`;
-      case "HR": return "---\n\n";
-      case "A": return `[${children}](${el.getAttribute("href") || ""})`;
-      case "BR": return "\n";
-      default: return children;
-    }
+  if (!md || !md.trim()) {
+    // Empty doc — seed with an empty title + body paragraph so the
+    // placeholder shows in both slots and hitting Enter on the title
+    // drops into the paragraph below.
+    return "<h1></h1><p></p>";
   }
-
-  return Array.from(div.childNodes).map(process).join("").replace(/\n{3,}/g, "\n\n").trim() + "\n";
+  const out = marked.parse(md, { async: false }) as string;
+  return out;
 }
+
+function buildTurndown(): TurndownService {
+  const td = new TurndownService({
+    headingStyle: "atx",
+    codeBlockStyle: "fenced",
+    bulletListMarker: "-",
+    emDelimiter: "*",
+    strongDelimiter: "**",
+    hr: "---",
+  });
+  td.use(gfm);
+
+  // Task list checkboxes — keep the [ ] / [x] in the output.
+  td.addRule("taskList", {
+    filter: (node) =>
+      node.nodeName === "LI" &&
+      (node.getAttribute("data-type") === "taskItem" ||
+        !!node.querySelector("input[type='checkbox']")),
+    replacement: (content, node) => {
+      const el = node as HTMLElement;
+      const cb = el.querySelector("input[type='checkbox']") as
+        | HTMLInputElement
+        | null;
+      const checked = cb?.checked ? "x" : " ";
+      const clean = content
+        .replace(/\n+$/, "")
+        .split("\n")
+        .map((line) => line.trimStart())
+        .join(" ")
+        .trim();
+      return `- [${checked}] ${clean}\n`;
+    },
+  });
+
+  return td;
+}
+
+// Extract the first H1's text from HTML — that's the title.
+function extractTitleFromHtml(html: string): string {
+  if (!html) return "";
+  const match = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+  if (!match) return "";
+  return match[1]
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .trim();
+}
+
+// ── Component ─────────────────────────────────────────────────────
 
 interface EditorProps {
   content: string;
@@ -76,40 +91,205 @@ interface EditorProps {
 }
 
 export function Editor({ content, onChange, className }: EditorProps) {
+  const turndown = useMemo(() => buildTurndown(), []);
+  const lastTitleRef = useRef<string>("");
+  // Tracks the markdown the editor itself most recently emitted via onUpdate.
+  // Used to distinguish "store content changed because the user typed" (skip
+  // re-sync) from "store content changed externally" (reset the editor).
+  const lastEmittedRef = useRef<string>("");
+  const comments = useCloudStore((s) => s.comments);
+  const { toggleRightPanel } = useAppStore();
+  const previewVersion = useEditorStore((s) => s.previewVersion);
+  const isPreview = !!previewVersion;
+  // What we actually display: the preview version's content overrides the
+  // working content when set, otherwise we render the live editable content.
+  const displayContent = previewVersion ? previewVersion.content : content;
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        heading: { levels: [1, 2, 3] },
+        heading: { levels: [1, 2, 3, 4] },
+        codeBlock: { HTMLAttributes: { class: "code-block" } },
       }),
       Placeholder.configure({
-        placeholder: "Start writing…",
+        placeholder: ({ node, pos }) => {
+          if (node.type.name === "heading" && node.attrs.level === 1 && pos === 0) {
+            return "Untitled";
+          }
+          if (node.type.name === "paragraph") {
+            return "/ for blocks · ⌘K for commands";
+          }
+          return "";
+        },
+        showOnlyCurrent: false,
       }),
+      Link.configure({
+        openOnClick: false,
+        autolink: true,
+        HTMLAttributes: {
+          rel: "noopener noreferrer",
+          class: "md-link",
+        },
+      }),
+      Typography,
+      TaskList.configure({ HTMLAttributes: { class: "task-list" } }),
+      TaskItem.configure({
+        nested: true,
+        HTMLAttributes: { class: "task-item" },
+      }),
+      CommentHighlights.configure({
+        comments: [],
+        activeId: null,
+        onClick: (id) => {
+          // Activate the comment and open the comments drawer.
+          useCloudStore.setState({});
+          toggleRightPanel("comments");
+          window.dispatchEvent(
+            new CustomEvent("orfc:focus-comment", { detail: { id } })
+          );
+        },
+      }),
+      SlashCommands,
     ],
-    content: content ? markdownToHtml(content) : "",
+    content: markdownToHtml(displayContent),
+    editable: !isPreview,
     editorProps: {
       attributes: {
         class: "tiptap-editor",
+        spellcheck: isPreview ? "false" : "true",
       },
     },
     onUpdate: ({ editor }) => {
+      // Don't capture edits while previewing — the editor is read-only.
+      if (useEditorStore.getState().previewVersion) return;
       const html = editor.getHTML();
-      const md = htmlToMarkdown(html);
+      const md = turndown.turndown(html).replace(/\n{3,}/g, "\n\n") + "\n";
+      lastEmittedRef.current = md;
       onChange(md);
+
+      // Sync the title (first h1) into editor store so it's the single
+      // source of truth for fileName — no duplication across chrome.
+      const title = extractTitleFromHtml(html);
+      if (title !== lastTitleRef.current) {
+        lastTitleRef.current = title;
+        useEditorStore.getState().setTitle(title || "Untitled");
+      }
     },
   });
 
-  // Sync external content changes (e.g. file open)
+  // When previewVersion changes (or unsets), swap the editor content + editability.
+  useEffect(() => {
+    if (!editor) return;
+    editor.setEditable(!isPreview);
+    const targetMd = displayContent;
+    const currentMd = (turndown.turndown(editor.getHTML()) + "\n").replace(
+      /\n{3,}/g,
+      "\n\n"
+    );
+    if (currentMd.trim() !== targetMd.trim()) {
+      editor.commands.setContent(markdownToHtml(targetMd));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [previewVersion?.versionId, isPreview]);
+
+  // Sync EXTERNAL content changes (file open, new file, cloud pull).
+  // We skip the sync if the store content matches the markdown the editor
+  // itself just emitted — that means the change was a user edit echoing
+  // back through the store, not a real external change. Without this
+  // guard the effect would re-set the editor on every keystroke.
   const lastExternalContent = useCallback(() => content, [content]);
   useEffect(() => {
-    if (editor && content !== undefined) {
-      const currentMd = htmlToMarkdown(editor.getHTML());
-      if (currentMd.trim() !== content.trim()) {
-        editor.commands.setContent(markdownToHtml(content));
-      }
+    if (!editor || content === undefined || isPreview) return;
+    if (content === lastEmittedRef.current) return;
+
+    const currentMd =
+      (turndown.turndown(editor.getHTML()) + "\n").replace(/\n{3,}/g, "\n\n");
+    if (currentMd.trim() === content.trim()) {
+      // The editor's current state already matches the external content;
+      // nothing to do but record what we emit so the next user edit doesn't
+      // trip this effect.
+      lastEmittedRef.current = currentMd;
+      return;
     }
-    // Only react to content prop changes, not editor updates
+
+    editor.commands.setContent(markdownToHtml(content));
+    lastTitleRef.current = extractTitleFromHtml(editor.getHTML());
+    // Capture the canonical (round-tripped) form and use it as the new
+    // synced baseline so subsequent edits dirty against the right reference.
+    const canonical =
+      (turndown.turndown(editor.getHTML()) + "\n").replace(/\n{3,}/g, "\n\n");
+    lastEmittedRef.current = canonical;
+    useEditorStore.getState().reconcileSyncedContent(canonical);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lastExternalContent, editor]);
+  }, [lastExternalContent, editor, isPreview]);
+
+  // Re-compute comment highlights whenever the comments array changes.
+  useEffect(() => {
+    if (!editor) return;
+    const highlightable: HighlightComment[] = comments.map((c) => ({
+      id: c.id,
+      anchorText: c.anchorText,
+      resolved: c.resolved,
+    }));
+    updateCommentHighlights(editor, highlightable, null);
+  }, [editor, comments]);
+
+  // Editor-scoped keyboard shortcuts beyond what StarterKit provides.
+  useEffect(() => {
+    if (!editor) return;
+    const handler = (e: KeyboardEvent) => {
+      const mod = e.metaKey || e.ctrlKey;
+      if (!mod || !editor.isFocused) return;
+
+      // ⌘1 / ⌘2 / ⌘3 / ⌘4 — set heading level
+      if (!e.shiftKey && ["1", "2", "3", "4"].includes(e.key)) {
+        e.preventDefault();
+        editor
+          .chain()
+          .focus()
+          .toggleHeading({ level: Number(e.key) as 1 | 2 | 3 | 4 })
+          .run();
+        return;
+      }
+      // ⌘0 — paragraph
+      if (!e.shiftKey && e.key === "0") {
+        e.preventDefault();
+        editor.chain().focus().setParagraph().run();
+        return;
+      }
+      // ⌘; — toggle code block
+      if (e.key === ";") {
+        e.preventDefault();
+        editor.chain().focus().toggleCodeBlock().run();
+        return;
+      }
+      // ⌘Shift+7 / 8 — ordered / bullet list
+      if (e.shiftKey && e.key === "7") {
+        e.preventDefault();
+        editor.chain().focus().toggleOrderedList().run();
+        return;
+      }
+      if (e.shiftKey && e.key === "8") {
+        e.preventDefault();
+        editor.chain().focus().toggleBulletList().run();
+        return;
+      }
+      // ⌘Shift+9 — task list
+      if (e.shiftKey && e.key === "9") {
+        e.preventDefault();
+        editor.chain().focus().toggleTaskList().run();
+        return;
+      }
+      // ⌘Shift+. — blockquote
+      if (e.shiftKey && e.key === ".") {
+        e.preventDefault();
+        editor.chain().focus().toggleBlockquote().run();
+        return;
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [editor]);
 
   return (
     <div className={className}>

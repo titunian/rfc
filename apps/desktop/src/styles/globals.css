@@ -2,40 +2,308 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * orfc desktop — "a quiet room to write in"
+ *
+ * Light: warm paper, ink-black headings, tree-shadow accents.
+ * Dark:  moonlit study, no pitch black, no cheap greys.
+ */
+
 :root {
-  --bg: #ffffff;
-  --bg-sidebar: #f8f8f7;
+  /* Surfaces — floating panel system. The shell is a SUBTLE outer
+     background; panels (sidebar, editor, drawers) sit on top as lighter
+     rounded cards with very gentle elevation. The shell is barely darker
+     than the panels — never a stark "bar". */
+  --bg-shell: #f3f0e7;
+  --bg: #fdfcf9;
+  --bg-sidebar: #f8f6ef;
+  --bg-surface: #ffffff;
+  --bg-hover: rgba(26, 20, 10, 0.045);
+  --bg-active: rgba(26, 20, 10, 0.08);
+  --bg-elevated: #ffffff;
+  --bg-titlebar: rgba(253, 252, 249, 0.78);
+  --panel-radius: 12px;
+  --button-radius: 10px;
+  --button-radius-sm: 8px;
+
+  /* Text */
   --fg: #1a1a1a;
-  --fg-secondary: #4a4a4a;
-  --muted: #999999;
-  --border: #e5e5e5;
+  --fg-secondary: #3d3a36;
+  --fg-tertiary: #6d6a65;
+  --muted: #9b968d;
+
+  /* Lines */
+  --border: #e4dfd4;
+  --border-subtle: #ece7dc;
+  --border-faint: #f3efe4;
+
+  /* Accents */
   --accent: #2563eb;
-  --accent-light: #eff6ff;
-  --editor-width: 68ch;
+  --accent-soft: #dbeafe;
+  --ink: #1a1a1a;
+  --gold: #c4a882;
+
+  /* Semantic */
+  --success: #16a34a;
+  --warning: #d97706;
+  --danger: #dc2626;
+
+  /* Modal / overlay scrim */
+  --overlay: rgba(10, 8, 3, 0.32);
+  --danger-soft: rgba(220, 38, 38, 0.08);
+  --danger-border: rgba(220, 38, 38, 0.22);
+  --header-bg: rgba(250, 249, 247, 0.72);
+  --button-hover: #f5f4f1;
+
+  /* Shadows — warm, not gray */
+  --shadow-sm: 0 1px 2px rgba(38, 26, 4, 0.04);
+  --shadow-md: 0 4px 16px rgba(38, 26, 4, 0.06), 0 1px 3px rgba(38, 26, 4, 0.04);
+  --shadow-lg: 0 20px 48px rgba(38, 26, 4, 0.12), 0 4px 12px rgba(38, 26, 4, 0.06);
+  --shadow-glow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+
+  /* Scale */
+  --text-xxs: 10px;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 13px;
+  --text-md: 14px;
+  --text-lg: 18px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+
+  --editor-width: 680px;
+  --sidebar-width: 244px;
+  --titlebar-height: 40px;
 }
 
-.dark {
-  --bg: #1a1a1a;
-  --bg-sidebar: #141414;
-  --fg: #e5e5e5;
-  --fg-secondary: #b0b0b0;
-  --muted: #666666;
-  --border: #2a2a2a;
-  --accent: #3b82f6;
-  --accent-light: #1e293b;
+html.dark {
+  --bg-shell: #0e0e10;
+  --bg: #16161a;
+  --bg-sidebar: #1a1a1e;
+  --bg-surface: #1d1e22;
+  --bg-hover: rgba(255, 255, 255, 0.045);
+  --bg-active: rgba(255, 255, 255, 0.08);
+  --bg-elevated: #1a1b1f;
+  --bg-titlebar: rgba(19, 19, 22, 0.78);
+
+  --fg: #f3f2ef;
+  --fg-secondary: #c9c6bf;
+  --fg-tertiary: #8a8680;
+  --muted: #5c5954;
+
+  --border: #2a2a2e;
+  --border-subtle: #1f1f23;
+  --border-faint: #17171a;
+
+  --accent: #7aa7ff;
+  --accent-soft: rgba(122, 167, 255, 0.14);
+  --ink: #f3f2ef;
+  --gold: #b39775;
+
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+
+  --overlay: rgba(0, 0, 0, 0.56);
+  --danger-soft: rgba(239, 68, 68, 0.12);
+  --danger-border: rgba(239, 68, 68, 0.3);
+  --header-bg: rgba(14, 14, 16, 0.72);
+  --button-hover: #1c1d21;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 0 3px rgba(122, 167, 255, 0.22);
 }
 
-body {
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
   margin: 0;
-  background: var(--bg);
+  padding: 0;
+  background: var(--bg-shell);
   color: var(--fg);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
+    system-ui, sans-serif;
+  font-feature-settings: "kern", "liga", "clig", "calt", "ss01", "cv11";
+  font-variant-ligatures: common-ligatures contextual;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-size: 13px;
+  line-height: 1.5;
+  letter-spacing: -0.005em;
   overflow: hidden;
+  height: 100%;
 }
 
-/* Prevent text selection on drag regions */
+/* Tabular numbers anywhere a stat is shown */
+.tnum,
+[data-tnum],
+.font-mono {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Buttons share a tactile feel */
+button {
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  height: 100%;
+}
+
+#root {
+  height: 100%;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--fg);
+}
+
+html.dark ::selection {
+  background: rgba(122, 167, 255, 0.28);
+}
+
+/* ── Scrollbar: invisible until hover, warm-tinted thumb ── */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*:hover > ::-webkit-scrollbar-thumb,
+*:hover::-webkit-scrollbar-thumb {
+  background: var(--border);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--fg-tertiary);
+  background-clip: padding-box;
+}
+
+/* ── Tauri drag region ──
+   Only the specific spacer elements that explicitly declare
+   data-tauri-drag-region act as drag handles. Their children can still
+   receive clicks because -webkit-app-region only applies to the element
+   it's set on — but we opt interactive descendants out anyway as a
+   belt-and-suspenders measure. */
 [data-tauri-drag-region] {
   -webkit-user-select: none;
   user-select: none;
+  -webkit-app-region: drag;
+}
+
+[data-tauri-drag-region] button,
+[data-tauri-drag-region] input,
+[data-tauri-drag-region] textarea,
+[data-tauri-drag-region] select,
+[data-tauri-drag-region] a,
+[data-tauri-drag-region] label,
+[data-tauri-drag-region] [role="button"],
+[data-tauri-drag-region] [contenteditable] {
+  -webkit-app-region: no-drag;
+}
+
+/* ── Focus ring ── */
+button:focus-visible,
+input:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-glow);
+  border-radius: 6px;
+}
+
+/* ── Subtle gradient seam between sidebar and editor ── */
+.seam {
+  background: linear-gradient(
+    to right,
+    var(--border-faint) 0%,
+    transparent 100%
+  );
+  width: 12px;
+  pointer-events: none;
+}
+
+/* ── Animations ── */
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.anim-slide-in {
+  animation: slideInRight 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
+}
+
+.anim-fade-scale {
+  animation: fadeInScale 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.anim-slide-up {
+  animation: slideUp 140ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.anim-pulse-dot {
+  animation: pulse-dot 1.6s ease-in-out infinite;
 }

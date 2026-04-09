@@ -9,3 +9,10 @@ dist
 *.tsbuildinfo
 .data
 .vercel
+
+# Rust / Tauri build output
+apps/desktop/src-tauri/target/
+
+# Local tool caches
+.claude/
+.vasco/

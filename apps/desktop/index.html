@@ -3,10 +3,44 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- System fonts only: SF Pro, New York, SF Mono. No web-font download. -->
     <title>orfc</title>
+    <script>
+      // Pre-hydration theme bootstrap — prevents FOUC in dark mode.
+      try {
+        var stored = localStorage.getItem("orfc-desktop-theme");
+        var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        var theme = stored || (prefersDark ? "dark" : "light");
+        if (theme === "dark") document.documentElement.classList.add("dark");
+      } catch (e) {}
+    </script>
+    <style>
+      html { background: #faf9f7; }
+      html.dark { background: #0e0e10; }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div style="padding:40px;color:#888;font-family:system-ui;font-size:13px">
+        Loading orfc…
+      </div>
+    </div>
+    <script>
+      window.__ORFC_BOOT__ = { html: true, mainLoaded: false, appRendered: false, errors: [] };
+      window.addEventListener("error", (e) => {
+        window.__ORFC_BOOT__.errors.push(String(e.error || e.message));
+        var el = document.getElementById("root");
+        if (el && !window.__ORFC_BOOT__.appRendered) {
+          el.innerHTML =
+            '<pre style="padding:40px;color:#ef4444;font-family:ui-monospace,monospace;font-size:12px;white-space:pre-wrap">[boot error]\n' +
+            String(e.error && e.error.stack || e.error || e.message) +
+            "</pre>";
+        }
+      });
+      window.addEventListener("unhandledrejection", (e) => {
+        window.__ORFC_BOOT__.errors.push("unhandled: " + String(e.reason));
+      });
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
