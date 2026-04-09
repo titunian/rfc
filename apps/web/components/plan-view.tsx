@@ -260,11 +260,32 @@ export function PlanView({
   };
 
   const handleResolve = async (commentId: string) => {
+    const target = comments.find((c) => c.id === commentId);
+    if (!target) return;
+    const next = !target.resolved;
+
+    // Optimistic update
     setComments((prev) =>
-      prev.map((c) =>
-        c.id === commentId ? { ...c, resolved: !c.resolved } : c
-      )
+      prev.map((c) => (c.id === commentId ? { ...c, resolved: next } : c))
     );
+
+    const res = await fetch(
+      `/api/plans/${plan.id}/comments/${commentId}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resolved: next }),
+      }
+    );
+
+    if (!res.ok) {
+      // Roll back on failure
+      setComments((prev) =>
+        prev.map((c) =>
+          c.id === commentId ? { ...c, resolved: !next } : c
+        )
+      );
+    }
   };
 
   // ── Inline comment highlighting ──────────────────────────────
