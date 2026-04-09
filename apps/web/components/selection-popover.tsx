@@ -55,10 +55,10 @@ export function SelectionPopover({
       >
         <button
           onClick={() => setIsExpanded(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white text-sm rounded-lg shadow-lg hover:bg-gray-800 transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--fg)] text-[var(--bg)] text-[13px] font-sans font-medium rounded-lg shadow-[0_4px_14px_rgba(0,0,0,0.18)] hover:opacity-90 transition-opacity"
         >
           <svg
-            className="w-4 h-4"
+            className="w-[14px] h-[14px]"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -82,13 +82,13 @@ export function SelectionPopover({
       className="selection-popover"
       style={{ top, left, transform: "translateX(-50%)" }}
     >
-      <div className="bg-white border border-[var(--border)] rounded-lg shadow-xl p-3 w-[300px] font-sans">
+      <div className="bg-[var(--bg)] border border-[var(--border)] rounded-xl shadow-[0_12px_32px_rgba(0,0,0,0.18)] p-3 w-[320px] font-sans">
         <textarea
           ref={textareaRef}
           value={commentText}
           onChange={(e) => setCommentText(e.target.value)}
           placeholder="Add a comment..."
-          className="w-full text-sm border border-[var(--border)] rounded-md p-2 resize-none focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
+          className="w-full text-[13px] bg-[var(--bg-warm)] text-[var(--fg)] placeholder:text-[var(--muted)] border border-[var(--border-light)] rounded-lg p-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
           rows={3}
           onKeyDown={(e) => {
             if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
@@ -99,25 +99,25 @@ export function SelectionPopover({
             }
           }}
         />
-        <div className="flex items-center justify-between mt-2">
-          <span className="text-xs text-[var(--muted)]">
+        <div className="flex items-center justify-between mt-2.5">
+          <span className="text-[11px] text-[var(--muted)]">
             {typeof navigator !== "undefined" &&
             navigator.platform?.includes("Mac")
-              ? "Cmd"
+              ? "⌘"
               : "Ctrl"}
-            +Enter to submit
+            + Enter to submit
           </span>
-          <div className="flex gap-2">
+          <div className="flex gap-1.5">
             <button
               onClick={onDismiss}
-              className="text-sm px-3 py-1 text-[var(--muted)] hover:text-[var(--fg)] transition-colors"
+              className="text-[12px] font-medium px-3 py-1.5 rounded-lg text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[var(--button-hover)] transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={submit}
               disabled={!commentText.trim()}
-              className="text-sm px-3 py-1 bg-gray-900 text-white rounded-md hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="text-[12px] font-medium px-3 py-1.5 bg-[var(--fg)] text-[var(--bg)] rounded-lg hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
             >
               Comment
             </button>

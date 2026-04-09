@@ -35,14 +35,14 @@ function relativeTime(iso: string): string {
 
 function SkeletonList() {
   return (
-    <div className="p-3 space-y-3">
+    <div className="p-4 space-y-3.5">
       {[1, 2, 3].map((i) => (
         <div key={i} className="animate-pulse">
           <div className="flex items-center gap-2 mb-1.5">
-            <div className="w-8 h-5 bg-gray-100 rounded-md" />
-            <div className="h-3.5 bg-gray-100 rounded w-24" />
+            <div className="w-8 h-[18px] bg-[var(--border-light)] rounded-md" />
+            <div className="h-3.5 bg-[var(--border-light)] rounded w-24" />
           </div>
-          <div className="h-3 bg-gray-50 rounded w-32" />
+          <div className="h-3 bg-[var(--border-light)]/70 rounded w-32" />
         </div>
       ))}
     </div>
@@ -54,13 +54,10 @@ function SkeletonDiff() {
     <div className="p-3 space-y-1 animate-pulse">
       {[1, 2, 3, 4, 5, 6].map((i) => (
         <div key={i} className="flex gap-2">
-          <div className="w-6 h-3.5 bg-gray-50 rounded" />
+          <div className="w-6 h-3.5 bg-[var(--border-light)] rounded" />
           <div
-            className="h-3.5 rounded"
-            style={{
-              width: `${40 + Math.random() * 50}%`,
-              backgroundColor: i % 3 === 0 ? "#fef2f2" : i % 3 === 1 ? "#f0fdf4" : "#f9fafb",
-            }}
+            className="h-3.5 rounded bg-[var(--border-light)]"
+            style={{ width: `${40 + Math.random() * 50}%` }}
           />
         </div>
       ))}
@@ -197,15 +194,15 @@ export function VersionHistory({
   };
 
   return (
-    <div className="w-[360px] shrink-0 border-l border-[var(--border-light)] bg-[var(--bg)] h-[calc(100vh-57px)] sticky top-[57px] flex flex-col">
+    <div className="w-[380px] shrink-0 border-l border-[var(--border-light)] bg-[var(--bg-warm)] h-[calc(100vh-57px)] sticky top-[57px] flex flex-col">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-[var(--border-light)] flex items-center justify-between">
+      <div className="px-5 py-3.5 border-b border-[var(--border-light)] flex items-center justify-between bg-[var(--bg-warm)]/95 backdrop-blur-sm">
         <div className="flex items-center gap-2">
           <svg
             className="w-4 h-4 text-[var(--muted)]"
             fill="none"
             viewBox="0 0 24 24"
-            strokeWidth={1.5}
+            strokeWidth={1.7}
             stroke="currentColor"
           >
             <path
@@ -214,17 +211,18 @@ export function VersionHistory({
               d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <h3 className="text-[13px] font-semibold font-sans text-[var(--fg)]">
-            Version History
+          <h3 className="text-[13px] font-semibold font-sans text-[var(--fg)] tracking-tight">
+            Version history
           </h3>
         </div>
         <button
           onClick={onClose}
-          className="w-6 h-6 flex items-center justify-center rounded-md text-[var(--muted)] hover:text-[var(--fg)] hover:bg-gray-100 transition-colors"
+          className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[var(--button-hover)] transition-colors"
           title="Close"
+          aria-label="Close"
         >
           <svg
-            className="w-3.5 h-3.5"
+            className="w-4 h-4"
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth={2}
@@ -243,7 +241,7 @@ export function VersionHistory({
         <SkeletonList />
       ) : versions.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
-          <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center mb-3">
+          <div className="w-11 h-11 rounded-full bg-[var(--bg)] border border-[var(--border-light)] flex items-center justify-center mb-3 shadow-sm">
             <svg
               className="w-5 h-5 text-[var(--muted)]"
               fill="none"
@@ -279,19 +277,21 @@ export function VersionHistory({
                 setVersionContent(null);
                 if (onClearPreview) onClearPreview();
               }}
-              className={`w-full text-left px-4 py-2.5 border-b border-[var(--border-light)] transition-colors ${
-                !previewingVersionId ? "bg-emerald-50/50" : "hover:bg-gray-50/50"
+              className={`w-full text-left px-5 py-3 border-b border-[var(--border-light)] transition-colors ${
+                !previewingVersionId
+                  ? "bg-emerald-50/60 dark:bg-emerald-500/10"
+                  : "hover:bg-[var(--button-hover)]"
               }`}
             >
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center justify-center text-[10px] font-bold font-mono bg-emerald-100 text-emerald-700 rounded px-1.5 py-0.5 leading-none">
+                <span className="inline-flex items-center justify-center text-[10px] font-bold font-mono bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 rounded px-1.5 py-0.5 leading-none">
                   v{liveCurrentVersion}
                 </span>
                 <span className="text-[12px] font-sans text-[var(--fg-secondary)] font-medium">
                   Current version
                 </span>
                 {!previewingVersionId && (
-                  <span className="text-[10px] font-sans text-emerald-600 font-medium ml-auto">
+                  <span className="text-[10px] font-sans text-emerald-600 dark:text-emerald-400 font-medium ml-auto">
                     viewing
                   </span>
                 )}
@@ -306,20 +306,20 @@ export function VersionHistory({
                 <button
                   key={v.id}
                   onClick={() => handleSelectVersion(v.id)}
-                  className={`w-full text-left px-4 py-2.5 transition-colors group ${
+                  className={`w-full text-left px-5 py-3 transition-colors group border-l-2 ${
                     isPreviewing
-                      ? "bg-blue-50/80 border-l-2 border-l-blue-500"
+                      ? "bg-[var(--accent-light)] border-l-[var(--accent)]"
                       : selectedVersion === v.id
-                      ? "bg-gray-50/80 border-l-2 border-l-gray-300"
-                      : "hover:bg-gray-50/80 border-l-2 border-l-transparent"
+                      ? "bg-[var(--button-hover)] border-l-[var(--border)]"
+                      : "hover:bg-[var(--button-hover)] border-l-transparent"
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-0.5">
                     <span
-                      className={`inline-flex items-center justify-center text-[10px] font-bold font-mono rounded px-1.5 py-0.5 leading-none ${
+                      className={`inline-flex items-center justify-center text-[10px] font-bold font-mono rounded px-1.5 py-0.5 leading-none transition-colors ${
                         isPreviewing
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-gray-100 text-gray-500 group-hover:bg-gray-200 group-hover:text-gray-600"
+                          ? "bg-[var(--accent)] text-white"
+                          : "bg-[var(--code-inline-bg)] text-[var(--muted)] group-hover:text-[var(--fg-secondary)]"
                       }`}
                     >
                       v{v.version}
@@ -330,10 +330,10 @@ export function VersionHistory({
                       </span>
                     )}
                     {isLoading && (
-                      <span className="inline-block w-3 h-3 border border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                      <span className="inline-block w-3 h-3 border border-[var(--border)] border-t-[var(--fg-secondary)] rounded-full animate-spin" />
                     )}
                     {isPreviewing && !isLoading && (
-                      <span className="text-[10px] font-sans text-blue-500 font-medium">
+                      <span className="text-[10px] font-sans text-[var(--accent)] font-medium ml-auto">
                         viewing
                       </span>
                     )}
@@ -344,7 +344,7 @@ export function VersionHistory({
                     </span>
                     {v.authorEmail && (
                       <>
-                        <span className="text-gray-300">·</span>
+                        <span className="text-[var(--border)]">·</span>
                         <span className="truncate">{v.authorEmail}</span>
                       </>
                     )}
@@ -357,7 +357,7 @@ export function VersionHistory({
 
           {/* Selected version content/diff */}
           {selectedVersion && (
-            <div className="border-t border-[var(--border-light)] flex-1 overflow-y-auto min-h-[200px] max-h-[50vh]">
+            <div className="border-t border-[var(--border-light)] flex-1 overflow-y-auto min-h-[200px] max-h-[50vh] bg-[var(--bg)]">
               {/* Toggle tabs */}
               <div className="flex border-b border-[var(--border-light)] sticky top-0 bg-[var(--bg)] z-10">
                 <button
@@ -395,67 +395,90 @@ export function VersionHistory({
                     <tbody>
                       {(() => {
                         const lineNums = computeDiffLineNumbers(diff);
-                        return diff.map((line, i) => (
-                          <tr
-                            key={i}
-                            className={
-                              line.type === "add"
-                                ? "bg-[#dafbe1]"
-                                : line.type === "remove"
-                                ? "bg-[#ffebe9]"
-                                : ""
-                            }
-                          >
-                            <td
-                              className={`select-none text-right px-1.5 w-[1%] whitespace-nowrap ${
-                                line.type === "add"
-                                  ? "text-emerald-500/60 bg-[#aceebb]/30"
+                        return diff.map((line, i) => {
+                          const rowStyle: React.CSSProperties =
+                            line.type === "add"
+                              ? { backgroundColor: "var(--diff-add-bg)" }
+                              : line.type === "remove"
+                              ? { backgroundColor: "var(--diff-remove-bg)" }
+                              : {};
+                          const gutterStyle: React.CSSProperties =
+                            line.type === "add"
+                              ? {
+                                  color: "var(--diff-add-num)",
+                                  backgroundColor: "var(--diff-add-gutter)",
+                                }
+                              : line.type === "remove"
+                              ? {
+                                  color: "var(--diff-remove-num)",
+                                  backgroundColor: "var(--diff-remove-gutter)",
+                                }
+                              : {
+                                  color: "var(--gutter-text)",
+                                  backgroundColor: "var(--gutter-bg)",
+                                };
+                          const gutterBorderStyle: React.CSSProperties =
+                            line.type === "add"
+                              ? {
+                                  ...gutterStyle,
+                                  borderRight: "1px solid var(--diff-add-border)",
+                                }
+                              : line.type === "remove"
+                              ? {
+                                  ...gutterStyle,
+                                  borderRight: "1px solid var(--diff-remove-border)",
+                                }
+                              : {
+                                  ...gutterStyle,
+                                  borderRight: "1px solid var(--gutter-border)",
+                                };
+                          return (
+                            <tr key={i} style={rowStyle}>
+                              <td
+                                className="select-none text-right px-1.5 w-[1%] whitespace-nowrap"
+                                style={gutterStyle}
+                              >
+                                {lineNums[i].oldNum ?? ""}
+                              </td>
+                              <td
+                                className="select-none text-right px-1.5 w-[1%] whitespace-nowrap"
+                                style={gutterBorderStyle}
+                              >
+                                {lineNums[i].newNum ?? ""}
+                              </td>
+                              <td
+                                className="select-none w-[14px] text-center"
+                                style={{
+                                  color:
+                                    line.type === "add"
+                                      ? "var(--diff-add-sign)"
+                                      : line.type === "remove"
+                                      ? "var(--diff-remove-sign)"
+                                      : "transparent",
+                                }}
+                              >
+                                {line.type === "add"
+                                  ? "+"
                                   : line.type === "remove"
-                                  ? "text-red-400/60 bg-[#ffcecb]/30"
-                                  : "text-gray-300 bg-gray-50/50"
-                              }`}
-                            >
-                              {lineNums[i].oldNum ?? ""}
-                            </td>
-                            <td
-                              className={`select-none text-right px-1.5 w-[1%] whitespace-nowrap border-r ${
-                                line.type === "add"
-                                  ? "text-emerald-500/60 bg-[#aceebb]/30 border-r-emerald-200/50"
-                                  : line.type === "remove"
-                                  ? "text-red-400/60 bg-[#ffcecb]/30 border-r-red-200/50"
-                                  : "text-gray-300 bg-gray-50/50 border-r-gray-100"
-                              }`}
-                            >
-                              {lineNums[i].newNum ?? ""}
-                            </td>
-                            <td
-                              className={`select-none w-[14px] text-center ${
-                                line.type === "add"
-                                  ? "text-emerald-600"
-                                  : line.type === "remove"
-                                  ? "text-red-500"
-                                  : "text-transparent"
-                              }`}
-                            >
-                              {line.type === "add"
-                                ? "+"
-                                : line.type === "remove"
-                                ? "-"
-                                : " "}
-                            </td>
-                            <td
-                              className={`whitespace-pre-wrap break-words pr-3 ${
-                                line.type === "add"
-                                  ? "text-emerald-900"
-                                  : line.type === "remove"
-                                  ? "text-red-900"
-                                  : "text-[var(--fg-secondary)]"
-                              }`}
-                            >
-                              {line.content}
-                            </td>
-                          </tr>
-                        ));
+                                  ? "-"
+                                  : " "}
+                              </td>
+                              <td
+                                className="whitespace-pre-wrap break-words pr-3"
+                                style={{
+                                  color:
+                                    line.type === "add"
+                                      ? "var(--diff-add-text)"
+                                      : line.type === "remove"
+                                      ? "var(--diff-remove-text)"
+                                      : "var(--fg-secondary)",
+                                }}
+                              >
+                                {line.content}
+                              </td>
+                            </tr>
+                          );
+                        });
                       })()}
                     </tbody>
                   </table>
@@ -480,8 +503,15 @@ export function VersionHistory({
                   <table className="w-full text-[11px] font-mono leading-[1.6] border-collapse">
                     <tbody>
                       {versionContent.split("\n").map((line, i) => (
-                        <tr key={i} className="hover:bg-gray-50/50">
-                          <td className="select-none text-right px-1.5 w-[1%] whitespace-nowrap text-gray-300 bg-gray-50/50 border-r border-r-gray-100">
+                        <tr key={i} className="hover:bg-[var(--button-hover)]">
+                          <td
+                            className="select-none text-right px-1.5 w-[1%] whitespace-nowrap"
+                            style={{
+                              color: "var(--gutter-text)",
+                              backgroundColor: "var(--gutter-bg)",
+                              borderRight: "1px solid var(--gutter-border)",
+                            }}
+                          >
                             {i + 1}
                           </td>
                           <td className="whitespace-pre-wrap break-words pl-3 pr-3 text-[var(--fg)]">
