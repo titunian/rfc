@@ -66,16 +66,32 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-[var(--bg-warm)]">
       {/* Header */}
-      <header className="border-b border-[var(--border-light)] bg-white/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-3xl mx-auto px-6 h-[52px] flex items-center justify-between">
+      <header
+        className="border-b border-[var(--border-light)] sticky top-0 z-40"
+        style={{
+          background: "var(--header-bg)",
+          backdropFilter: "saturate(180%) blur(14px)",
+          WebkitBackdropFilter: "saturate(180%) blur(14px)",
+        }}
+      >
+        <div className="max-w-3xl mx-auto px-6 h-[56px] flex items-center justify-between">
           <a
             href="/"
-            className="text-[15px] font-semibold tracking-tight font-sans text-[var(--fg)] hover:text-[var(--fg-secondary)] transition-colors"
+            className="group flex items-center gap-2"
+            aria-label="orfc home"
           >
-            orfc
+            <span
+              className="inline-flex items-center justify-center h-6 w-6 rounded-[7px] bg-[var(--fg)] text-[var(--bg)] text-[11px] font-bold tracking-tight shadow-sm group-hover:scale-105 transition-transform"
+              aria-hidden="true"
+            >
+              o
+            </span>
+            <span className="text-[15px] font-semibold tracking-[-0.01em] font-sans text-[var(--fg)] group-hover:text-[var(--fg-secondary)] transition-colors">
+              orfc
+            </span>
           </a>
           <div className="flex items-center gap-3">
-            <span className="text-[13px] text-[var(--muted)] font-sans">
+            <span className="text-[13px] text-[var(--fg-secondary)] font-sans truncate max-w-[220px]">
               {session?.user?.email}
             </span>
             <button
@@ -106,9 +122,9 @@ export default function DashboardPage() {
           </div>
         ) : plans.length === 0 ? (
           <div className="py-20 text-center">
-            <div className="w-12 h-12 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center mx-auto mb-4">
+            <div className="w-12 h-12 rounded-full bg-[var(--bg)] border border-[var(--border-light)] flex items-center justify-center mx-auto mb-4">
               <svg
-                className="w-5 h-5 text-gray-300"
+                className="w-5 h-5 text-[var(--muted)]"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={1.5}
@@ -126,7 +142,7 @@ export default function DashboardPage() {
             </p>
             <p className="text-[13px] text-[var(--muted)] font-sans">
               Push your first RFC with{" "}
-              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-[12px]">
+              <code className="bg-[var(--code-inline-bg)] text-[var(--fg-secondary)] border border-[var(--border-light)] px-1.5 py-0.5 rounded text-[12px]">
                 orfc push plan.md
               </code>
             </p>
@@ -137,7 +153,7 @@ export default function DashboardPage() {
               <a
                 key={plan.id}
                 href={`/p/${plan.slug}`}
-                className="group flex items-center justify-between py-3.5 px-4 -mx-4 rounded-lg hover:bg-white/80 transition-all duration-150"
+                className="group flex items-center justify-between py-3.5 px-4 -mx-4 rounded-lg hover:bg-[var(--bg)] transition-all duration-150"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2.5">
