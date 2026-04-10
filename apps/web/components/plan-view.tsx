@@ -763,15 +763,23 @@ export function PlanView({
         </div>
       </header>
 
-      {/* Permissions settings panel (owner only) */}
+      {/* Permissions modal (owner only) */}
       {settingsOpen && isOwner && (
-        <PermissionsPanel
-          plan={plan}
-          onUpdate={(updates) => {
-            setPlan((p) => ({ ...p, ...updates }));
-          }}
-          onClose={() => setSettingsOpen(false)}
-        />
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center"
+          style={{ background: "rgba(0,0,0,0.25)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)" }}
+          onClick={() => setSettingsOpen(false)}
+        >
+          <div onClick={(e) => e.stopPropagation()}>
+            <PermissionsPanel
+              plan={plan}
+              onUpdate={(updates) => {
+                setPlan((p) => ({ ...p, ...updates }));
+              }}
+              onClose={() => setSettingsOpen(false)}
+            />
+          </div>
+        </div>
       )}
 
       {/* Focus-mode exit button (floating) */}
@@ -1187,7 +1195,10 @@ function PermissionsPanel({
             accessRule === "anyone" ? null : allowedViewers || null,
         });
         setSaved(true);
-        setTimeout(() => setSaved(false), 1500);
+        setTimeout(() => {
+          setSaved(false);
+          onClose();
+        }, 800);
       }
     } finally {
       setSaving(false);
@@ -1195,142 +1206,132 @@ function PermissionsPanel({
   };
 
   return (
-    <div className="max-w-[68ch] mx-auto px-4 sm:px-6 mt-3 mb-4">
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--bg)] shadow-sm p-5 font-sans">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-[13px] font-semibold text-[var(--fg)] tracking-tight">
-            Permissions
+    <div
+      className="rounded-2xl bg-[var(--bg)] font-sans animate-in fade-in zoom-in-95"
+      style={{
+        width: 480,
+        maxWidth: "calc(100vw - 32px)",
+        boxShadow: "0 24px 64px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.08)",
+        border: "1px solid var(--border)",
+      }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-[var(--border-light)]">
+        <div>
+          <h3 className="text-[15px] font-semibold text-[var(--fg)] tracking-tight">
+            Sharing & permissions
           </h3>
-          <button
-            onClick={onClose}
-            className="text-[var(--muted)] hover:text-[var(--fg)] transition-colors"
-            title="Close"
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
+          <p className="text-[12px] text-[var(--muted)] mt-0.5">
+            Control who can view this document
+          </p>
+        </div>
+        <button
+          onClick={onClose}
+          className="w-7 h-7 flex items-center justify-center rounded-lg text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[var(--button-hover)] transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div className="px-6 py-5 space-y-5">
+        {/* Access rule — radio-style list instead of cards */}
+        <div className="space-y-1.5">
+          <AccessRow
+            active={accessRule === "anyone"}
+            onClick={() => setAccessRule("anyone")}
+            label="Anyone with the link"
+            description="Public — no sign-in required"
+            icon={
+              <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+              </svg>
+            }
+          />
+          <AccessRow
+            active={accessRule === "authenticated"}
+            onClick={() => setAccessRule("authenticated")}
+            label="Anyone signed in"
+            description="Requires an orfc account"
+            icon={
+              <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+              </svg>
+            }
+          />
+          <AccessRow
+            active={accessRule !== "anyone" && accessRule !== "authenticated"}
+            onClick={() => setAccessRule("allowlist")}
+            label="Only specific people"
+            description="Restrict to an email allowlist"
+            icon={
+              <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <rect x="3" y="11" width="18" height="11" rx="2" />
+                <path d="M7 11V7a5 5 0 0110 0v4" />
+              </svg>
+            }
+          />
         </div>
 
-        {/* Access rule */}
-        <div className="mb-4">
-          <label className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--muted)] mb-2 block">
-            Who can view
-          </label>
-          <div className="flex gap-2">
-            <AccessOption
-              active={accessRule === "anyone"}
-              onClick={() => setAccessRule("anyone")}
-              label="Anyone with link"
-              description="Public — no sign-in required"
-              icon={
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.7}
-                  stroke="currentColor"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
-                </svg>
-              }
-            />
-            <AccessOption
-              active={accessRule === "authenticated"}
-              onClick={() => setAccessRule("authenticated")}
-              label="Signed-in users"
-              description="Requires an orfc account"
-              icon={
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.7}
-                  stroke="currentColor"
-                >
-                  <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <path d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
-                </svg>
-              }
-            />
-            <AccessOption
-              active={
-                accessRule !== "anyone" && accessRule !== "authenticated"
-              }
-              onClick={() => setAccessRule("allowlist")}
-              label="Specific people"
-              description="Only listed emails"
-              icon={
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.7}
-                  stroke="currentColor"
-                >
-                  <rect x="3" y="11" width="18" height="11" rx="2" />
-                  <path d="M7 11V7a5 5 0 0110 0v4" />
-                </svg>
-              }
-            />
-          </div>
-        </div>
-
-        {/* Allowed viewers (shown for allowlist mode) */}
+        {/* Allowed viewers */}
         {accessRule !== "anyone" && accessRule !== "authenticated" && (
-          <div className="mb-4">
-            <label className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--muted)] mb-2 block">
-              Allowed viewers
-            </label>
+          <div>
             <textarea
               value={allowedViewers}
               onChange={(e) => setAllowedViewers(e.target.value)}
-              placeholder="alice@company.com, bob@company.com, @company.com"
-              rows={3}
-              className="w-full text-[13px] font-mono bg-[var(--bg-warm)] text-[var(--fg)] placeholder:text-[var(--muted)] border border-[var(--border-light)] rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
+              placeholder="alice@company.com, @company.com"
+              rows={2}
+              className="w-full text-[13px] font-mono bg-[var(--bg-warm)] text-[var(--fg)] placeholder:text-[var(--muted)] border border-[var(--border-light)] rounded-xl p-3 resize-none focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent transition-shadow"
             />
-            <p className="text-[11px] text-[var(--muted)] mt-1.5 leading-relaxed">
-              Comma-separated. Use <code className="bg-[var(--code-inline-bg)] px-1 py-0.5 rounded text-[10px]">@domain.com</code> to allow everyone at a domain.
-              The plan author always has access.
+            <p className="text-[11px] text-[var(--muted)] mt-1.5 leading-relaxed px-0.5">
+              Comma-separated emails or <code className="bg-[var(--code-inline-bg)] px-1 py-0.5 rounded text-[10px] border border-[var(--border-light)]">@domain.com</code> patterns. Author always has access.
             </p>
           </div>
         )}
+      </div>
 
-        {/* Save button */}
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] text-[var(--muted)]">
-            {plan.accessRule === "anyone"
-              ? "Currently public"
-              : plan.allowedViewers
-              ? `Restricted to ${plan.allowedViewers.split(",").length} viewer(s)`
-              : "Restricted to signed-in users"}
-          </span>
+      {/* Footer */}
+      <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--border-light)] bg-[var(--bg-warm)] rounded-b-2xl">
+        <span className="text-[11.5px] text-[var(--muted)]">
+          {saved
+            ? "Saved"
+            : plan.accessRule === "anyone"
+            ? "Currently public"
+            : plan.allowedViewers
+            ? (() => {
+                const entries = plan.allowedViewers!.split(",").map((s: string) => s.trim()).filter(Boolean);
+                const domains = entries.filter((e: string) => e.startsWith("@")).length;
+                const emails = entries.length - domains;
+                const parts: string[] = [];
+                if (domains > 0) parts.push(`${domains} domain${domains > 1 ? "s" : ""}`);
+                if (emails > 0) parts.push(`${emails} email${emails > 1 ? "s" : ""}`);
+                return parts.join(", ");
+              })()
+            : "Signed-in users only"}
+        </span>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onClose}
+            className="text-[12.5px] font-medium px-3.5 py-1.5 rounded-lg text-[var(--fg-secondary)] hover:bg-[var(--button-hover)] transition-colors"
+          >
+            Cancel
+          </button>
           <button
             onClick={handleSave}
             disabled={!dirty || saving}
             className="text-[12.5px] font-medium px-4 py-1.5 rounded-lg transition-all"
             style={{
-              background:
-                dirty && !saving ? "var(--fg)" : "var(--border-light)",
-              color:
-                dirty && !saving ? "var(--bg)" : "var(--muted)",
+              background: dirty && !saving ? "var(--fg)" : "var(--border-light)",
+              color: dirty && !saving ? "var(--bg)" : "var(--muted)",
               cursor: dirty && !saving ? "pointer" : "not-allowed",
               opacity: saving ? 0.6 : 1,
             }}
           >
-            {saving ? "Saving…" : saved ? "Saved" : "Save changes"}
+            {saving ? "Saving…" : saved ? "Saved" : "Save"}
           </button>
         </div>
       </div>
@@ -1338,7 +1339,7 @@ function PermissionsPanel({
   );
 }
 
-function AccessOption({
+function AccessRow({
   active,
   onClick,
   label,
@@ -1354,28 +1355,43 @@ function AccessOption({
   return (
     <button
       onClick={onClick}
-      className={`flex-1 flex flex-col items-center text-center gap-1.5 p-3 rounded-lg border transition-all ${
+      className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-xl border transition-all text-left ${
         active
-          ? "border-[var(--accent)] bg-[var(--accent-light)] shadow-[0_0_0_2px_var(--accent-light)]"
-          : "border-[var(--border-light)] hover:border-[var(--border)] bg-transparent"
+          ? "border-[var(--accent)] bg-[var(--accent-light)]"
+          : "border-transparent hover:bg-[var(--button-hover)]"
       }`}
     >
       <span
-        className={
-          active ? "text-[var(--accent)]" : "text-[var(--muted)]"
-        }
+        className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
+          active
+            ? "bg-[var(--accent)] text-white"
+            : "bg-[var(--border-light)] text-[var(--muted)]"
+        }`}
       >
         {icon}
       </span>
+      <div className="flex-1 min-w-0">
+        <span
+          className={`block text-[13px] font-semibold ${
+            active ? "text-[var(--accent)]" : "text-[var(--fg)]"
+          }`}
+        >
+          {label}
+        </span>
+        <span className="block text-[11.5px] text-[var(--muted)] leading-snug mt-0.5">
+          {description}
+        </span>
+      </div>
       <span
-        className={`text-[12px] font-semibold ${
-          active ? "text-[var(--accent)]" : "text-[var(--fg)]"
+        className={`shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+          active
+            ? "border-[var(--accent)]"
+            : "border-[var(--border)]"
         }`}
       >
-        {label}
-      </span>
-      <span className="text-[10.5px] text-[var(--muted)] leading-snug">
-        {description}
+        {active && (
+          <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent)]" />
+        )}
       </span>
     </button>
   );
