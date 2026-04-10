@@ -1,7 +1,7 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { getDb, isProductionDB } from "@/lib/db";
-import { verificationCodes } from "@/lib/schema";
+import { verificationCodes, loginEvents, users } from "@/lib/schema";
 import { eq, and, gt } from "drizzle-orm";
 
 export const authOptions: NextAuthOptions = {
@@ -38,6 +38,18 @@ export const authOptions: NextAuthOptions = {
         await db
           .delete(verificationCodes)
           .where(eq(verificationCodes.id, match.id));
+
+        // Upsert user record + log the sign-in event
+        await Promise.all([
+          db
+            .insert(users)
+            .values({ email, name: email.split("@")[0] })
+            .onConflictDoUpdate({
+              target: users.email,
+              set: { lastLoginAt: new Date() },
+            }),
+          db.insert(loginEvents).values({ email, method: "web" }),
+        ]).catch(() => {}); // non-blocking — don't fail auth if logging fails
 
         return {
           id: email,

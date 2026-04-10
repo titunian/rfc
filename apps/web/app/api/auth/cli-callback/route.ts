@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireSession, generateApiKey } from "@/lib/auth";
 import { getDb, isProductionDB } from "@/lib/db";
-import { apiKeys } from "@/lib/schema";
+import { apiKeys, users, loginEvents } from "@/lib/schema";
 
 export async function POST() {
   if (!isProductionDB()) {
@@ -18,12 +18,22 @@ export async function POST() {
     const { key, hash, prefix } = generateApiKey();
 
     const db = getDb();
-    await db.insert(apiKeys).values({
-      userEmail: email,
-      keyHash: hash,
-      keyPrefix: prefix,
-      name: "CLI (rfc login)",
-    });
+    await Promise.all([
+      db.insert(apiKeys).values({
+        userEmail: email,
+        keyHash: hash,
+        keyPrefix: prefix,
+        name: "CLI (rfc login)",
+      }),
+      db
+        .insert(users)
+        .values({ email, name: email.split("@")[0] })
+        .onConflictDoUpdate({
+          target: users.email,
+          set: { lastLoginAt: new Date() },
+        }),
+      db.insert(loginEvents).values({ email, method: "cli" }),
+    ]);
 
     return NextResponse.json({ key, email });
   } catch {

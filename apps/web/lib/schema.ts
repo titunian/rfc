@@ -59,6 +59,21 @@ export const verificationCodes = pgTable("verification_codes", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const users = pgTable("users", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  email: text("email").notNull().unique(),
+  name: text("name"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastLoginAt: timestamp("last_login_at"),
+});
+
+export const loginEvents = pgTable("login_events", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  email: text("email").notNull(),
+  method: text("method").notNull(), // "web" | "cli"
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const apiKeys = pgTable("api_keys", {
   id: uuid("id").defaultRandom().primaryKey(),
   userEmail: text("user_email").notNull(),
