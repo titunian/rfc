@@ -58,6 +58,7 @@ export interface LocalPlanVersion {
 export interface LocalComment {
   id: string;
   planId: string;
+  parentId: string | null;
   authorName: string;
   authorEmail: string | null;
   content: string;

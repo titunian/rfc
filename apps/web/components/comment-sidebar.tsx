@@ -4,6 +4,7 @@ import { useState } from "react";
 
 type Comment = {
   id: string;
+  parentId: string | null;
   authorName: string;
   authorEmail: string | null;
   content: string;
@@ -51,15 +52,29 @@ export function CommentSidebar({
   activeCommentId,
   onCommentClick,
   onResolve,
+  onReply,
 }: {
   comments: Comment[];
   activeCommentId: string | null;
   onCommentClick: (id: string | null) => void;
   onResolve: (id: string) => void;
+  onReply: (parentId: string, content: string) => void;
 }) {
   const [showResolved, setShowResolved] = useState(false);
-  const unresolved = comments.filter((c) => !c.resolved);
-  const resolved = comments.filter((c) => c.resolved);
+
+  // Separate top-level comments from replies
+  const topLevel = comments.filter((c) => !c.parentId);
+  const repliesByParent = new Map<string, Comment[]>();
+  for (const c of comments) {
+    if (c.parentId) {
+      const arr = repliesByParent.get(c.parentId) || [];
+      arr.push(c);
+      repliesByParent.set(c.parentId, arr);
+    }
+  }
+
+  const unresolved = topLevel.filter((c) => !c.resolved);
+  const resolved = topLevel.filter((c) => c.resolved);
 
   return (
     <aside className="w-[360px] shrink-0 sticky top-[57px] h-[calc(100vh-57px)] overflow-y-auto border-l border-[var(--border-light)] bg-[var(--bg-warm)] flex flex-col">
@@ -110,19 +125,17 @@ export function CommentSidebar({
           </div>
         )}
 
-        {/* Unresolved comments */}
+        {/* Unresolved comments (threaded) */}
         <div className="space-y-1.5">
           {unresolved.map((comment) => (
-            <CommentCard
+            <CommentThread
               key={comment.id}
               comment={comment}
-              isActive={comment.id === activeCommentId}
-              onClick={() =>
-                onCommentClick(
-                  comment.id === activeCommentId ? null : comment.id
-                )
-              }
-              onResolve={() => onResolve(comment.id)}
+              replies={repliesByParent.get(comment.id) || []}
+              activeCommentId={activeCommentId}
+              onCommentClick={onCommentClick}
+              onResolve={onResolve}
+              onReply={onReply}
             />
           ))}
         </div>
@@ -154,16 +167,14 @@ export function CommentSidebar({
             {showResolved && (
               <div className="space-y-1.5 mt-3">
                 {resolved.map((comment) => (
-                  <CommentCard
+                  <CommentThread
                     key={comment.id}
                     comment={comment}
-                    isActive={comment.id === activeCommentId}
-                    onClick={() =>
-                      onCommentClick(
-                        comment.id === activeCommentId ? null : comment.id
-                      )
-                    }
-                    onResolve={() => onResolve(comment.id)}
+                    replies={repliesByParent.get(comment.id) || []}
+                    activeCommentId={activeCommentId}
+                    onCommentClick={onCommentClick}
+                    onResolve={onResolve}
+                    onReply={onReply}
                   />
                 ))}
               </div>
@@ -175,16 +186,147 @@ export function CommentSidebar({
   );
 }
 
+function CommentThread({
+  comment,
+  replies,
+  activeCommentId,
+  onCommentClick,
+  onResolve,
+  onReply,
+}: {
+  comment: Comment;
+  replies: Comment[];
+  activeCommentId: string | null;
+  onCommentClick: (id: string | null) => void;
+  onResolve: (id: string) => void;
+  onReply: (parentId: string, content: string) => void;
+}) {
+  const [replyOpen, setReplyOpen] = useState(false);
+  const [replyText, setReplyText] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!replyText.trim()) return;
+    setSending(true);
+    try {
+      onReply(comment.id, replyText.trim());
+      setReplyText("");
+      setReplyOpen(false);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div>
+      {/* Parent comment */}
+      <CommentCard
+        comment={comment}
+        isActive={comment.id === activeCommentId}
+        onClick={() =>
+          onCommentClick(comment.id === activeCommentId ? null : comment.id)
+        }
+        onResolve={() => onResolve(comment.id)}
+        onReplyClick={() => setReplyOpen((v) => !v)}
+        replyCount={replies.length}
+      />
+
+      {/* Threaded replies */}
+      {replies.length > 0 && (
+        <div className="ml-6 pl-3 border-l-2 border-[var(--border-light)] mt-1 space-y-1">
+          {replies.map((reply) => (
+            <CommentCard
+              key={reply.id}
+              comment={reply}
+              isActive={reply.id === activeCommentId}
+              onClick={() =>
+                onCommentClick(reply.id === activeCommentId ? null : reply.id)
+              }
+              onResolve={() => onResolve(reply.id)}
+              isReply
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Inline reply composer */}
+      {replyOpen && (
+        <div className="ml-6 pl-3 border-l-2 border-[var(--border-light)] mt-1">
+          <div className="p-2 rounded-xl border border-[var(--border-light)] bg-[var(--bg)]">
+            <textarea
+              autoFocus
+              value={replyText}
+              onChange={(e) => setReplyText(e.target.value)}
+              placeholder="Write a reply…"
+              rows={2}
+              className="w-full bg-transparent outline-none resize-none text-[12.5px] leading-snug font-sans"
+              style={{ color: "var(--fg)" }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                  e.preventDefault();
+                  void handleSubmit();
+                }
+                if (e.key === "Escape") {
+                  setReplyOpen(false);
+                  setReplyText("");
+                }
+              }}
+            />
+            <div className="flex items-center justify-between mt-1.5">
+              <span className="text-[10px] text-[var(--muted)] font-sans">
+                ⌘↵ to send · Esc to cancel
+              </span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => {
+                    setReplyOpen(false);
+                    setReplyText("");
+                  }}
+                  className="text-[11px] font-sans font-medium px-2 py-0.5 rounded-lg text-[var(--muted)] hover:text-[var(--fg)] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => void handleSubmit()}
+                  disabled={!replyText.trim() || sending}
+                  className="text-[11px] font-sans font-medium px-2.5 py-1 rounded-lg transition-all"
+                  style={{
+                    background: replyText.trim()
+                      ? "var(--fg)"
+                      : "var(--border-light)",
+                    color: replyText.trim() ? "var(--bg)" : "var(--muted)",
+                    opacity: sending ? 0.6 : 1,
+                    cursor:
+                      replyText.trim() && !sending ? "pointer" : "not-allowed",
+                  }}
+                >
+                  {sending ? "Sending…" : "Reply"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function CommentCard({
   comment,
   isActive,
   onClick,
   onResolve,
+  onReplyClick,
+  replyCount,
+  isReply,
 }: {
   comment: Comment;
   isActive: boolean;
   onClick: () => void;
   onResolve: () => void;
+  onReplyClick?: () => void;
+  replyCount?: number;
+  isReply?: boolean;
 }) {
   const formatTime = (iso: string) => {
     const d = new Date(iso);
@@ -308,6 +450,30 @@ function CommentCard({
             </svg>
             {comment.resolved ? "Reopen" : "Resolve"}
           </button>
+          {!isReply && onReplyClick && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onReplyClick();
+              }}
+              className="inline-flex items-center gap-1 text-[11px] font-sans font-medium text-[var(--muted)] hover:text-[var(--fg)] transition-colors"
+            >
+              <svg
+                className="w-3 h-3"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2.5}
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
+                />
+              </svg>
+              Reply{replyCount ? ` (${replyCount})` : ""}
+            </button>
+          )}
         </div>
       </div>
     </div>

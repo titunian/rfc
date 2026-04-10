@@ -27,6 +27,7 @@ type Plan = {
 
 type Comment = {
   id: string;
+  parentId: string | null;
   authorName: string;
   authorEmail: string | null;
   content: string;
@@ -284,6 +285,15 @@ export function PlanView({
       return () => document.removeEventListener("mouseup", handleTextSelection);
     }
   }, [handleTextSelection, canView, editing]);
+
+  const handleReply = async (parentId: string, content: string) => {
+    const res = await fetch(`/api/plans/${plan.id}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content, parentId }),
+    });
+    if (res.ok) fetchComments();
+  };
 
   const handleAddComment = async (commentText: string) => {
     if (!selection) return;
@@ -1050,6 +1060,7 @@ export function PlanView({
                 activeCommentId={activeCommentId}
                 onCommentClick={setActiveCommentId}
                 onResolve={handleResolve}
+                onReply={handleReply}
               />
             </div>
           </>

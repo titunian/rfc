@@ -27,6 +27,7 @@ export const comments = pgTable("comments", {
   planId: uuid("plan_id")
     .notNull()
     .references(() => plans.id, { onDelete: "cascade" }),
+  parentId: uuid("parent_id"),
   authorName: text("author_name").notNull(),
   authorEmail: text("author_email"),
   content: text("content").notNull(),
