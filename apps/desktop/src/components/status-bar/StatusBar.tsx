@@ -1,6 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useEditorStore } from "../../stores/editor-store";
 import { useAppStore } from "../../stores/app-store";
+import { open as openUrl } from "@tauri-apps/plugin-shell";
 
 export function StatusBar() {
   const isDirty = useEditorStore((s) => s.isDirty);
@@ -8,6 +9,7 @@ export function StatusBar() {
   const planSlug = useEditorStore((s) => s.planSlug);
   const content = useEditorStore((s) => s.content);
   const { theme, toggleTheme } = useAppStore();
+  const [urlCopied, setUrlCopied] = useState(false);
 
   const words = useMemo(() => {
     const trimmed = content.trim();
@@ -48,7 +50,55 @@ export function StatusBar() {
         {planSlug && (
           <>
             <span style={{ color: "var(--muted)" }}>·</span>
-            <span>orfc.dev/p/{planSlug}</span>
+            <span
+              onClick={() => void openUrl(`https://orfc.dev/p/${planSlug}`)}
+              style={{ cursor: "pointer", textDecoration: "none" }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.textDecoration = "underline";
+                (e.currentTarget as HTMLElement).style.color = "var(--fg-secondary)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.textDecoration = "none";
+                (e.currentTarget as HTMLElement).style.color = "";
+              }}
+              title="Open in browser"
+            >
+              orfc.dev/p/{planSlug}
+            </span>
+            <button
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(`https://orfc.dev/p/${planSlug}`);
+                  setUrlCopied(true);
+                  setTimeout(() => setUrlCopied(false), 1500);
+                } catch { /* ignore */ }
+              }}
+              className="flex items-center justify-center rounded transition-colors"
+              style={{
+                width: 14,
+                height: 14,
+                color: urlCopied ? "var(--success)" : "var(--muted)",
+                cursor: "pointer",
+              }}
+              onMouseEnter={(e) => {
+                if (!urlCopied) e.currentTarget.style.color = "var(--fg-secondary)";
+              }}
+              onMouseLeave={(e) => {
+                if (!urlCopied) e.currentTarget.style.color = "var(--muted)";
+              }}
+              title={urlCopied ? "Copied!" : "Copy URL"}
+            >
+              {urlCopied ? (
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              ) : (
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
+              )}
+            </button>
           </>
         )}
       </span>

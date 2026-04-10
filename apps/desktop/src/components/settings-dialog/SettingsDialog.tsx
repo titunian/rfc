@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAppStore } from "../../stores/app-store";
 import { useAuthStore } from "../../stores/auth-store";
 import { useEditorStore } from "../../stores/editor-store";
@@ -21,6 +21,17 @@ export function SettingsDialog() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [loading, setLoading] = useState(false);
+  const deleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Auto-revert delete confirmation after 3 seconds
+  useEffect(() => {
+    if (confirmDelete && !deleting) {
+      deleteTimerRef.current = setTimeout(() => setConfirmDelete(false), 3000);
+      return () => {
+        if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current);
+      };
+    }
+  }, [confirmDelete, deleting]);
 
   // Fetch current plan data when dialog opens
   useEffect(() => {
@@ -348,36 +359,20 @@ export function SettingsDialog() {
                     Delete from cloud
                   </button>
                 ) : (
-                  <div className="flex items-center gap-2 anim-fade-scale">
-                    <span
-                      className="text-[12px]"
-                      style={{ color: "var(--danger)" }}
-                    >
-                      Are you sure? This cannot be undone.
-                    </span>
-                    <button
-                      onClick={handleDelete}
-                      disabled={deleting}
-                      className="text-[12px] font-medium px-3 py-1.5 rounded-lg transition-colors"
-                      style={{
-                        background: "var(--danger)",
-                        color: "#fff",
-                        opacity: deleting ? 0.5 : 1,
-                      }}
-                    >
-                      {deleting ? "Deleting..." : "Yes, delete"}
-                    </button>
-                    <button
-                      onClick={() => setConfirmDelete(false)}
-                      disabled={deleting}
-                      className="text-[12px] font-medium px-3 py-1.5 rounded-lg transition-colors"
-                      style={{
-                        color: "var(--fg-tertiary)",
-                      }}
-                    >
-                      Cancel
-                    </button>
-                  </div>
+                  <button
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    className="text-[12px] font-medium px-4 py-2 rounded-[10px] transition-all anim-fade-scale"
+                    style={{
+                      background: "var(--danger)",
+                      color: "#fff",
+                      border: "1px solid var(--danger)",
+                      opacity: deleting ? 0.5 : 1,
+                      cursor: deleting ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    {deleting ? "Deleting..." : "Are you sure? Delete permanently"}
+                  </button>
                 )}
               </div>
 

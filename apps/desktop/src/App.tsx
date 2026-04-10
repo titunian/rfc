@@ -9,6 +9,7 @@ import { PublishDialog } from "./components/publish-dialog/PublishDialog";
 import { SettingsDialog } from "./components/settings-dialog/SettingsDialog";
 import { CommentsDrawer } from "./components/right-panel/CommentsDrawer";
 import { VersionHistoryDrawer } from "./components/right-panel/VersionHistoryDrawer";
+import { WelcomeScreen } from "./components/welcome/WelcomeScreen";
 import { useEditorStore } from "./stores/editor-store";
 import { useAppStore } from "./stores/app-store";
 import { useAuthStore } from "./stores/auth-store";
@@ -23,7 +24,7 @@ import {
 
 export function App() {
   console.info("[orfc] App() rendering");
-  const { content, setContent, planId } = useEditorStore();
+  const { content, setContent, planId, filePath } = useEditorStore();
   const {
     sidebarOpen,
     focusMode,
@@ -58,6 +59,9 @@ export function App() {
     return () => window.removeEventListener("resize", onResize);
   }, []);
   const drawerIsOverlay = viewportWidth < 1200;
+
+  // Welcome mode: signed out + no document open → hide sidebar, show onboarding
+  const isWelcome = status !== "signed-in" && !planId && !filePath && !content.trim();
 
   const requestPublish = useCallback(() => {
     if (status !== "signed-in") {
@@ -258,11 +262,15 @@ export function App() {
         background: "var(--bg-shell)",
       }}
     >
-      {/* Top drag spacer (also covers traffic lights — they sit at x:16 y:16) */}
+      {/* Thin shell-colored strip at the top — acts as both the drag region
+          and the visual gap above the floating panels. Matches the shell bg
+          so it reads as "the window frame", not a bar. */}
+      {/* Shell strip at top — same color as shell so it's invisible, but
+          provides a grab-handle + clears the macOS traffic lights at y:16. */}
       <div
         data-tauri-drag-region
         style={{
-          height: 6,
+          height: 14,
           flexShrink: 0,
           background: "var(--bg-shell)",
         }}
@@ -278,7 +286,7 @@ export function App() {
         }}
       >
         {/* Sidebar — floating card */}
-        {sidebarOpen && !focusMode && <Sidebar />}
+        {sidebarOpen && !focusMode && !isWelcome && <Sidebar />}
 
         {/* Main column — floating editor card */}
         <div
@@ -306,7 +314,7 @@ export function App() {
           />
 
           {/* Sidebar-toggle fallback when sidebar is hidden */}
-          {!sidebarOpen && !focusMode && (
+          {!sidebarOpen && !focusMode && !isWelcome && (
             <button
               onClick={() => useAppStore.getState().toggleSidebar()}
               className="absolute flex items-center justify-center rounded transition-colors z-30"
@@ -343,9 +351,16 @@ export function App() {
               position: "relative",
             }}
           >
-            {!focusMode && <EditorActions />}
-            <VersionPreviewBanner />
-            <Editor content={content} onChange={setContent} />
+            {/* Welcome screen when signed out + no document open */}
+            {isWelcome ? (
+              <WelcomeScreen />
+            ) : (
+              <>
+                {!focusMode && <EditorActions />}
+                <VersionPreviewBanner />
+                <Editor content={content} onChange={setContent} />
+              </>
+            )}
           </main>
         </div>
 

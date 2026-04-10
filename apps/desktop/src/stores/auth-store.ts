@@ -26,10 +26,14 @@ interface AuthState {
 }
 
 function buildClient(config: OrfcConfig): ApiClient {
-  // Always use the real API URL. In dev, the Vite proxy handles /api/* but
-  // in production builds the webview loads from disk and needs to make
-  // cross-origin requests directly (CORS headers are set on orfc.dev).
-  return new ApiClient({ apiUrl: config.apiUrl, apiKey: config.apiKey });
+  // In dev the Vite proxy rewrites /api/* to orfc.dev — use empty base so
+  // fetches stay same-origin. In production builds (no proxy) use the real
+  // URL once CORS middleware is deployed to orfc.dev.
+  const isDev =
+    typeof window !== "undefined" &&
+    window.location.hostname === "localhost";
+  const base = isDev ? "" : config.apiUrl;
+  return new ApiClient({ apiUrl: base, apiKey: config.apiKey });
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -101,6 +105,12 @@ export const useAuthStore = create<AuthState>((set) => ({
       status: "idle",
       error: null,
     });
+    // Clear cloud data + reset editor so signed-out user can't access cloud docs
+    const { useCloudStore } = await import("./cloud-store");
+    const { useEditorStore } = await import("./editor-store");
+    useCloudStore.getState().clearDocScopedState();
+    useCloudStore.setState({ plans: [], plansError: null });
+    useEditorStore.getState().newFile();
   },
 
   setApiUrl: async (url) => {

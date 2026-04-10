@@ -5,6 +5,7 @@ import { useAuthStore } from "../../stores/auth-store";
 import { useCloudStore } from "../../stores/cloud-store";
 import { openRecentFile, createNewFile } from "../../lib/file-ops";
 
+
 // ── helpers ───────────────────────────────────────────────────────
 
 function fileNameFromPath(path: string) {
@@ -59,6 +60,7 @@ export function Sidebar() {
     removeRecentFile,
     openAuthModal,
     openCommandPalette,
+    toggleSidebar,
   } = useAppStore();
   const { status, email, signOut } = useAuthStore();
   const {
@@ -178,6 +180,30 @@ export function Sidebar() {
             }}
             title={signedIn ? `Signed in as ${email}` : "Not signed in"}
           />
+          <button
+            onClick={toggleSidebar}
+            className="flex items-center justify-center rounded-[5px] transition-colors"
+            style={{
+              width: 20,
+              height: 20,
+              color: "var(--muted)",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "var(--bg-hover)";
+              e.currentTarget.style.color = "var(--fg-secondary)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.color = "var(--muted)";
+            }}
+            title="Collapse sidebar · ⌘\"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M9 3v18" />
+              <path d="m14 9-3 3 3 3" />
+            </svg>
+          </button>
         </div>
 
         {/* Search + quick-new row */}
