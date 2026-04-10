@@ -110,6 +110,7 @@ export async function PUT(
     if (body.title !== undefined) updates.title = body.title;
     if (body.content !== undefined) updates.content = body.content;
     if (body.accessRule !== undefined) updates.accessRule = body.accessRule;
+    if (body.allowedViewers !== undefined) updates.allowedViewers = body.allowedViewers;
 
     const [plan] = await db
       .update(plans)
@@ -167,6 +168,8 @@ export async function PUT(
 
   if (body.title !== undefined) plan.title = body.title;
   if (body.content !== undefined) plan.content = body.content;
+  if (body.accessRule !== undefined) plan.accessRule = body.accessRule;
+  if (body.allowedViewers !== undefined) plan.allowedViewers = body.allowedViewers;
   plan.updatedAt = new Date().toISOString();
   writeLocalDB(localDb);
 
