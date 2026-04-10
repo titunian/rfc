@@ -609,13 +609,11 @@ function Panel({ children }: { children: React.ReactNode }) {
       style={{
         width: 320,
         background: "var(--bg-sidebar)",
-        border: "1px solid var(--border-subtle)",
         borderRadius: "var(--panel-radius)",
+        border: "1px solid var(--border-subtle)",
         boxShadow: "var(--shadow-sm)",
-        overflow: "hidden",
       }}
     >
-      <div data-tauri-drag-region style={{ height: 12, flexShrink: 0 }} />
       {children}
     </aside>
   );

@@ -2,6 +2,7 @@ import { open as openDialog, save as saveDialog } from "@tauri-apps/plugin-dialo
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { useEditorStore } from "../stores/editor-store";
 import { useAppStore } from "../stores/app-store";
+import { addDocument } from "../stores/search-store";
 
 function fileNameFromPath(path: string): string {
   const name = path.split(/[/\\]/).pop() || path;
@@ -28,6 +29,13 @@ export async function openFileFromDisk(): Promise<void> {
       content,
     });
     useAppStore.getState().addRecentFile(selected);
+    addDocument({
+      id: selected,
+      title: name,
+      content,
+      tags: "",
+      slug: "",
+    });
   } catch (err) {
     console.error("Failed to open file:", err);
     alert(
@@ -152,12 +160,20 @@ export async function createNewFileFromTemplate(): Promise<void> {
 export async function openRecentFile(path: string): Promise<void> {
   try {
     const content = await readTextFile(path);
+    const name = fileNameFromPath(path);
     useEditorStore.getState().setFile({
       filePath: path,
-      fileName: fileNameFromPath(path),
+      fileName: name,
       content,
     });
     useAppStore.getState().addRecentFile(path);
+    addDocument({
+      id: path,
+      title: name,
+      content,
+      tags: "",
+      slug: "",
+    });
   } catch (err) {
     console.error("Failed to open recent file:", err);
     useAppStore.getState().removeRecentFile(path);

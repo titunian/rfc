@@ -25,12 +25,6 @@ export function WelcomeScreen() {
       className="flex-1 flex flex-col items-center justify-center px-8 py-16 select-none relative"
       style={{ background: "var(--bg)" }}
     >
-      {/* Top drag region so window is grabbable from the welcome screen */}
-      <div
-        data-tauri-drag-region
-        className="absolute top-0 left-0 right-0"
-        style={{ height: 40 }}
-      />
       <div className="max-w-[440px] w-full text-center">
         {/* Brand */}
         <div className="flex items-center justify-center gap-3 mb-8">

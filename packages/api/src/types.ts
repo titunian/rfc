@@ -28,6 +28,7 @@ export interface PlanDetail {
   authorName: string | null;
   authorEmail?: string | null;
   currentVersion?: number;
+  status?: string | null;
   createdAt: string;
   updatedAt: string | null;
 }
@@ -36,6 +37,7 @@ export interface PlanListItem {
   id: string;
   slug: string;
   title: string;
+  status?: string | null;
   createdAt: string;
   expiresAt: string | null;
 }

@@ -7,6 +7,7 @@ import type {
 } from "@orfc/api";
 import { useAuthStore } from "./auth-store";
 import { useEditorStore } from "./editor-store";
+import { addDocument } from "./search-store";
 
 interface CloudState {
   // List of plans owned by the signed-in user
@@ -50,6 +51,7 @@ interface CloudState {
     planId: string,
     args: { accessRule?: string; allowedViewers?: string }
   ) => Promise<void>;
+  updateStatus: (planId: string, status: string) => Promise<void>;
   clearDocScopedState: () => void;
 }
 
@@ -82,6 +84,16 @@ export const useCloudStore = create<CloudState>((set, get) => ({
         plansLoading: false,
         lastPlansFetch: Date.now(),
       });
+      // Index all fetched plans into MiniSearch
+      for (const p of plans) {
+        addDocument({
+          id: p.id,
+          title: p.title || "",
+          content: "", // list endpoint doesn't return content
+          tags: ((p as unknown as Record<string, unknown>).tags as string[] | undefined)?.join(" ") ?? "",
+          slug: p.slug,
+        });
+      }
     } catch (e) {
       set({
         plansLoading: false,
@@ -94,7 +106,16 @@ export const useCloudStore = create<CloudState>((set, get) => ({
     const client = useAuthStore.getState().client;
     if (!client) return null;
     try {
-      return await client.getPlan(id);
+      const plan = await client.getPlan(id);
+      // Index with full content for better search
+      addDocument({
+        id: plan.id,
+        title: plan.title || "",
+        content: plan.content || "",
+        tags: "",
+        slug: plan.slug,
+      });
+      return plan;
     } catch (e) {
       console.error("fetchPlan failed", e);
       return null;
@@ -212,6 +233,14 @@ export const useCloudStore = create<CloudState>((set, get) => ({
     void get().fetchPlans();
   },
 
+  updateStatus: async (planId, status) => {
+    const client = useAuthStore.getState().client;
+    if (!client) throw new Error("Not signed in");
+    await client.updatePlan(planId, { status });
+    useEditorStore.getState().setPlanStatus(status);
+    void get().fetchPlans();
+  },
+
   checkForUpdates: async (planId) => {
     const client = useAuthStore.getState().client;
     if (!client) return { hasUpdate: false, latestVersion: 0 };
@@ -239,6 +268,7 @@ export const useCloudStore = create<CloudState>((set, get) => ({
       planVersion: (plan.currentVersion as number | undefined) ?? 1,
       title: plan.title,
       content: plan.content,
+      planStatus: plan.status ?? null,
     });
     useEditorStore.getState().setCloudUpdateAvailable(false);
   },

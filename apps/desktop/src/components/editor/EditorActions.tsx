@@ -1,7 +1,21 @@
+import { useState, useRef, useEffect } from "react";
 import { useAuthStore } from "../../stores/auth-store";
 import { useAppStore } from "../../stores/app-store";
 import { useEditorStore } from "../../stores/editor-store";
 import { useCloudStore } from "../../stores/cloud-store";
+
+// ── Plan status helpers ──────────────────────────────────────────
+
+const PLAN_STATUSES = ["draft", "review", "approved", "executing", "done"] as const;
+type PlanStatus = (typeof PLAN_STATUSES)[number];
+
+const STATUS_META: Record<PlanStatus, { label: string; color: string; bg: string; icon?: string }> = {
+  draft:     { label: "Draft",     color: "var(--fg-tertiary)", bg: "color-mix(in srgb, var(--fg-tertiary) 12%, transparent)" },
+  review:    { label: "Review",    color: "#d97706",            bg: "color-mix(in srgb, #d97706 12%, transparent)" },
+  approved:  { label: "Approved",  color: "var(--success)",     bg: "color-mix(in srgb, var(--success) 12%, transparent)" },
+  executing: { label: "Executing", color: "#3b82f6",            bg: "color-mix(in srgb, #3b82f6 12%, transparent)" },
+  done:      { label: "Done",      color: "var(--success)",     bg: "color-mix(in srgb, var(--success) 12%, transparent)", icon: "check" },
+};
 
 /**
  * Floating top-right rail of actions contextual to the current document.
@@ -21,10 +35,12 @@ export function EditorActions() {
   const planUrl = useEditorStore((s) => s.planUrl);
   const isDirty = useEditorStore((s) => s.isDirty);
   const syncState = useEditorStore((s) => s.syncState);
+  const planStatus = useEditorStore((s) => s.planStatus);
   const hasContent = useEditorStore((s) => s.content.trim().length > 0);
   const cloudUpdateAvailable = useEditorStore((s) => s.cloudUpdateAvailable);
   const comments = useCloudStore((s) => s.comments);
   const pullLatest = useCloudStore((s) => s.pullLatest);
+  const updateStatus = useCloudStore((s) => s.updateStatus);
   const { status } = useAuthStore();
 
   const unresolvedCount = comments.filter((c) => !c.resolved).length;
@@ -131,6 +147,17 @@ export function EditorActions() {
           </>
         )}
 
+        {/* Plan status badge */}
+        {planId && planStatus && (
+          <>
+            <StatusBadge
+              status={planStatus}
+              onChangeStatus={(s) => void updateStatus(planId, s)}
+            />
+            <span className="w-[1px] h-4 mx-1" style={{ background: "var(--border-subtle)" }} />
+          </>
+        )}
+
         {/* Focus mode */}
         <IconButton
           onClick={() => toggleFocusMode()}
@@ -208,6 +235,111 @@ export function EditorActions() {
           </IconButton>
         )}
       </div>
+    </div>
+  );
+}
+
+function StatusBadge({
+  status,
+  onChangeStatus,
+}: {
+  status: string;
+  onChangeStatus: (s: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const key = (PLAN_STATUSES.includes(status as PlanStatus) ? status : "draft") as PlanStatus;
+  const meta = STATUS_META[key];
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-1.5 text-[11px] font-medium h-7 px-2 rounded-lg transition-all"
+        style={{
+          color: meta.color,
+          background: meta.bg,
+          border: `1px solid color-mix(in srgb, ${meta.color} 30%, transparent)`,
+        }}
+        title="Change plan status"
+      >
+        <span
+          className={key === "executing" ? "anim-pulse-dot" : ""}
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: "50%",
+            background: meta.color,
+            flexShrink: 0,
+          }}
+        />
+        {meta.icon === "check" && (
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        )}
+        {meta.label}
+      </button>
+      {open && (
+        <div
+          className="absolute right-0 top-full mt-1 py-1 rounded-lg overflow-hidden anim-fade-scale"
+          style={{
+            minWidth: 140,
+            background: "var(--bg-elevated)",
+            border: "1px solid var(--border)",
+            boxShadow: "var(--shadow-lg)",
+            zIndex: 50,
+          }}
+        >
+          {PLAN_STATUSES.map((s) => {
+            const m = STATUS_META[s];
+            const active = s === key;
+            return (
+              <button
+                key={s}
+                onClick={() => {
+                  onChangeStatus(s);
+                  setOpen(false);
+                }}
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-left text-[12px] transition-colors"
+                style={{
+                  color: active ? m.color : "var(--fg-secondary)",
+                  background: active ? m.bg : "transparent",
+                  fontWeight: active ? 600 : 400,
+                }}
+                onMouseEnter={(e) => {
+                  if (!active) e.currentTarget.style.background = "var(--bg-hover)";
+                }}
+                onMouseLeave={(e) => {
+                  if (!active) e.currentTarget.style.background = "transparent";
+                }}
+              >
+                <span
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    background: m.color,
+                    flexShrink: 0,
+                  }}
+                />
+                {m.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

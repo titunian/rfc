@@ -17,10 +17,12 @@ import {
   updateCommentHighlights,
   type HighlightComment,
 } from "./CommentHighlights";
+import { ConceptLinkExtension } from "./ConceptLinkExtension";
 import { SlashCommands } from "./SlashCommands";
 import { MermaidCodeBlock } from "./MermaidCodeBlock";
 import { SelectionCommentPopover } from "./SelectionCommentPopover";
 import { TableOfContents } from "./TableOfContents";
+import { useConceptsStore } from "../../stores/concepts-store";
 import "../../styles/editor.css";
 
 // ── Markdown ↔ HTML ───────────────────────────────────────────────
@@ -100,10 +102,22 @@ export function Editor({ content, onChange, className }: EditorProps) {
   // Used to distinguish "store content changed because the user typed" (skip
   // re-sync) from "store content changed externally" (reset the editor).
   const lastEmittedRef = useRef<string>("");
+  const extractTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const comments = useCloudStore((s) => s.comments);
   const { toggleRightPanel } = useAppStore();
   const previewVersion = useEditorStore((s) => s.previewVersion);
   const isPreview = !!previewVersion;
+
+  // Debounced concept extraction — runs 5s after last edit
+  const scheduleExtraction = useCallback((md: string) => {
+    if (extractTimerRef.current) clearTimeout(extractTimerRef.current);
+    extractTimerRef.current = setTimeout(() => {
+      const { planId, fileName } = useEditorStore.getState();
+      const docId = planId || fileName || "local";
+      const docTitle = fileName || "Untitled";
+      useConceptsStore.getState().extractAndIndex(docId, docTitle, md);
+    }, 5000);
+  }, []);
   // What we actually display: the preview version's content overrides the
   // working content when set, otherwise we render the live editable content.
   const displayContent = previewVersion ? previewVersion.content : content;
@@ -158,6 +172,15 @@ export function Editor({ content, onChange, className }: EditorProps) {
         },
       }),
       SlashCommands,
+      ConceptLinkExtension.configure({
+        onClickConcept: (name) => {
+          // Open concepts panel and focus on the clicked concept
+          useAppStore.getState().conceptsVisible || useAppStore.getState().toggleConcepts();
+          window.dispatchEvent(
+            new CustomEvent("orfc:focus-concept", { detail: { name } })
+          );
+        },
+      }),
     ],
     content: markdownToHtml(displayContent),
     editable: !isPreview,
@@ -174,6 +197,7 @@ export function Editor({ content, onChange, className }: EditorProps) {
       const md = turndown.turndown(html).replace(/\n{3,}/g, "\n\n") + "\n";
       lastEmittedRef.current = md;
       onChange(md);
+      scheduleExtraction(md);
 
       // Sync the title (first h1) into editor store so it's the single
       // source of truth for fileName — no duplication across chrome.

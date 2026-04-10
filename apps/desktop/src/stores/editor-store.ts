@@ -33,6 +33,9 @@ interface EditorState {
   planVersion: number | null;
   cloudSavedContent: string | null; // content we last pushed/pulled
 
+  // Plan lifecycle status (draft | review | approved | executing | done)
+  planStatus: string | null;
+
   // Cloud update detection
   cloudUpdateAvailable: boolean;
 
@@ -43,6 +46,7 @@ interface EditorState {
 
   // Actions
   setCloudUpdateAvailable: (v: boolean) => void;
+  setPlanStatus: (status: string) => void;
   setFile: (args: {
     filePath: string | null;
     fileName: string;
@@ -62,6 +66,7 @@ interface EditorState {
     planVersion: number;
     title: string | null;
     content: string;
+    planStatus?: string | null;
   }) => void;
   markCloudSaved: (content: string, version: number) => void;
   detachCloud: () => void;
@@ -100,6 +105,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   planVersion: null,
   cloudSavedContent: null,
 
+  planStatus: null,
+
   cloudUpdateAvailable: false,
 
   previewVersion: null,
@@ -107,6 +114,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   syncState: "local-only",
 
   setCloudUpdateAvailable: (v) => set({ cloudUpdateAvailable: v }),
+  setPlanStatus: (status) => set({ planStatus: status }),
 
   setFile: ({ filePath, fileName, content }) =>
     set(() => ({
@@ -120,6 +128,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       planSlug: null,
       planUrl: null,
       planVersion: null,
+      planStatus: null,
       cloudSavedContent: null,
       previewVersion: null,
       syncState: computeSyncState({
@@ -221,18 +230,20 @@ export const useEditorStore = create<EditorState>((set) => ({
       planSlug: null,
       planUrl: null,
       planVersion: null,
+      planStatus: null,
       cloudSavedContent: null,
       previewVersion: null,
       cloudUpdateAvailable: false,
       syncState: "local-only",
     }),
 
-  attachCloud: ({ planId, planSlug, planUrl, planVersion, title, content }) =>
+  attachCloud: ({ planId, planSlug, planUrl, planVersion, title, content, planStatus }) =>
     set(() => ({
       planId,
       planSlug,
       planUrl,
       planVersion,
+      planStatus: planStatus ?? null,
       content,
       savedContent: content,
       cloudSavedContent: content,
@@ -259,6 +270,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       planSlug: null,
       planUrl: null,
       planVersion: null,
+      planStatus: null,
       cloudSavedContent: null,
       syncState: computeSyncState({
         content: state.content,

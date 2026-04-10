@@ -10,10 +10,13 @@ import { SettingsDialog } from "./components/settings-dialog/SettingsDialog";
 import { CommentsDrawer } from "./components/right-panel/CommentsDrawer";
 import { VersionHistoryDrawer } from "./components/right-panel/VersionHistoryDrawer";
 import { WelcomeScreen } from "./components/welcome/WelcomeScreen";
+import { ConceptsList } from "./components/concepts/ConceptsList";
 import { useEditorStore } from "./stores/editor-store";
 import { useAppStore } from "./stores/app-store";
 import { useAuthStore } from "./stores/auth-store";
 import { useCloudStore } from "./stores/cloud-store";
+import { useConceptsStore } from "./stores/concepts-store";
+import { loadPersistedIndex } from "./stores/search-store";
 import {
   openFileFromDisk,
   openRecentFile,
@@ -41,12 +44,15 @@ export function App() {
     toggleRightPanel,
     closeRightPanel,
     toggleToc,
+    conceptsVisible,
+    toggleConcepts,
   } = useAppStore();
   const { hydrate, status } = useAuthStore();
 
-  // Hydrate auth on boot.
+  // Hydrate auth + search index on boot.
   useEffect(() => {
     void hydrate();
+    void loadPersistedIndex();
   }, [hydrate]);
 
   // Track window width so the right drawer can switch to overlay mode on narrow windows.
@@ -147,6 +153,13 @@ export function App() {
         return;
       }
 
+      // ⌘⇧G — toggle concepts panel
+      if (mod && e.shiftKey && (e.key === "g" || e.key === "G")) {
+        e.preventDefault();
+        toggleConcepts();
+        return;
+      }
+
       // ⌘⇧H — version history drawer
       if (mod && e.shiftKey && (e.key === "h" || e.key === "H")) {
         e.preventDefault();
@@ -186,6 +199,7 @@ export function App() {
       openSettings,
       toggleRightPanel,
       toggleToc,
+      toggleConcepts,
       planId,
     ]
   );
@@ -237,6 +251,34 @@ export function App() {
     if (focusMode) closeCommandPalette();
   }, [focusMode, closeCommandPalette]);
 
+  // Extract concepts when a cloud plan is loaded
+  useEffect(() => {
+    if (!planId) return;
+    const { content: c, fileName } = useEditorStore.getState();
+    if (c.trim()) {
+      useConceptsStore.getState().extractAndIndex(planId, fileName || "Untitled", c);
+    }
+  }, [planId]);
+
+  // Batch-extract concepts from all cloud plans when the plans list loads
+  const cloudPlans = useCloudStore((s) => s.plans);
+  useEffect(() => {
+    if (!cloudPlans.length) return;
+    const { fetchPlan } = useCloudStore.getState();
+    void (async () => {
+      for (const p of cloudPlans) {
+        try {
+          const plan = await fetchPlan(p.id);
+          if (plan?.content) {
+            useConceptsStore.getState().extractAndIndex(p.id, plan.title || "Untitled", plan.content);
+          }
+        } catch {
+          // skip failures silently
+        }
+      }
+    })();
+  }, [cloudPlans]);
+
   // Periodic cloud update check (every 30s) when a cloud doc is open
   useEffect(() => {
     if (!planId) return;
@@ -262,27 +304,13 @@ export function App() {
         background: "var(--bg-shell)",
       }}
     >
-      {/* Thin shell-colored strip at the top — acts as both the drag region
-          and the visual gap above the floating panels. Matches the shell bg
-          so it reads as "the window frame", not a bar. */}
-      {/* Shell strip at top — same color as shell so it's invisible, but
-          provides a grab-handle + clears the macOS traffic lights at y:16. */}
-      <div
-        data-tauri-drag-region
-        style={{
-          height: 14,
-          flexShrink: 0,
-          background: "var(--bg-shell)",
-        }}
-      />
-
       <div
         style={{
           display: "flex",
           flex: 1,
           minHeight: 0,
           gap: 6,
-          padding: "0 6px 6px",
+          padding: "6px",
         }}
       >
         {/* Sidebar — floating card */}
@@ -295,34 +323,24 @@ export function App() {
             display: "flex",
             flexDirection: "column",
             minWidth: 0,
+            minHeight: 0,
             position: "relative",
             background: "var(--bg)",
             borderRadius: "var(--panel-radius)",
             border: "1px solid var(--border-subtle)",
             boxShadow: "var(--shadow-sm)",
-            overflow: "hidden",
           }}
         >
-          {/* Drag region across the top of the editor card — clears macOS controls */}
-          <div
-            data-tauri-drag-region
-            style={{
-              height: 32,
-              flexShrink: 0,
-              background: "var(--bg)",
-            }}
-          />
-
           {/* Sidebar-toggle fallback when sidebar is hidden */}
           {!sidebarOpen && !focusMode && !isWelcome && (
             <button
               onClick={() => useAppStore.getState().toggleSidebar()}
-              className="absolute flex items-center justify-center rounded transition-colors z-30"
+              className="absolute flex items-center justify-center rounded-[10px] transition-colors z-30"
               style={{
-                top: 6,
-                left: 86,
-                width: 24,
-                height: 24,
+                top: 8,
+                left: 12,
+                width: 28,
+                height: 28,
                 color: "var(--fg-tertiary)",
                 background: "transparent",
               }}
@@ -371,6 +389,9 @@ export function App() {
             {rightPanel === "history" && <VersionHistoryDrawer />}
           </>
         )}
+
+        {/* Concepts panel */}
+        {conceptsVisible && !focusMode && <ConceptsList />}
       </div>
 
       {/* Overlay drawer on narrow windows */}

@@ -4,6 +4,7 @@ import { useAppStore } from "../../stores/app-store";
 import { useAuthStore } from "../../stores/auth-store";
 import { useCloudStore } from "../../stores/cloud-store";
 import { openRecentFile, createNewFile } from "../../lib/file-ops";
+import { search as miniSearch } from "../../stores/search-store";
 
 
 // ── helpers ───────────────────────────────────────────────────────
@@ -40,6 +41,8 @@ type DocItem =
       path: string;
       activeHint: string;
       iso?: undefined;
+      tags?: string[];
+      status?: string;
     }
   | {
       kind: "cloud";
@@ -49,7 +52,101 @@ type DocItem =
       slug: string;
       iso: string;
       activeHint: string;
+      tags?: string[];
+      status?: string;
     };
+
+// ── Sub-components ───────────────────────────────────────────────
+
+function StatusBadge({ status }: { status: string }) {
+  switch (status) {
+    case "review":
+      return (
+        <span
+          className="shrink-0 inline-block rounded-full"
+          style={{ width: 6, height: 6, background: "#d97706" }}
+          title="In review"
+        />
+      );
+    case "approved":
+      return (
+        <span
+          className="shrink-0 inline-block rounded-full"
+          style={{ width: 6, height: 6, background: "#16a34a" }}
+          title="Approved"
+        />
+      );
+    case "executing":
+      return (
+        <span
+          className="shrink-0 inline-block rounded-full animate-pulse"
+          style={{ width: 6, height: 6, background: "#2563eb" }}
+          title="Executing"
+        />
+      );
+    case "done":
+      return (
+        <svg
+          className="shrink-0"
+          width="10"
+          height="10"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#16a34a"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{ display: "inline-block" }}
+        >
+          <path d="M20 6 9 17l-5-5" />
+        </svg>
+      );
+    default:
+      return null;
+  }
+}
+
+function TagChips({
+  tags,
+  onTagClick,
+}: {
+  tags: string[];
+  onTagClick: (tag: string) => void;
+}) {
+  const visible = tags.slice(0, 3);
+  const overflow = tags.length - visible.length;
+  return (
+    <div className="flex flex-wrap gap-1 mt-1 ml-[22px]">
+      {visible.map((tag) => (
+        <span
+          key={tag}
+          role="button"
+          tabIndex={-1}
+          onClick={(e) => {
+            e.stopPropagation();
+            onTagClick(tag);
+          }}
+          onKeyDown={() => {}}
+          className="inline-block rounded-full px-[5px] py-[1px] text-[9.5px] leading-tight cursor-pointer transition-opacity hover:opacity-80"
+          style={{
+            background: "var(--bg-active)",
+            color: "var(--fg-tertiary)",
+          }}
+        >
+          {tag}
+        </span>
+      ))}
+      {overflow > 0 && (
+        <span
+          className="inline-block text-[9.5px] leading-tight px-[2px]"
+          style={{ color: "var(--fg-tertiary)" }}
+        >
+          +{overflow} more
+        </span>
+      )}
+    </div>
+  );
+}
 
 // ── Component ─────────────────────────────────────────────────────
 
@@ -83,13 +180,15 @@ export function Sidebar() {
   // Unified documents list — cloud plans + local files mixed, newest first.
   const items: DocItem[] = useMemo(() => {
     const cloud: DocItem[] = plans.map((p) => ({
-      kind: "cloud",
+      kind: "cloud" as const,
       id: p.id,
       title: p.title || "Untitled",
       subtitle: p.slug,
       slug: p.slug,
       iso: p.createdAt,
       activeHint: p.id,
+      tags: (p as unknown as Record<string, unknown>).tags as string[] | undefined,
+      status: (p as unknown as Record<string, unknown>).status as string | undefined,
     }));
     const local: DocItem[] = recentFiles.map((path) => ({
       kind: "local",
@@ -103,15 +202,34 @@ export function Sidebar() {
     return [...cloud, ...local];
   }, [plans, recentFiles]);
 
+  /** Map items by id for fast lookup when merging search results */
+  const itemsById = useMemo(() => {
+    const map = new Map<string, DocItem>();
+    for (const it of items) map.set(it.id, it);
+    return map;
+  }, [items]);
+
   const filtered = useMemo(() => {
-    if (!search.trim()) return items;
-    const q = search.toLowerCase();
-    return items.filter(
-      (it) =>
-        it.title.toLowerCase().includes(q) ||
-        it.subtitle.toLowerCase().includes(q)
-    );
-  }, [items, search]);
+    const q = search.trim();
+    if (!q) return items;
+    // For very short queries, fall back to simple substring match
+    if (q.length < 2) {
+      const lq = q.toLowerCase();
+      return items.filter(
+        (it) =>
+          it.title.toLowerCase().includes(lq) ||
+          it.subtitle.toLowerCase().includes(lq)
+      );
+    }
+    // Use MiniSearch for full-text search
+    const results = miniSearch(q);
+    const out: DocItem[] = [];
+    for (const r of results) {
+      const item = itemsById.get(r.id);
+      if (item) out.push(item);
+    }
+    return out;
+  }, [items, itemsById, search]);
 
   async function openCloudPlan(id: string) {
     const plan = await fetchPlan(id);
@@ -135,25 +253,15 @@ export function Sidebar() {
       style={{
         width: "var(--sidebar-width)",
         background: "var(--bg-sidebar)",
-        border: "1px solid var(--border-subtle)",
         borderRadius: "var(--panel-radius)",
+        border: "1px solid var(--border-subtle)",
         boxShadow: "var(--shadow-sm)",
-        overflow: "hidden",
       }}
     >
 
-      {/* Drag region across the top of the panel — covers traffic-light area */}
-      <div
-        data-tauri-drag-region
-        style={{ height: 32, flexShrink: 0 }}
-      />
-
       {/* Compact brand + search */}
-      <div className="px-3 pb-2.5">
-        <div
-          data-tauri-drag-region
-          className="flex items-center gap-2 mb-2.5 pl-[68px]"
-        >
+      <div className="px-3 pt-3 pb-2.5">
+        <div className="flex items-center gap-2 mb-2.5">
           <span
             className="inline-flex items-center justify-center h-[18px] w-[18px] rounded-[5px] text-[9.5px] font-bold shrink-0"
             style={{
@@ -327,7 +435,7 @@ export function Sidebar() {
                       if (it.kind === "cloud") void openCloudPlan(it.id);
                       else void openRecentFile(it.path);
                     }}
-                    className="w-full text-left px-2 py-[6px] rounded-[10px] flex items-center gap-2 transition-colors"
+                    className="w-full text-left px-2 py-[6px] rounded-[10px] transition-colors"
                     style={{
                       background: active ? "var(--bg-active)" : "transparent",
                       color: active ? "var(--fg)" : "var(--fg-secondary)",
@@ -342,47 +450,63 @@ export function Sidebar() {
                     }}
                     title={it.subtitle}
                   >
-                    {/* Terminal-style kind glyph */}
-                    <span
-                      className="shrink-0 font-mono text-[10px] tabular-nums"
-                      style={{
-                        color:
-                          it.kind === "cloud"
-                            ? "var(--accent)"
-                            : "var(--fg-tertiary)",
-                      }}
-                    >
-                      {it.kind === "cloud" ? "●" : "○"}
-                    </span>
-                    <span className="text-[12.5px] font-medium truncate flex-1">
-                      {it.title}
-                    </span>
-                    {it.kind === "cloud" && it.iso && (
+                    <div className="flex items-center gap-2">
+                      {/* Terminal-style kind glyph */}
                       <span
-                        className="text-[10px] font-mono tabular-nums shrink-0"
-                        style={{ color: "var(--fg-tertiary)" }}
-                      >
-                        {relativeTime(it.iso)}
-                      </span>
-                    )}
-                    {it.kind === "local" && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeRecentFile(it.path);
-                        }}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 flex items-center justify-center rounded"
+                        className="shrink-0 font-mono text-[10px] tabular-nums"
                         style={{
-                          width: 14,
-                          height: 14,
-                          color: "var(--muted)",
+                          color:
+                            it.kind === "cloud"
+                              ? "var(--accent)"
+                              : "var(--fg-tertiary)",
                         }}
-                        title="Remove from recents"
                       >
-                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M18 6 6 18M6 6l12 12" />
-                        </svg>
-                      </button>
+                        {it.kind === "cloud" ? "●" : "○"}
+                      </span>
+                      <span className="text-[12.5px] font-medium truncate flex-1">
+                        {it.title}
+                      </span>
+
+                      {/* Status badge */}
+                      {it.status && it.status !== "draft" && (
+                        <StatusBadge status={it.status} />
+                      )}
+
+                      {it.kind === "cloud" && it.iso && (
+                        <span
+                          className="text-[10px] font-mono tabular-nums shrink-0"
+                          style={{ color: "var(--fg-tertiary)" }}
+                        >
+                          {relativeTime(it.iso)}
+                        </span>
+                      )}
+                      {it.kind === "local" && (
+                        <span
+                          role="button"
+                          tabIndex={-1}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeRecentFile(it.path);
+                          }}
+                          onKeyDown={() => {}}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 flex items-center justify-center rounded"
+                          style={{
+                            width: 14,
+                            height: 14,
+                            color: "var(--muted)",
+                          }}
+                          title="Remove from recents"
+                        >
+                          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M18 6 6 18M6 6l12 12" />
+                          </svg>
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Tag chips */}
+                    {it.tags && it.tags.length > 0 && (
+                      <TagChips tags={it.tags} onTagClick={(tag) => setSearch(tag)} />
                     )}
                   </button>
                   {active && (

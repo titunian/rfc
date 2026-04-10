@@ -10,7 +10,7 @@ type Command = {
   id: string;
   label: string;
   hint?: string;
-  group: "Document" | "View" | "Cloud";
+  group: "Document" | "View" | "Cloud" | "Workflow";
   shortcut?: string;
   icon?: React.ReactNode;
   run: () => void;
@@ -232,6 +232,42 @@ export function CommandPalette() {
           }
         );
       }
+
+      // Workflow status commands
+      list.push(
+        {
+          id: "status-review",
+          label: "Set status: Review",
+          hint: "Move this plan to review",
+          group: "Workflow",
+          icon: <Icon path="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />,
+          run: () => void useCloudStore.getState().updateStatus(planId, "review"),
+        },
+        {
+          id: "status-approved",
+          label: "Set status: Approved",
+          hint: "Mark this plan as approved",
+          group: "Workflow",
+          icon: <Icon path="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />,
+          run: () => void useCloudStore.getState().updateStatus(planId, "approved"),
+        },
+        {
+          id: "status-executing",
+          label: "Set status: Executing",
+          hint: "Mark this plan as in execution",
+          group: "Workflow",
+          icon: <Icon path="M13 10V3L4 14h7v7l9-11h-7z" />,
+          run: () => void useCloudStore.getState().updateStatus(planId, "executing"),
+        },
+        {
+          id: "status-done",
+          label: "Set status: Done",
+          hint: "Mark this plan as complete",
+          group: "Workflow",
+          icon: <Icon path="M20 6L9 17l-5-5" />,
+          run: () => void useCloudStore.getState().updateStatus(planId, "done"),
+        }
+      );
     }
 
     // Auth

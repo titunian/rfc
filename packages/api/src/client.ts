@@ -77,6 +77,7 @@ export class ApiClient {
       accessRule?: string;
       allowedViewers?: string;
       expectedVersion?: number;
+      status?: string;
     }
   ): Promise<PlanResponse> {
     const res = await this.request(`/api/plans/${id}`, {

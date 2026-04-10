@@ -22,10 +22,12 @@ interface AppState {
   theme: Theme;
   recentFiles: string[];
   tocVisible: boolean;
+  conceptsVisible: boolean;
 
   toggleSidebar: () => void;
   toggleFocusMode: () => void;
   toggleToc: () => void;
+  toggleConcepts: () => void;
   openCommandPalette: () => void;
   closeCommandPalette: () => void;
   toggleCommandPalette: () => void;
@@ -54,9 +56,11 @@ export const useAppStore = create<AppState>((set) => ({
   theme: readInitialTheme(),
   recentFiles: [],
   tocVisible: true,
+  conceptsVisible: false,
 
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   toggleToc: () => set((s) => ({ tocVisible: !s.tocVisible })),
+  toggleConcepts: () => set((s) => ({ conceptsVisible: !s.conceptsVisible })),
 
   toggleFocusMode: () =>
     set((s) => ({

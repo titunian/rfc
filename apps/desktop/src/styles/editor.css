@@ -578,6 +578,37 @@ html.dark .mermaid-container.mermaid-error {
   display: none;
 }
 
+/* ── Concept wiki-link chips ([[concept]]) ─── */
+
+.tiptap-editor .concept-link-chip {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 0.9em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 160ms, color 160ms;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.tiptap-editor .concept-link-chip:hover {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+html.dark .tiptap-editor .concept-link-chip {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+html.dark .tiptap-editor .concept-link-chip:hover {
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
 /* ── Focus mode — typewriter scroll padding ── */
 
 .focus-mode .tiptap-editor {
