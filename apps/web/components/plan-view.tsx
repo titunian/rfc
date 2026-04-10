@@ -89,6 +89,7 @@ export function PlanView({
 
   const [comments, setComments] = useState<Comment[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
   const [selection, setSelection] = useState<{
     text: string;
@@ -517,6 +518,37 @@ export function PlanView({
                     </svg>
                   </button>
                 )}
+                {isOwner && (
+                  <button
+                    onClick={() => setSettingsOpen(!settingsOpen)}
+                    title="Permissions & settings"
+                    aria-label="Permissions & settings"
+                    className={`h-8 w-8 rounded-lg transition-colors flex items-center justify-center ${
+                      settingsOpen
+                        ? "bg-[var(--button-hover)] text-[var(--fg)]"
+                        : "text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[var(--button-hover)]"
+                    }`}
+                  >
+                    <svg
+                      className="w-[15px] h-[15px]"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.7}
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                    </svg>
+                  </button>
+                )}
 
                 {/* Focus mode (direct) */}
                 <button
@@ -730,6 +762,17 @@ export function PlanView({
           </div>
         </div>
       </header>
+
+      {/* Permissions settings panel (owner only) */}
+      {settingsOpen && isOwner && (
+        <PermissionsPanel
+          plan={plan}
+          onUpdate={(updates) => {
+            setPlan((p) => ({ ...p, ...updates }));
+          }}
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
 
       {/* Focus-mode exit button (floating) */}
       {focusMode && (
@@ -1101,6 +1144,240 @@ export function PlanView({
         </div>
       )}
     </div>
+  );
+}
+
+// ── Permissions panel ───────────────────────────────────────────────
+
+function PermissionsPanel({
+  plan,
+  onUpdate,
+  onClose,
+}: {
+  plan: Plan;
+  onUpdate: (updates: Partial<Plan>) => void;
+  onClose: () => void;
+}) {
+  const [accessRule, setAccessRule] = useState(plan.accessRule);
+  const [allowedViewers, setAllowedViewers] = useState(
+    plan.allowedViewers || ""
+  );
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const dirty =
+    accessRule !== plan.accessRule ||
+    allowedViewers !== (plan.allowedViewers || "");
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/plans/${plan.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          accessRule,
+          allowedViewers: accessRule === "anyone" ? null : allowedViewers || null,
+        }),
+      });
+      if (res.ok) {
+        onUpdate({
+          accessRule,
+          allowedViewers:
+            accessRule === "anyone" ? null : allowedViewers || null,
+        });
+        setSaved(true);
+        setTimeout(() => setSaved(false), 1500);
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="max-w-[68ch] mx-auto px-4 sm:px-6 mt-3 mb-4">
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--bg)] shadow-sm p-5 font-sans">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-[13px] font-semibold text-[var(--fg)] tracking-tight">
+            Permissions
+          </h3>
+          <button
+            onClick={onClose}
+            className="text-[var(--muted)] hover:text-[var(--fg)] transition-colors"
+            title="Close"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+
+        {/* Access rule */}
+        <div className="mb-4">
+          <label className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--muted)] mb-2 block">
+            Who can view
+          </label>
+          <div className="flex gap-2">
+            <AccessOption
+              active={accessRule === "anyone"}
+              onClick={() => setAccessRule("anyone")}
+              label="Anyone with link"
+              description="Public — no sign-in required"
+              icon={
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.7}
+                  stroke="currentColor"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+                </svg>
+              }
+            />
+            <AccessOption
+              active={accessRule === "authenticated"}
+              onClick={() => setAccessRule("authenticated")}
+              label="Signed-in users"
+              description="Requires an orfc account"
+              icon={
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.7}
+                  stroke="currentColor"
+                >
+                  <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+                </svg>
+              }
+            />
+            <AccessOption
+              active={
+                accessRule !== "anyone" && accessRule !== "authenticated"
+              }
+              onClick={() => setAccessRule("allowlist")}
+              label="Specific people"
+              description="Only listed emails"
+              icon={
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.7}
+                  stroke="currentColor"
+                >
+                  <rect x="3" y="11" width="18" height="11" rx="2" />
+                  <path d="M7 11V7a5 5 0 0110 0v4" />
+                </svg>
+              }
+            />
+          </div>
+        </div>
+
+        {/* Allowed viewers (shown for allowlist mode) */}
+        {accessRule !== "anyone" && accessRule !== "authenticated" && (
+          <div className="mb-4">
+            <label className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--muted)] mb-2 block">
+              Allowed viewers
+            </label>
+            <textarea
+              value={allowedViewers}
+              onChange={(e) => setAllowedViewers(e.target.value)}
+              placeholder="alice@company.com, bob@company.com, @company.com"
+              rows={3}
+              className="w-full text-[13px] font-mono bg-[var(--bg-warm)] text-[var(--fg)] placeholder:text-[var(--muted)] border border-[var(--border-light)] rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
+            />
+            <p className="text-[11px] text-[var(--muted)] mt-1.5 leading-relaxed">
+              Comma-separated. Use <code className="bg-[var(--code-inline-bg)] px-1 py-0.5 rounded text-[10px]">@domain.com</code> to allow everyone at a domain.
+              The plan author always has access.
+            </p>
+          </div>
+        )}
+
+        {/* Save button */}
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] text-[var(--muted)]">
+            {plan.accessRule === "anyone"
+              ? "Currently public"
+              : plan.allowedViewers
+              ? `Restricted to ${plan.allowedViewers.split(",").length} viewer(s)`
+              : "Restricted to signed-in users"}
+          </span>
+          <button
+            onClick={handleSave}
+            disabled={!dirty || saving}
+            className="text-[12.5px] font-medium px-4 py-1.5 rounded-lg transition-all"
+            style={{
+              background:
+                dirty && !saving ? "var(--fg)" : "var(--border-light)",
+              color:
+                dirty && !saving ? "var(--bg)" : "var(--muted)",
+              cursor: dirty && !saving ? "pointer" : "not-allowed",
+              opacity: saving ? 0.6 : 1,
+            }}
+          >
+            {saving ? "Saving…" : saved ? "Saved" : "Save changes"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AccessOption({
+  active,
+  onClick,
+  label,
+  description,
+  icon,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  description: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex-1 flex flex-col items-center text-center gap-1.5 p-3 rounded-lg border transition-all ${
+        active
+          ? "border-[var(--accent)] bg-[var(--accent-light)] shadow-[0_0_0_2px_var(--accent-light)]"
+          : "border-[var(--border-light)] hover:border-[var(--border)] bg-transparent"
+      }`}
+    >
+      <span
+        className={
+          active ? "text-[var(--accent)]" : "text-[var(--muted)]"
+        }
+      >
+        {icon}
+      </span>
+      <span
+        className={`text-[12px] font-semibold ${
+          active ? "text-[var(--accent)]" : "text-[var(--fg)]"
+        }`}
+      >
+        {label}
+      </span>
+      <span className="text-[10.5px] text-[var(--muted)] leading-snug">
+        {description}
+      </span>
+    </button>
   );
 }
 

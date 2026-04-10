@@ -8,6 +8,7 @@ type Plan = {
   id: string;
   slug: string;
   title: string;
+  accessRule: string;
   createdAt: string;
   expiresAt: string | null;
   commentCount?: number;
@@ -160,6 +161,15 @@ export default function DashboardPage() {
                     <h2 className="text-[14px] font-medium text-[var(--fg)] font-sans truncate group-hover:text-[var(--accent)] transition-colors">
                       {plan.title || "Untitled"}
                     </h2>
+                    <span
+                      className={`shrink-0 text-[10px] font-semibold font-sans uppercase tracking-wider px-1.5 py-0.5 rounded-full ${
+                        plan.accessRule === "anyone"
+                          ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300"
+                          : "bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300"
+                      }`}
+                    >
+                      {plan.accessRule === "anyone" ? "Public" : "Private"}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="text-[12px] text-[var(--muted)] font-sans">

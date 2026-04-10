@@ -120,6 +120,7 @@ export async function GET(req: NextRequest) {
         id: plans.id,
         slug: plans.slug,
         title: plans.title,
+        accessRule: plans.accessRule,
         createdAt: plans.createdAt,
         expiresAt: plans.expiresAt,
       })
@@ -143,10 +144,11 @@ export async function GET(req: NextRequest) {
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )
-    .map(({ id, slug, title, createdAt, expiresAt }) => ({
+    .map(({ id, slug, title, accessRule, createdAt, expiresAt }) => ({
       id,
       slug,
       title,
+      accessRule,
       createdAt,
       expiresAt,
     }));
