@@ -83,6 +83,7 @@ export async function POST(
   const {
     content,
     authorName,
+    parentId,
     anchorText,
     anchorBlockIndex,
     anchorOffsetStart,
@@ -126,6 +127,7 @@ export async function POST(
       .insert(comments)
       .values({
         planId: params.id,
+        parentId: parentId || null,
         authorName: name,
         authorEmail: email,
         content,
@@ -152,6 +154,7 @@ export async function POST(
   const comment = {
     id: randomUUID(),
     planId: params.id,
+    parentId: (parentId as string) || null,
     authorName: authorName || "Anonymous",
     authorEmail: null as string | null,
     content,
