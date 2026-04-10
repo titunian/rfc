@@ -16,6 +16,10 @@ export const plans = pgTable("plans", {
   authorEmail: text("author_email"),
   accessRule: text("access_rule").default("authenticated").notNull(),
   allowedViewers: text("allowed_viewers"),  // comma-separated emails or @domain patterns
+  tags: text("tags").default("[]"),
+  status: text("status").default("draft").notNull(),
+  statusChangedAt: timestamp("status_changed_at"),
+  statusChangedBy: text("status_changed_by"),
   currentVersion: integer("current_version").default(1).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at"),

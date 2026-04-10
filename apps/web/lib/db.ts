@@ -39,6 +39,10 @@ export interface LocalPlan {
   authorEmail: string | null;
   accessRule: string;
   allowedViewers: string | null;
+  tags: string | null;
+  status: string;
+  statusChangedAt: string | null;
+  statusChangedBy: string | null;
   currentVersion: number;
   createdAt: string;
   updatedAt: string | null;

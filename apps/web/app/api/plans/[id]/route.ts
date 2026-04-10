@@ -8,6 +8,7 @@ import {
 } from "@/lib/db";
 import { plans, planVersions } from "@/lib/schema";
 import { getAuthUser } from "@/lib/auth";
+import { extractTags } from "@/lib/extract-tags";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
@@ -34,6 +35,10 @@ export async function GET(
 
     return NextResponse.json({
       ...plan,
+      tags: JSON.parse(plan.tags || "[]"),
+      status: plan.status,
+      statusChangedAt: plan.statusChangedAt?.toISOString() || null,
+      statusChangedBy: plan.statusChangedBy || null,
       createdAt: plan.createdAt.toISOString(),
       updatedAt: plan.updatedAt?.toISOString() || null,
       expiresAt: plan.expiresAt?.toISOString() || null,
@@ -49,7 +54,13 @@ export async function GET(
   if (plan.expiresAt && new Date(plan.expiresAt) < new Date()) {
     return NextResponse.json({ error: "Plan has expired" }, { status: 410 });
   }
-  return NextResponse.json(plan);
+  return NextResponse.json({
+    ...plan,
+    tags: JSON.parse(plan.tags || "[]"),
+    status: plan.status || "draft",
+    statusChangedAt: plan.statusChangedAt || null,
+    statusChangedBy: plan.statusChangedBy || null,
+  });
 }
 
 export async function PUT(
@@ -103,6 +114,13 @@ export async function PUT(
       ? existing.currentVersion + 1
       : existing.currentVersion;
 
+    // Resolve tags: explicit > auto-extract > existing
+    const resolvedTags: string[] | undefined = body.tags !== undefined
+      ? body.tags
+      : body.content !== undefined
+        ? extractTags(body.content)
+        : undefined;
+
     const updates: Record<string, unknown> = {
       updatedAt: new Date(),
       currentVersion: newVersion,
@@ -111,6 +129,14 @@ export async function PUT(
     if (body.content !== undefined) updates.content = body.content;
     if (body.accessRule !== undefined) updates.accessRule = body.accessRule;
     if (body.allowedViewers !== undefined) updates.allowedViewers = body.allowedViewers;
+    if (resolvedTags !== undefined) updates.tags = JSON.stringify(resolvedTags);
+    if (body.status !== undefined) {
+      updates.status = body.status;
+      if (body.status !== existing.status) {
+        updates.statusChangedAt = new Date();
+        updates.statusChangedBy = user.email;
+      }
+    }
 
     const [plan] = await db
       .update(plans)
@@ -128,6 +154,7 @@ export async function PUT(
       slug: plan.slug,
       url: `${appUrl}/p/${plan.slug}`,
       title: plan.title,
+      tags: JSON.parse(plan.tags || "[]"),
       version: plan.currentVersion,
       updatedAt: plan.updatedAt?.toISOString(),
     });
@@ -170,6 +197,22 @@ export async function PUT(
   if (body.content !== undefined) plan.content = body.content;
   if (body.accessRule !== undefined) plan.accessRule = body.accessRule;
   if (body.allowedViewers !== undefined) plan.allowedViewers = body.allowedViewers;
+
+  // Resolve tags for local mode
+  const localTags: string[] | undefined = body.tags !== undefined
+    ? body.tags
+    : body.content !== undefined
+      ? extractTags(body.content)
+      : undefined;
+  if (localTags !== undefined) plan.tags = JSON.stringify(localTags);
+  if (body.status !== undefined) {
+    if (body.status !== plan.status) {
+      plan.statusChangedAt = new Date().toISOString();
+      plan.statusChangedBy = plan.authorEmail;
+    }
+    plan.status = body.status;
+  }
+
   plan.updatedAt = new Date().toISOString();
   writeLocalDB(localDb);
 
@@ -179,6 +222,7 @@ export async function PUT(
     slug: plan.slug,
     url: `${appUrl}/p/${plan.slug}`,
     title: plan.title,
+    tags: JSON.parse(plan.tags || "[]"),
     version: plan.currentVersion,
     updatedAt: plan.updatedAt,
   });

@@ -11,6 +11,9 @@ import { configCommand } from "./commands/config";
 import { pullCommand } from "./commands/pull";
 import { loginCommand } from "./commands/login";
 import { editCommand } from "./commands/edit";
+import { searchCommand } from "./commands/search";
+import { statusCommand } from "./commands/status";
+import { waitCommand } from "./commands/wait";
 
 const program = new Command();
 
@@ -85,6 +88,9 @@ program
   .option("--slack <webhook>", "Send notification to a Slack webhook URL")
   .option("--expires <duration>", "Auto-expire the plan after a duration (e.g., 7d, 24h, 30m)")
   .option("--no-open", "Don't auto-open the published URL in the browser")
+  .option("--tags <tags>", "Comma-separated tags (e.g. --tags auth,caching)")
+  .option("--status <status>", "Lifecycle status: draft|review|approved|executing|done (default: draft)")
+  .option("--json", "Output only valid JSON to stdout")
   .action(pushCommand);
 
 program
@@ -102,6 +108,7 @@ program
     "  remove the comment blocks, and push the updated version."
   )
   .option("--include-resolved", "Include resolved comments (by default only unresolved are shown)")
+  .option("--json", "Output as JSON with plan details, comments, tags, and status")
   .action(pullCommand);
 
 program
@@ -120,6 +127,10 @@ program
     "List all your published plans with title, slug, date, and expiry.\n" +
     "  Use the slug with other commands: orfc open <slug>, orfc pull <slug>, etc."
   )
+  .option("-s, --search <query>", "Search plans by keyword")
+  .option("--tag <tag>", "Filter by tag")
+  .option("--status <status>", "Filter by status")
+  .option("--json", "Output as JSON array")
   .action(listCommand);
 
 program
@@ -154,6 +165,36 @@ program
     "  Usually not needed — defaults point to https://orfc.dev."
   )
   .action(initCommand);
+
+program
+  .command("search <query>")
+  .description("Search plans by keyword, with optional tag and status filters.")
+  .option("--tag <tag>", "Filter by tag")
+  .option("--status <status>", "Filter by status")
+  .option("--json", "Output as JSON array")
+  .action(searchCommand);
+
+program
+  .command("status <slug> [new-status]")
+  .description(
+    "Get or set the lifecycle status of a plan.\n" +
+    "  With no new-status: prints the current status.\n" +
+    "  With new-status: updates to draft|review|approved|executing|done."
+  )
+  .option("--json", "Output as JSON")
+  .action(statusCommand);
+
+program
+  .command("wait <slug>")
+  .description(
+    "Poll until a plan reaches the target status.\n" +
+    "  Polls every 5s. Default timeout: 300s.\n" +
+    "  Exit 0 on match, exit 1 on timeout."
+  )
+  .requiredOption("--for <status>", "Target status to wait for")
+  .option("--timeout <seconds>", "Timeout in seconds (default: 300)")
+  .option("--json", "Output as JSON")
+  .action(waitCommand);
 
 program
   .command("config <action> [key] [value]")
