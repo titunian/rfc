@@ -6,21 +6,24 @@ import { StatusBar } from "./components/status-bar/StatusBar";
 import { CommandPalette } from "./components/command-palette/CommandPalette";
 import { AuthModal } from "./components/auth-modal/AuthModal";
 import { PublishDialog } from "./components/publish-dialog/PublishDialog";
+import { SettingsDialog } from "./components/settings-dialog/SettingsDialog";
 import { CommentsDrawer } from "./components/right-panel/CommentsDrawer";
 import { VersionHistoryDrawer } from "./components/right-panel/VersionHistoryDrawer";
 import { useEditorStore } from "./stores/editor-store";
 import { useAppStore } from "./stores/app-store";
 import { useAuthStore } from "./stores/auth-store";
+import { useCloudStore } from "./stores/cloud-store";
 import {
   openFileFromDisk,
   openRecentFile,
   saveFileToDisk,
   saveFileAs,
+  createNewFile,
 } from "./lib/file-ops";
 
 export function App() {
   console.info("[orfc] App() rendering");
-  const { content, setContent, newFile, planId } = useEditorStore();
+  const { content, setContent, planId } = useEditorStore();
   const {
     sidebarOpen,
     focusMode,
@@ -33,8 +36,10 @@ export function App() {
     toggleTheme,
     openAuthModal,
     openPublishDialog,
+    openSettings,
     toggleRightPanel,
     closeRightPanel,
+    toggleToc,
   } = useAppStore();
   const { hydrate, status } = useAuthStore();
 
@@ -74,10 +79,10 @@ export function App() {
         return;
       }
 
-      // ⌘N — new document
+      // ⌘N — new document (creates file on disk)
       if (mod && !e.shiftKey && e.key === "n") {
         e.preventDefault();
-        newFile();
+        void createNewFile();
         return;
       }
 
@@ -131,10 +136,31 @@ export function App() {
         return;
       }
 
+      // ⌘⇧T — toggle table of contents
+      if (mod && e.shiftKey && (e.key === "t" || e.key === "T")) {
+        e.preventDefault();
+        toggleToc();
+        return;
+      }
+
       // ⌘⇧H — version history drawer
       if (mod && e.shiftKey && (e.key === "h" || e.key === "H")) {
         e.preventDefault();
         if (planId) toggleRightPanel("history");
+        return;
+      }
+
+      // ⌘, — document settings
+      if (mod && e.key === ",") {
+        e.preventDefault();
+        if (planId) openSettings();
+        return;
+      }
+
+      // ⌘⇧R — pull latest from cloud
+      if (mod && e.shiftKey && (e.key === "r" || e.key === "R")) {
+        e.preventDefault();
+        if (planId) void useCloudStore.getState().pullLatest(planId);
         return;
       }
 
@@ -147,14 +173,15 @@ export function App() {
     },
     [
       toggleCommandPalette,
-      newFile,
       toggleSidebar,
       toggleFocusMode,
       toggleTheme,
       focusMode,
       commandPaletteOpen,
       requestPublish,
+      openSettings,
       toggleRightPanel,
+      toggleToc,
       planId,
     ]
   );
@@ -205,6 +232,21 @@ export function App() {
   useEffect(() => {
     if (focusMode) closeCommandPalette();
   }, [focusMode, closeCommandPalette]);
+
+  // Periodic cloud update check (every 30s) when a cloud doc is open
+  useEffect(() => {
+    if (!planId) return;
+    const check = async () => {
+      const { hasUpdate } = await useCloudStore.getState().checkForUpdates(planId);
+      if (hasUpdate) {
+        useEditorStore.getState().setCloudUpdateAvailable(true);
+      }
+    };
+    // Check immediately, then every 30s
+    void check();
+    const interval = setInterval(() => void check(), 30_000);
+    return () => clearInterval(interval);
+  }, [planId]);
 
   return (
     <div
@@ -337,6 +379,7 @@ export function App() {
       <CommandPalette />
       <AuthModal />
       <PublishDialog />
+      <SettingsDialog />
     </div>
   );
 }

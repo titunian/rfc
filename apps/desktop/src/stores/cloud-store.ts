@@ -6,6 +6,7 @@ import type {
   VersionSummary,
 } from "@orfc/api";
 import { useAuthStore } from "./auth-store";
+import { useEditorStore } from "./editor-store";
 
 interface CloudState {
   // List of plans owned by the signed-in user
@@ -28,7 +29,7 @@ interface CloudState {
   // Actions
   fetchPlans: () => Promise<void>;
   fetchComments: (planId: string) => Promise<void>;
-  addComment: (planId: string, content: string) => Promise<void>;
+  addComment: (planId: string, content: string, anchorText?: string | null, parentId?: string | null) => Promise<void>;
   resolveComment: (
     planId: string,
     commentId: string,
@@ -36,6 +37,8 @@ interface CloudState {
   ) => Promise<void>;
   fetchVersions: (planId: string) => Promise<void>;
   fetchPlan: (id: string) => Promise<PlanDetail | null>;
+  checkForUpdates: (planId: string) => Promise<{ hasUpdate: boolean; latestVersion: number }>;
+  pullLatest: (planId: string) => Promise<void>;
   publish: (args: {
     planId?: string | null;
     title: string;
@@ -113,13 +116,15 @@ export const useCloudStore = create<CloudState>((set, get) => ({
     }
   },
 
-  addComment: async (planId, content) => {
+  addComment: async (planId, content, anchorText, parentId) => {
     const client = useAuthStore.getState().client;
     if (!client) return;
     const email = useAuthStore.getState().email ?? undefined;
     const created = await client.addComment(planId, {
       content,
       authorName: email,
+      ...(anchorText ? { anchorText } : {}),
+      ...(parentId ? { parentId } : {}),
     });
     set((s) => ({ comments: [...s.comments, created] }));
   },
@@ -205,6 +210,37 @@ export const useCloudStore = create<CloudState>((set, get) => ({
     if (!client) throw new Error("Not signed in");
     await client.updatePlan(planId, { accessRule, allowedViewers });
     void get().fetchPlans();
+  },
+
+  checkForUpdates: async (planId) => {
+    const client = useAuthStore.getState().client;
+    if (!client) return { hasUpdate: false, latestVersion: 0 };
+    try {
+      const { currentVersion } = await client.getVersions(planId);
+      const localVersion = useEditorStore.getState().planVersion;
+      return {
+        hasUpdate: localVersion !== null && currentVersion > localVersion,
+        latestVersion: currentVersion,
+      };
+    } catch (e) {
+      console.error("checkForUpdates failed", e);
+      return { hasUpdate: false, latestVersion: 0 };
+    }
+  },
+
+  pullLatest: async (planId) => {
+    const plan = await get().fetchPlan(planId);
+    if (!plan) return;
+    const apiUrl = useAuthStore.getState().apiUrl;
+    useEditorStore.getState().attachCloud({
+      planId: plan.id,
+      planSlug: plan.slug,
+      planUrl: `${apiUrl}/p/${plan.slug}`,
+      planVersion: (plan.currentVersion as number | undefined) ?? 1,
+      title: plan.title,
+      content: plan.content,
+    });
+    useEditorStore.getState().setCloudUpdateAvailable(false);
   },
 
   clearDocScopedState: () => {

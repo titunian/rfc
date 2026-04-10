@@ -15,13 +15,16 @@ export function EditorActions() {
     toggleFocusMode,
     openPublishDialog,
     openAuthModal,
+    openSettings,
   } = useAppStore();
   const planId = useEditorStore((s) => s.planId);
   const planUrl = useEditorStore((s) => s.planUrl);
   const isDirty = useEditorStore((s) => s.isDirty);
   const syncState = useEditorStore((s) => s.syncState);
   const hasContent = useEditorStore((s) => s.content.trim().length > 0);
+  const cloudUpdateAvailable = useEditorStore((s) => s.cloudUpdateAvailable);
   const comments = useCloudStore((s) => s.comments);
+  const pullLatest = useCloudStore((s) => s.pullLatest);
   const { status } = useAuthStore();
 
   const unresolvedCount = comments.filter((c) => !c.resolved).length;
@@ -45,6 +48,48 @@ export function EditorActions() {
       }}
     >
       <div className="flex items-center gap-0.5" style={{ pointerEvents: "auto" }}>
+        {/* Update available: cloud moved ahead */}
+        {cloudUpdateAvailable && planId && (
+          <>
+            <button
+              onClick={() => void pullLatest(planId)}
+              className="flex items-center gap-1.5 text-[11.5px] font-medium h-7 px-2.5 rounded-lg transition-all anim-fade-scale"
+              style={{
+                color: "var(--success)",
+                background: "color-mix(in srgb, var(--success) 12%, transparent)",
+                border: "1px solid color-mix(in srgb, var(--success) 35%, transparent)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "var(--success)";
+                e.currentTarget.style.color = "#fff";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "color-mix(in srgb, var(--success) 12%, transparent)";
+                e.currentTarget.style.color = "var(--success)";
+              }}
+              title="Pull latest from cloud · ⌘⇧R"
+            >
+              <span className="anim-pulse-dot" style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--success)", flexShrink: 0 }} />
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Update available
+            </button>
+            <span className="w-[1px] h-4 mx-1" style={{ background: "var(--border-subtle)" }} />
+          </>
+        )}
+
         {/* Publish: only when out of sync */}
         {showPublish && (
           <>
@@ -123,6 +168,20 @@ export function EditorActions() {
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </IconButton>
+        )}
+
+        {/* Settings: only when cloud-synced */}
+        {planId && (
+          <IconButton
+            onClick={() => openSettings()}
+            title="Document settings · ⌘,"
+            active={false}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+              <circle cx="12" cy="12" r="3" />
             </svg>
           </IconButton>
         )}

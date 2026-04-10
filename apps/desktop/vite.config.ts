@@ -28,8 +28,9 @@ export default defineConfig(async () => ({
           port: 1421,
         }
       : undefined,
-    // Proxy /api/* to orfc.dev so fetches from the webview are same-origin
-    // (avoids CORS without needing tauri-plugin-http).
+    // Dev-only: proxy /api/* to orfc.dev so fetches are same-origin during
+    // local development. In production builds the webview makes direct
+    // cross-origin requests to orfc.dev (CORS headers added via middleware).
     proxy: {
       "/api": {
         target: "https://www.orfc.dev",

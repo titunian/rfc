@@ -454,6 +454,130 @@ html.dark .tiptap-editor ::selection {
   background: rgba(122, 167, 255, 0.26);
 }
 
+/* ── Mermaid diagrams ─────────────────────── */
+
+.mermaid-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--bg);
+  padding: 20px 16px;
+  margin: 1.2em 0;
+  overflow-x: auto;
+}
+
+.mermaid-container svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.mermaid-container.mermaid-error {
+  border-color: rgba(220, 38, 38, 0.3);
+  background: rgba(220, 38, 38, 0.04);
+}
+
+html.dark .mermaid-container.mermaid-error {
+  border-color: rgba(220, 38, 38, 0.25);
+  background: rgba(220, 38, 38, 0.08);
+}
+
+.mermaid-node-view {
+  margin: 1.2em 0;
+}
+
+/* ── Table of contents ─────────────────────── */
+
+.editor-with-toc {
+  position: relative;
+}
+
+.toc-container {
+  position: sticky;
+  top: 60px;
+  float: left;
+  width: 180px;
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
+  margin-left: 12px;
+  padding: 8px 0;
+  z-index: 10;
+  animation: toc-fade-in 200ms ease-out;
+}
+
+@keyframes toc-fade-in {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.toc-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  padding: 0 8px 6px;
+  user-select: none;
+}
+
+.toc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.toc-list li {
+  margin: 0;
+}
+
+.toc-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "Helvetica Neue", sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--fg-tertiary);
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 120ms, background 120ms;
+}
+
+.toc-item:hover {
+  color: var(--fg-secondary);
+  background: var(--bg-hover);
+}
+
+.toc-item.toc-active {
+  color: var(--fg);
+  font-weight: 500;
+}
+
+/* Hide TOC on narrow viewports */
+@media (max-width: 1000px) {
+  .toc-container {
+    display: none;
+  }
+}
+
+/* Hide TOC in focus mode */
+.focus-mode .toc-container {
+  display: none;
+}
+
 /* ── Focus mode — typewriter scroll padding ── */
 
 .focus-mode .tiptap-editor {

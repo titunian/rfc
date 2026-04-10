@@ -55,6 +55,14 @@
   --header-bg: rgba(250, 249, 247, 0.72);
   --button-hover: #f5f4f1;
 
+  /* Diff */
+  --diff-add-bg: rgba(22, 163, 74, 0.08);
+  --diff-add-text: #15803d;
+  --diff-remove-bg: rgba(220, 38, 38, 0.08);
+  --diff-remove-text: #b91c1c;
+  --gutter-bg: rgba(26, 20, 10, 0.03);
+  --gutter-text: #9b968d;
+
   /* Shadows — warm, not gray */
   --shadow-sm: 0 1px 2px rgba(38, 26, 4, 0.04);
   --shadow-md: 0 4px 16px rgba(38, 26, 4, 0.06), 0 1px 3px rgba(38, 26, 4, 0.04);
@@ -109,6 +117,13 @@ html.dark {
   --danger-border: rgba(239, 68, 68, 0.3);
   --header-bg: rgba(14, 14, 16, 0.72);
   --button-hover: #1c1d21;
+
+  --diff-add-bg: rgba(34, 197, 94, 0.12);
+  --diff-add-text: #4ade80;
+  --diff-remove-bg: rgba(239, 68, 68, 0.12);
+  --diff-remove-text: #f87171;
+  --gutter-bg: rgba(255, 255, 255, 0.03);
+  --gutter-text: #5c5954;
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.3);

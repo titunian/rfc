@@ -4,6 +4,7 @@ import { useEditorStore } from "../../stores/editor-store";
 import { useAuthStore } from "../../stores/auth-store";
 import { useCloudStore } from "../../stores/cloud-store";
 import { open as openShell } from "@tauri-apps/plugin-shell";
+import { createNewFile, createNewFileFromTemplate } from "../../lib/file-ops";
 
 type Command = {
   id: string;
@@ -42,9 +43,10 @@ export function CommandPalette() {
     theme,
     openAuthModal,
     openPublishDialog,
+    openSettings,
     toggleRightPanel,
   } = useAppStore();
-  const { newFile, content, planId, planUrl, planSlug, detachCloud } =
+  const { content, planId, planUrl, planSlug, detachCloud } =
     useEditorStore();
   const { status: authStatus, signOut: doSignOut, email, client } =
     useAuthStore();
@@ -67,11 +69,19 @@ export function CommandPalette() {
       {
         id: "new",
         label: "New document",
-        hint: "Start a blank draft",
+        hint: "Create a new .md file on disk",
         group: "Document",
         shortcut: "⌘N",
         icon: <Icon path="M12 5v14M5 12h14" />,
-        run: () => newFile(),
+        run: () => void createNewFile(),
+      },
+      {
+        id: "new-from-template",
+        label: "New from template",
+        hint: "Create an RFC with Overview / Details / Open Questions",
+        group: "Document",
+        icon: <Icon path="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8" />,
+        run: () => void createNewFileFromTemplate(),
       },
       {
         id: "open",
@@ -127,6 +137,19 @@ export function CommandPalette() {
     if (planId) {
       list.push(
         {
+          id: "pull-latest",
+          label: "Pull latest from cloud",
+          hint: "Fetch the newest version from orfc.dev",
+          group: "Cloud",
+          shortcut: "⌘⇧R",
+          icon: (
+            <Icon path="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+          ),
+          run: () => {
+            void useCloudStore.getState().pullLatest(planId);
+          },
+        },
+        {
           id: "comments",
           label: "Show comments",
           hint: "Open the comments panel",
@@ -145,6 +168,17 @@ export function CommandPalette() {
           shortcut: "⌘⇧H",
           icon: <Icon path="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />,
           run: () => toggleRightPanel("history"),
+        },
+        {
+          id: "settings",
+          label: "Document settings",
+          hint: "Manage permissions and access",
+          group: "Cloud",
+          shortcut: "⌘,",
+          icon: (
+            <Icon path="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />
+          ),
+          run: () => openSettings(),
         }
       );
       if (planUrl) {
@@ -261,7 +295,6 @@ export function CommandPalette() {
 
     return list;
   }, [
-    newFile,
     content,
     planId,
     planUrl,
@@ -272,6 +305,7 @@ export function CommandPalette() {
     email,
     openAuthModal,
     openPublishDialog,
+    openSettings,
     toggleRightPanel,
     toggleFocusMode,
     toggleSidebar,

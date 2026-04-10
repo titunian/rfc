@@ -18,6 +18,9 @@ import {
   type HighlightComment,
 } from "./CommentHighlights";
 import { SlashCommands } from "./SlashCommands";
+import { MermaidCodeBlock } from "./MermaidCodeBlock";
+import { SelectionCommentPopover } from "./SelectionCommentPopover";
+import { TableOfContents } from "./TableOfContents";
 import "../../styles/editor.css";
 
 // ── Markdown ↔ HTML ───────────────────────────────────────────────
@@ -109,7 +112,12 @@ export function Editor({ content, onChange, className }: EditorProps) {
     extensions: [
       StarterKit.configure({
         heading: { levels: [1, 2, 3, 4] },
-        codeBlock: { HTMLAttributes: { class: "code-block" } },
+        // Disable built-in codeBlock — we use MermaidCodeBlock which
+        // extends it with a custom NodeView for mermaid diagrams.
+        codeBlock: false,
+      }),
+      MermaidCodeBlock.configure({
+        HTMLAttributes: { class: "code-block" },
       }),
       Placeholder.configure({
         placeholder: ({ node, pos }) => {
@@ -286,14 +294,25 @@ export function Editor({ content, onChange, className }: EditorProps) {
         editor.chain().focus().toggleBlockquote().run();
         return;
       }
+      // ⌘Shift+M — comment on selection
+      if (e.shiftKey && (e.key === "m" || e.key === "M")) {
+        const { from, to } = editor.state.selection;
+        if (from !== to) {
+          e.preventDefault();
+          window.dispatchEvent(new Event("orfc:comment-on-selection"));
+        }
+        return;
+      }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [editor]);
 
   return (
-    <div className={className}>
+    <div className={`editor-with-toc ${className ?? ""}`}>
+      <TableOfContents editor={editor} />
       <EditorContent editor={editor} />
+      {editor && !isPreview && <SelectionCommentPopover editor={editor} />}
     </div>
   );
 }

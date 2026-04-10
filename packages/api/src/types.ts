@@ -42,6 +42,7 @@ export interface PlanListItem {
 
 export interface CommentItem {
   id: string;
+  parentId: string | null;
   authorName: string;
   authorEmail: string | null;
   content: string;

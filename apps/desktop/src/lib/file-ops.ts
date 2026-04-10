@@ -98,6 +98,55 @@ export async function saveFileAs(): Promise<void> {
 }
 
 /**
+ * Create a new .md file on disk via a save dialog, then load it into the editor.
+ */
+export async function createNewFile(
+  templateContent?: string
+): Promise<void> {
+  const defaultContent =
+    templateContent !== undefined ? templateContent : "# Untitled\n\n";
+
+  const picked = await saveDialog({
+    defaultPath: "Untitled.md",
+    filters: [{ name: "Markdown", extensions: ["md"] }],
+  });
+  if (!picked) return;
+
+  try {
+    await writeTextFile(picked, defaultContent);
+    const name = fileNameFromPath(picked);
+    useEditorStore.getState().setFile({
+      filePath: picked,
+      fileName: name,
+      content: defaultContent,
+    });
+    useEditorStore.getState().markSaved();
+    useAppStore.getState().addRecentFile(picked);
+  } catch (err) {
+    console.error("Failed to create new file:", err);
+    alert(
+      `Couldn't create that file.\n\n${err instanceof Error ? err.message : String(err)}`
+    );
+  }
+}
+
+const RFC_TEMPLATE = `# Title
+
+## Overview
+
+## Details
+
+## Open Questions
+`;
+
+/**
+ * Create a new .md file on disk pre-filled with the RFC template.
+ */
+export async function createNewFileFromTemplate(): Promise<void> {
+  return createNewFile(RFC_TEMPLATE);
+}
+
+/**
  * Open a previously-recent file by its stored path.
  */
 export async function openRecentFile(path: string): Promise<void> {

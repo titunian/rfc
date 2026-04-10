@@ -3,7 +3,7 @@ import { useEditorStore } from "../../stores/editor-store";
 import { useAppStore } from "../../stores/app-store";
 import { useAuthStore } from "../../stores/auth-store";
 import { useCloudStore } from "../../stores/cloud-store";
-import { openRecentFile } from "../../lib/file-ops";
+import { openRecentFile, createNewFile } from "../../lib/file-ops";
 
 // ── helpers ───────────────────────────────────────────────────────
 
@@ -53,7 +53,7 @@ type DocItem =
 // ── Component ─────────────────────────────────────────────────────
 
 export function Sidebar() {
-  const { filePath, planId, newFile, attachCloud } = useEditorStore();
+  const { filePath, planId, attachCloud } = useEditorStore();
   const {
     recentFiles,
     removeRecentFile,
@@ -224,7 +224,7 @@ export function Sidebar() {
             </button>
           </div>
           <button
-            onClick={newFile}
+            onClick={() => void createNewFile()}
             className="flex items-center justify-center rounded-[10px] transition-colors shrink-0"
             style={{
               width: 26,

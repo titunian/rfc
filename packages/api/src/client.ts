@@ -114,6 +114,7 @@ export class ApiClient {
     planId: string,
     data: {
       content: string;
+      parentId?: string | null;
       authorName?: string;
       anchorText?: string;
       anchorBlockIndex?: number | null;

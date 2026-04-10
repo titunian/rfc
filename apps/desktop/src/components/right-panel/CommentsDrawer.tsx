@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCloudStore } from "../../stores/cloud-store";
 import { useEditorStore } from "../../stores/editor-store";
 import { useAuthStore } from "../../stores/auth-store";
 import { useAppStore } from "../../stores/app-store";
+import type { CommentItem } from "@orfc/api";
 
 function relativeTime(iso: string) {
   const now = Date.now();
@@ -86,20 +87,47 @@ export function CommentsDrawer() {
     return () => window.removeEventListener("orfc:focus-comment", onFocus);
   }, []);
 
+  // Thread grouping: separate top-level from replies
+  const { repliesByParent, unresolvedTopLevel, resolvedTopLevel } =
+    useMemo(() => {
+      const tl: CommentItem[] = [];
+      const rMap: Record<string, CommentItem[]> = {};
+
+      for (const c of comments) {
+        if (c.parentId) {
+          if (!rMap[c.parentId]) rMap[c.parentId] = [];
+          rMap[c.parentId].push(c);
+        } else {
+          tl.push(c);
+        }
+      }
+
+      // Sort replies chronologically within each thread
+      for (const key of Object.keys(rMap)) {
+        rMap[key].sort(
+          (a, b) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+      }
+
+      return {
+        repliesByParent: rMap,
+        unresolvedTopLevel: tl.filter((c) => !c.resolved),
+        resolvedTopLevel: tl.filter((c) => c.resolved),
+      };
+    }, [comments]);
+
   if (!planId) {
     return (
       <Panel>
         <PanelHeader title="Comments" onClose={closeRightPanel} />
         <EmptyState
           title="Not published"
-          body="Publish this draft to orfc.dev first (⌘P) to collect comments."
+          body="Publish this draft to orfc.dev first (Cmd+P) to collect comments."
         />
       </Panel>
     );
   }
-
-  const unresolved = comments.filter((c) => !c.resolved);
-  const resolved = comments.filter((c) => c.resolved);
 
   async function handleSubmit() {
     if (!draft.trim() || !planId) return;
@@ -123,7 +151,7 @@ export function CommentsDrawer() {
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
         {commentsLoading && comments.length === 0 && (
           <p className="text-[12px] text-center py-6" style={{ color: "var(--fg-tertiary)" }}>
-            Loading comments…
+            Loading comments...
           </p>
         )}
 
@@ -147,16 +175,20 @@ export function CommentsDrawer() {
           />
         )}
 
-        {unresolved.map((c) => (
-          <CommentCard
+        {unresolvedTopLevel.map((c) => (
+          <CommentThread
             key={c.id}
-            comment={c}
-            focused={c.id === focusedCommentId}
+            parent={c}
+            replies={repliesByParent[c.id] ?? []}
+            focusedCommentId={focusedCommentId}
+            planId={planId}
             onResolve={() => resolveComment(planId, c.id, !c.resolved)}
+            addComment={addComment}
+            email={email}
           />
         ))}
 
-        {resolved.length > 0 && (
+        {resolvedTopLevel.length > 0 && (
           <div className="pt-2 mt-2" style={{ borderTop: "1px solid var(--border-subtle)" }}>
             <button
               onClick={() => setShowResolved((v) => !v)}
@@ -181,16 +213,20 @@ export function CommentsDrawer() {
               >
                 <path d="m9 18 6-6-6-6" />
               </svg>
-              {resolved.length} resolved
+              {resolvedTopLevel.length} resolved
             </button>
             {showResolved && (
               <div className="mt-2 space-y-2">
-                {resolved.map((c) => (
-                  <CommentCard
+                {resolvedTopLevel.map((c) => (
+                  <CommentThread
                     key={c.id}
-                    comment={c}
-                    focused={c.id === focusedCommentId}
+                    parent={c}
+                    replies={repliesByParent[c.id] ?? []}
+                    focusedCommentId={focusedCommentId}
+                    planId={planId}
                     onResolve={() => resolveComment(planId, c.id, !c.resolved)}
+                    addComment={addComment}
+                    email={email}
                   />
                 ))}
               </div>
@@ -199,7 +235,7 @@ export function CommentsDrawer() {
         )}
       </div>
 
-      {/* Composer */}
+      {/* Top-level composer */}
       <div className="px-3 py-2" style={{ borderTop: "1px solid var(--border-subtle)" }}>
         <div
           className="flex flex-col gap-2 p-2 rounded-[12px]"
@@ -211,7 +247,7 @@ export function CommentsDrawer() {
           <textarea
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder={`Reply as ${email ?? "you"}…`}
+            placeholder={`Comment as ${email ?? "you"}...`}
             rows={2}
             onKeyDown={(e) => {
               if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
@@ -224,7 +260,7 @@ export function CommentsDrawer() {
           />
           <div className="flex items-center justify-between">
             <span className="text-[10.5px]" style={{ color: "var(--fg-tertiary)" }}>
-              ⌘↵ to send
+              Cmd+Enter to send
             </span>
             <button
               onClick={() => void handleSubmit()}
@@ -237,7 +273,7 @@ export function CommentsDrawer() {
                 opacity: posting ? 0.6 : 1,
               }}
             >
-              {posting ? "Sending…" : "Send"}
+              {posting ? "Sending..." : "Send"}
             </button>
           </div>
         </div>
@@ -246,22 +282,154 @@ export function CommentsDrawer() {
   );
 }
 
+/* ------------------------------------------------------------------ */
+/*  CommentThread                                                      */
+/* ------------------------------------------------------------------ */
+
+function CommentThread({
+  parent,
+  replies,
+  focusedCommentId,
+  planId,
+  onResolve,
+  addComment,
+  email,
+}: {
+  parent: CommentItem;
+  replies: CommentItem[];
+  focusedCommentId: string | null;
+  planId: string;
+  onResolve: () => void;
+  addComment: (planId: string, content: string, anchorText?: string | null, parentId?: string | null) => Promise<void>;
+  email: string | null;
+}) {
+  const [replyOpen, setReplyOpen] = useState(false);
+  const [replyDraft, setReplyDraft] = useState("");
+  const [replyPosting, setReplyPosting] = useState(false);
+
+  async function handleReply() {
+    if (!replyDraft.trim()) return;
+    setReplyPosting(true);
+    try {
+      await addComment(planId, replyDraft.trim(), null, parent.id);
+      setReplyDraft("");
+      setReplyOpen(false);
+    } finally {
+      setReplyPosting(false);
+    }
+  }
+
+  return (
+    <div>
+      {/* Parent comment */}
+      <CommentCard
+        comment={parent}
+        focused={parent.id === focusedCommentId}
+        onResolve={onResolve}
+        replyCount={replies.length}
+        onReplyClick={() => setReplyOpen((v) => !v)}
+      />
+
+      {/* Replies + inline reply composer */}
+      {(replies.length > 0 || replyOpen) && (
+        <div
+          className="ml-6 pl-3 border-l-2"
+          style={{ borderColor: "var(--border-subtle)" }}
+        >
+          {replies.map((r) => (
+            <div key={r.id} className="mt-1.5">
+              <ReplyCard
+                comment={r}
+                focused={r.id === focusedCommentId}
+              />
+            </div>
+          ))}
+
+          {replyOpen && (
+            <div className="mt-2 mb-1">
+              <div
+                className="flex flex-col gap-1.5 p-2 rounded-[10px]"
+                style={{
+                  background: "var(--bg-surface)",
+                  border: "1px solid var(--border-subtle)",
+                }}
+              >
+                <textarea
+                  autoFocus
+                  value={replyDraft}
+                  onChange={(e) => setReplyDraft(e.target.value)}
+                  placeholder={`Reply as ${email ?? "you"}...`}
+                  rows={2}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                      e.preventDefault();
+                      void handleReply();
+                    }
+                    if (e.key === "Escape") {
+                      setReplyOpen(false);
+                      setReplyDraft("");
+                    }
+                  }}
+                  className="w-full bg-transparent outline-none resize-none text-[11.5px] leading-snug"
+                  style={{ color: "var(--fg)" }}
+                />
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px]" style={{ color: "var(--fg-tertiary)" }}>
+                    Cmd+Enter send / Esc cancel
+                  </span>
+                  <div className="flex gap-1.5">
+                    <button
+                      onClick={() => {
+                        setReplyOpen(false);
+                        setReplyDraft("");
+                      }}
+                      className="text-[10.5px] font-medium px-2 py-0.5 rounded-[8px] transition-colors"
+                      style={{ color: "var(--fg-tertiary)" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = "var(--fg)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = "var(--fg-tertiary)")}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => void handleReply()}
+                      disabled={!replyDraft.trim() || replyPosting}
+                      className="text-[10.5px] font-medium px-2 py-0.5 rounded-[8px] transition-all"
+                      style={{
+                        background: replyDraft.trim() ? "var(--fg)" : "var(--bg-sidebar)",
+                        color: replyDraft.trim() ? "var(--bg)" : "var(--fg-tertiary)",
+                        cursor: replyDraft.trim() && !replyPosting ? "pointer" : "not-allowed",
+                        opacity: replyPosting ? 0.6 : 1,
+                      }}
+                    >
+                      {replyPosting ? "Sending..." : "Reply"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  CommentCard (parent-level)                                         */
+/* ------------------------------------------------------------------ */
+
 function CommentCard({
   comment,
   focused,
   onResolve,
+  replyCount,
+  onReplyClick,
 }: {
-  comment: {
-    id: string;
-    authorName: string;
-    authorEmail: string | null;
-    content: string;
-    anchorText: string | null;
-    resolved: boolean;
-    createdAt: string;
-  };
+  comment: CommentItem;
   focused: boolean;
   onResolve: () => void;
+  replyCount: number;
+  onReplyClick: () => void;
 }) {
   const display = comment.authorEmail || comment.authorName;
   return (
@@ -335,25 +503,104 @@ function CommentCard({
           >
             {comment.content}
           </p>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onResolve();
-            }}
-            className="mt-1.5 text-[10.5px] font-medium transition-colors opacity-0 group-hover:opacity-100"
-            style={{ color: "var(--fg-tertiary)" }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--fg)")}
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.color = "var(--fg-tertiary)")
-            }
-          >
-            {comment.resolved ? "↩ Reopen" : "✓ Resolve"}
-          </button>
+          <div className="flex items-center gap-3 mt-1.5">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onResolve();
+              }}
+              className="text-[10.5px] font-medium transition-colors opacity-0 group-hover:opacity-100"
+              style={{ color: "var(--fg-tertiary)" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "var(--fg)")}
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.color = "var(--fg-tertiary)")
+              }
+            >
+              {comment.resolved ? "Reopen" : "Resolve"}
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onReplyClick();
+              }}
+              className="text-[10.5px] font-medium transition-colors opacity-0 group-hover:opacity-100"
+              style={{ color: "var(--fg-tertiary)" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "var(--fg)")}
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.color = "var(--fg-tertiary)")
+              }
+            >
+              {replyCount > 0 ? `Reply (${replyCount})` : "Reply"}
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/*  ReplyCard (child-level -- smaller, no Reply button)                */
+/* ------------------------------------------------------------------ */
+
+function ReplyCard({
+  comment,
+  focused,
+}: {
+  comment: CommentItem;
+  focused: boolean;
+}) {
+  const display = comment.authorEmail || comment.authorName;
+  return (
+    <div
+      data-comment-id={comment.id}
+      className="rounded-[10px] p-2 transition-all"
+      style={{
+        background: focused ? "var(--accent-soft)" : "var(--bg-surface)",
+        border: focused
+          ? "1px solid var(--accent)"
+          : "1px solid transparent",
+        boxShadow: focused ? "var(--shadow-glow)" : "none",
+      }}
+    >
+      <div className="flex items-start gap-1.5">
+        <div
+          className={`w-5 h-5 rounded-full flex items-center justify-center text-[8.5px] font-bold shrink-0 ${avatarClass(
+            display
+          )}`}
+        >
+          {initialsFor(display)}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-baseline gap-1.5 mb-0.5">
+            <span
+              className="text-[11px] font-semibold truncate"
+              style={{ color: "var(--fg)" }}
+            >
+              {display}
+            </span>
+            <span
+              className="text-[9.5px] shrink-0"
+              style={{ color: "var(--fg-tertiary)" }}
+            >
+              {relativeTime(comment.createdAt)}
+            </span>
+          </div>
+          <p
+            className="text-[11.5px] leading-snug whitespace-pre-wrap"
+            style={{ color: "var(--fg-secondary)" }}
+          >
+            {comment.content}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Shell components                                                   */
+/* ------------------------------------------------------------------ */
 
 function Panel({ children }: { children: React.ReactNode }) {
   return (

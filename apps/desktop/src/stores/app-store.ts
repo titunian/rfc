@@ -17,12 +17,15 @@ interface AppState {
   commandPaletteOpen: boolean;
   authModalOpen: boolean;
   publishDialogOpen: boolean;
+  settingsOpen: boolean;
   rightPanel: RightPanel;
   theme: Theme;
   recentFiles: string[];
+  tocVisible: boolean;
 
   toggleSidebar: () => void;
   toggleFocusMode: () => void;
+  toggleToc: () => void;
   openCommandPalette: () => void;
   closeCommandPalette: () => void;
   toggleCommandPalette: () => void;
@@ -30,6 +33,8 @@ interface AppState {
   closeAuthModal: () => void;
   openPublishDialog: () => void;
   closePublishDialog: () => void;
+  openSettings: () => void;
+  closeSettings: () => void;
   toggleRightPanel: (panel: Exclude<RightPanel, "none">) => void;
   closeRightPanel: () => void;
   setTheme: (theme: Theme) => void;
@@ -44,11 +49,14 @@ export const useAppStore = create<AppState>((set) => ({
   commandPaletteOpen: false,
   authModalOpen: false,
   publishDialogOpen: false,
+  settingsOpen: false,
   rightPanel: "none",
   theme: readInitialTheme(),
   recentFiles: [],
+  tocVisible: true,
 
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
+  toggleToc: () => set((s) => ({ tocVisible: !s.tocVisible })),
 
   toggleFocusMode: () =>
     set((s) => ({
@@ -69,6 +77,9 @@ export const useAppStore = create<AppState>((set) => ({
 
   openPublishDialog: () => set({ publishDialogOpen: true }),
   closePublishDialog: () => set({ publishDialogOpen: false }),
+
+  openSettings: () => set({ settingsOpen: true }),
+  closeSettings: () => set({ settingsOpen: false }),
 
   toggleRightPanel: (panel) =>
     set((s) => ({

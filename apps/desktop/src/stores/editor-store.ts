@@ -33,12 +33,16 @@ interface EditorState {
   planVersion: number | null;
   cloudSavedContent: string | null; // content we last pushed/pulled
 
+  // Cloud update detection
+  cloudUpdateAvailable: boolean;
+
   // Read-only version preview overlay (set when browsing history)
   previewVersion: PreviewVersion | null;
 
   syncState: SyncState;
 
   // Actions
+  setCloudUpdateAvailable: (v: boolean) => void;
   setFile: (args: {
     filePath: string | null;
     fileName: string;
@@ -96,9 +100,13 @@ export const useEditorStore = create<EditorState>((set) => ({
   planVersion: null,
   cloudSavedContent: null,
 
+  cloudUpdateAvailable: false,
+
   previewVersion: null,
 
   syncState: "local-only",
+
+  setCloudUpdateAvailable: (v) => set({ cloudUpdateAvailable: v }),
 
   setFile: ({ filePath, fileName, content }) =>
     set(() => ({
@@ -215,6 +223,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       planVersion: null,
       cloudSavedContent: null,
       previewVersion: null,
+      cloudUpdateAvailable: false,
       syncState: "local-only",
     }),
 
@@ -231,6 +240,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       fileName: title || "Untitled",
       filePath: null,
       previewVersion: null,
+      cloudUpdateAvailable: false,
       syncState: "synced",
     })),
 

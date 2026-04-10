@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { invoke } from "@tauri-apps/api/core";
 import { ApiClient } from "@orfc/api";
 import {
   loadOrfcConfig,
@@ -25,12 +26,10 @@ interface AuthState {
 }
 
 function buildClient(config: OrfcConfig): ApiClient {
-  // In dev the webview loads http://localhost:1420 and Vite proxies /api/*
-  // to the real orfc.dev. Using an empty base means the client hits the
-  // local webview origin, which the proxy rewrites upstream.
-  const isDev = typeof window !== "undefined" && window.location.hostname === "localhost";
-  const base = isDev ? "" : config.apiUrl;
-  return new ApiClient({ apiUrl: base, apiKey: config.apiKey });
+  // Always use the real API URL. In dev, the Vite proxy handles /api/* but
+  // in production builds the webview loads from disk and needs to make
+  // cross-origin requests directly (CORS headers are set on orfc.dev).
+  return new ApiClient({ apiUrl: config.apiUrl, apiKey: config.apiKey });
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -63,16 +62,33 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   signIn: async () => {
-    // In-app sign-in flow is temporarily disabled while we chase a Tauri
-    // tokio/http plugin conflict. For now the app reads the shared
-    // ~/.orfc/config.json created by the CLI (`orfc login`), so the user
-    // can authenticate from the terminal and the desktop picks it up.
-    set({
-      status: "error",
-      error:
-        "Sign in from the terminal with 'orfc login' — the desktop app shares the same ~/.orfc/config.json.",
-    });
-    throw new Error("In-app sign-in temporarily disabled");
+    const { apiUrl } = useAuthStore.getState();
+    set({ status: "signing-in", error: null });
+    try {
+      const result = await invoke<{ apiKey: string; email: string }>(
+        "login_flow",
+        { apiUrl },
+      );
+
+      // Persist to shared ~/.orfc/config.json (used by CLI too)
+      const config = await loadOrfcConfig();
+      const next = { ...config, apiKey: result.apiKey, email: result.email };
+      await saveOrfcConfig(next);
+
+      const client = buildClient(next);
+      set({
+        apiKey: result.apiKey,
+        email: result.email,
+        client,
+        status: "signed-in",
+        error: null,
+      });
+    } catch (e) {
+      set({
+        status: "error",
+        error: e instanceof Error ? e.message : String(e),
+      });
+    }
   },
 
   signOut: async () => {
