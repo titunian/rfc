@@ -100,7 +100,7 @@ function resolveSlug(api: ApiClient, slug: string): Promise<string> {
 
 export async function pullCommand(
   slug: string,
-  options: { includeResolved?: boolean }
+  options: { includeResolved?: boolean; json?: boolean }
 ) {
   try {
     const api = new ApiClient();
@@ -114,6 +114,22 @@ export async function pullCommand(
       ? comments
       : comments.filter((c) => !c.resolved);
 
+    if (options.json) {
+      const unresolvedCount = comments.filter((c) => !c.resolved).length;
+      console.log(
+        JSON.stringify({
+          content: plan.content,
+          title: plan.title,
+          slug: plan.slug,
+          status: (plan as any).status || null,
+          tags: (plan as any).tags || [],
+          comments: filtered,
+          unresolvedCount,
+        })
+      );
+      return;
+    }
+
     if (filtered.length === 0) {
       // No comments — just output the raw markdown
       process.stdout.write(plan.content);
@@ -124,7 +140,11 @@ export async function pullCommand(
     process.stdout.write(annotated);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error(`\n  ✗ ${message}\n`);
+    if (options.json) {
+      console.error(JSON.stringify({ error: message }));
+    } else {
+      console.error(`\n  ✗ ${message}\n`);
+    }
     process.exit(1);
   }
 }

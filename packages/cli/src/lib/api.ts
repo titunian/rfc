@@ -5,6 +5,8 @@ interface PlanResponse {
   slug: string;
   url: string;
   title: string;
+  tags?: string[];
+  status?: string;
   createdAt: string;
   updatedAt?: string;
 }
@@ -15,6 +17,8 @@ interface PlanDetail {
   title: string | null;
   content: string;
   authorName: string | null;
+  tags?: string[];
+  status?: string;
   createdAt: string;
   updatedAt: string | null;
 }
@@ -23,6 +27,8 @@ interface PlanListItem {
   id: string;
   slug: string;
   title: string;
+  tags?: string[];
+  status?: string;
   createdAt: string;
   expiresAt: string | null;
 }
@@ -74,6 +80,8 @@ export class ApiClient {
     accessRule?: string;
     allowedViewers?: string;
     expiresIn?: string;
+    tags?: string[];
+    status?: string;
   }): Promise<PlanResponse> {
     const res = await this.request("/api/plans", {
       method: "POST",
@@ -86,8 +94,17 @@ export class ApiClient {
     return res.json() as Promise<PlanResponse>;
   }
 
-  async listPlans(): Promise<{ plans: PlanListItem[] }> {
-    const res = await this.request("/api/plans");
+  async listPlans(params?: {
+    q?: string;
+    tags?: string[];
+    status?: string;
+  }): Promise<{ plans: PlanListItem[] }> {
+    const qs = new URLSearchParams();
+    if (params?.q) qs.set("q", params.q);
+    if (params?.tags?.length) qs.set("tags", params.tags.join(","));
+    if (params?.status) qs.set("status", params.status);
+    const query = qs.toString();
+    const res = await this.request(`/api/plans${query ? `?${query}` : ""}`);
     if (!res.ok) {
       throw new Error(`HTTP ${res.status}`);
     }
@@ -114,7 +131,7 @@ export class ApiClient {
 
   async updatePlan(
     id: string,
-    data: { title?: string; content: string }
+    data: { title?: string; content?: string; tags?: string[]; status?: string }
   ): Promise<PlanResponse> {
     const res = await this.request(`/api/plans/${id}`, {
       method: "PUT",
