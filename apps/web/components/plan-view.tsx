@@ -47,16 +47,21 @@ type TocItem = {
 
 function extractToc(markdown: string): TocItem[] {
   const items: TocItem[] = [];
+  const idCounts: Record<string, number> = {};
   const lines = markdown.split("\n");
   for (const line of lines) {
     const match = line.match(/^(#{1,4})\s+(.+)/);
     if (match) {
       const level = match[1].length;
       const text = match[2].replace(/[*_`~\[\]()#>]/g, "").trim();
-      const id = text
+      let id = text
         .toLowerCase()
         .replace(/[^\w\s-]/g, "")
         .replace(/\s+/g, "-");
+      // Deduplicate: "subagents" → "subagents", "subagents-1", "subagents-2"
+      const count = idCounts[id] ?? 0;
+      idCounts[id] = count + 1;
+      if (count > 0) id = `${id}-${count}`;
       items.push({ id, text, level });
     }
   }
@@ -1096,55 +1101,37 @@ export function PlanView({
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   rehypePlugins={[rehypeHighlight]}
-                  components={{
-                    // Add IDs to headings for TOC navigation
-                    h1: ({ children, ...props }) => {
-                      const text = getTextContent(children);
-                      const id = text
+                  components={(() => {
+                    // Shared counter to deduplicate heading IDs across the
+                    // entire document (e.g. two "## Subagents" get
+                    // id="subagents" and id="subagents-1").
+                    const idCounts: Record<string, number> = {};
+                    function makeId(text: string): string {
+                      let id = text
                         .toLowerCase()
                         .replace(/[^\w\s-]/g, "")
                         .replace(/\s+/g, "-");
-                      return (
-                        <h1 id={id} {...props}>
-                          {children}
-                        </h1>
-                      );
+                      const count = idCounts[id] ?? 0;
+                      idCounts[id] = count + 1;
+                      if (count > 0) id = `${id}-${count}`;
+                      return id;
+                    }
+                    return {
+                    h1: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement> & { children?: ReactNode }) => {
+                      const id = makeId(getTextContent(children));
+                      return <h1 id={id} {...props}>{children}</h1>;
                     },
-                    h2: ({ children, ...props }) => {
-                      const text = getTextContent(children);
-                      const id = text
-                        .toLowerCase()
-                        .replace(/[^\w\s-]/g, "")
-                        .replace(/\s+/g, "-");
-                      return (
-                        <CollapsibleHeading id={id} level={2} {...props}>
-                          {children}
-                        </CollapsibleHeading>
-                      );
+                    h2: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement> & { children?: ReactNode }) => {
+                      const id = makeId(getTextContent(children));
+                      return <h2 id={id} {...props}>{children}</h2>;
                     },
-                    h3: ({ children, ...props }) => {
-                      const text = getTextContent(children);
-                      const id = text
-                        .toLowerCase()
-                        .replace(/[^\w\s-]/g, "")
-                        .replace(/\s+/g, "-");
-                      return (
-                        <h3 id={id} {...props}>
-                          {children}
-                        </h3>
-                      );
+                    h3: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement> & { children?: ReactNode }) => {
+                      const id = makeId(getTextContent(children));
+                      return <h3 id={id} {...props}>{children}</h3>;
                     },
-                    h4: ({ children, ...props }) => {
-                      const text = getTextContent(children);
-                      const id = text
-                        .toLowerCase()
-                        .replace(/[^\w\s-]/g, "")
-                        .replace(/\s+/g, "-");
-                      return (
-                        <h4 id={id} {...props}>
-                          {children}
-                        </h4>
-                      );
+                    h4: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement> & { children?: ReactNode }) => {
+                      const id = makeId(getTextContent(children));
+                      return <h4 id={id} {...props}>{children}</h4>;
                     },
                     code(props) {
                       const { className, children, ...rest } = props;
@@ -1180,7 +1167,8 @@ export function PlanView({
                       }
                       return <pre {...rest}>{children}</pre>;
                     },
-                  }}
+                  };
+                  })()}
                 >
                   {displayContent}
                 </ReactMarkdown>
@@ -1487,87 +1475,6 @@ function AccessRow({
         )}
       </span>
     </button>
-  );
-}
-
-// ── Collapsible section heading ─────────────────────────────────
-//
-// Renders an h2 that, when clicked, collapses all sibling DOM nodes
-// until the next heading of the same or higher level. Uses a thin
-// CSS class toggle on the next-sibling elements rather than React
-// state, so it works inside ReactMarkdown's flat output.
-
-function CollapsibleHeading({
-  id,
-  level,
-  children,
-  ...props
-}: {
-  id: string;
-  level: number;
-  children: ReactNode;
-} & React.HTMLAttributes<HTMLHeadingElement>) {
-  const [collapsed, setCollapsed] = useState(false);
-  const headingRef = useRef<HTMLHeadingElement>(null);
-
-  const toggle = () => {
-    const el = headingRef.current;
-    if (!el) return;
-    const next = !collapsed;
-    setCollapsed(next);
-
-    // Walk siblings until we hit another heading of same or higher level
-    let sibling = el.nextElementSibling;
-    while (sibling) {
-      const tag = sibling.tagName;
-      // Stop at next h1 or h2
-      if (tag === "H1" || tag === "H2") break;
-      // Also stop if it's a collapsible heading wrapper
-      if (sibling.getAttribute("data-collapsible-section")) break;
-
-      if (next) {
-        (sibling as HTMLElement).style.display = "none";
-      } else {
-        (sibling as HTMLElement).style.display = "";
-      }
-      sibling = sibling.nextElementSibling;
-    }
-  };
-
-  const Tag = `h${level}` as "h2";
-
-  return (
-    <Tag
-      ref={headingRef}
-      id={id}
-      data-collapsible-section="true"
-      {...props}
-      style={{
-        cursor: "pointer",
-        userSelect: "none",
-        ...((props as Record<string, unknown>).style as React.CSSProperties | undefined),
-      }}
-      onClick={toggle}
-    >
-      <span className="inline-flex items-center gap-2">
-        <svg
-          className="shrink-0 transition-transform duration-150"
-          style={{
-            width: 12,
-            height: 12,
-            transform: collapsed ? "rotate(-90deg)" : "rotate(0deg)",
-            color: "var(--muted)",
-          }}
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={2.5}
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-        </svg>
-        {children}
-      </span>
-    </Tag>
   );
 }
 
