@@ -23,6 +23,9 @@ interface AppState {
   recentFiles: string[];
   tocVisible: boolean;
   conceptsVisible: boolean;
+  aiAnalyzing: boolean;
+  aiSummary: string | null;
+  aiConfigModalOpen: boolean;
 
   toggleSidebar: () => void;
   toggleFocusMode: () => void;
@@ -37,6 +40,10 @@ interface AppState {
   closePublishDialog: () => void;
   openSettings: () => void;
   closeSettings: () => void;
+  setAiAnalyzing: (v: boolean) => void;
+  setAiSummary: (summary: string | null) => void;
+  openAiConfigModal: () => void;
+  closeAiConfigModal: () => void;
   toggleRightPanel: (panel: Exclude<RightPanel, "none">) => void;
   closeRightPanel: () => void;
   setTheme: (theme: Theme) => void;
@@ -57,6 +64,9 @@ export const useAppStore = create<AppState>((set) => ({
   recentFiles: [],
   tocVisible: true,
   conceptsVisible: false,
+  aiAnalyzing: false,
+  aiSummary: null,
+  aiConfigModalOpen: false,
 
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   toggleToc: () => set((s) => ({ tocVisible: !s.tocVisible })),
@@ -84,6 +94,11 @@ export const useAppStore = create<AppState>((set) => ({
 
   openSettings: () => set({ settingsOpen: true }),
   closeSettings: () => set({ settingsOpen: false }),
+
+  setAiAnalyzing: (v) => set({ aiAnalyzing: v }),
+  setAiSummary: (summary) => set({ aiSummary: summary }),
+  openAiConfigModal: () => set({ aiConfigModalOpen: true }),
+  closeAiConfigModal: () => set({ aiConfigModalOpen: false }),
 
   toggleRightPanel: (panel) =>
     set((s) => ({

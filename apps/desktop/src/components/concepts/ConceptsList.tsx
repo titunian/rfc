@@ -11,6 +11,9 @@ import { useAuthStore } from "../../stores/auth-store";
 import { useAppStore } from "../../stores/app-store";
 import { openRecentFile } from "../../lib/file-ops";
 import type { ConceptType } from "../../lib/extract-concepts";
+import { ConceptGraph } from "./ConceptGraph";
+
+type ViewMode = "list" | "graph";
 
 // ── Type config ──────────────────────────────────────────────────
 
@@ -30,6 +33,7 @@ export function ConceptsList() {
   const [search, setSearch] = useState("");
   const [expandedConcept, setExpandedConcept] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<ConceptType | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
 
   const allEntries = useConceptsStore((s) => s.allEntries)();
   const searchConcepts = useConceptsStore((s) => s.searchConcepts);
@@ -80,6 +84,36 @@ export function ConceptsList() {
             {allEntries.length}
           </span>
           <span className="flex-1" />
+          {/* List / Graph toggle */}
+          <div
+            className="flex rounded-[6px] overflow-hidden"
+            style={{ border: "1px solid var(--border-subtle)" }}
+          >
+            {(["list", "graph"] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className="text-[10px] font-medium px-1.5 py-[2px] transition-colors"
+                style={{
+                  background: viewMode === mode ? "var(--bg-active)" : "transparent",
+                  color: viewMode === mode ? "var(--fg)" : "var(--fg-tertiary)",
+                }}
+                title={mode === "list" ? "List view" : "Graph view"}
+              >
+                {mode === "list" ? (
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
+                    <line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
+                  </svg>
+                ) : (
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="6" cy="6" r="3" /><circle cx="18" cy="6" r="3" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="18" r="3" />
+                    <line x1="8.5" y1="7.5" x2="15.5" y2="16.5" /><line x1="15.5" y1="7.5" x2="8.5" y2="16.5" />
+                  </svg>
+                )}
+              </button>
+            ))}
+          </div>
           <button
             onClick={toggleConcepts}
             className="flex items-center justify-center rounded-[5px] transition-colors"
@@ -149,44 +183,50 @@ export function ConceptsList() {
         </div>
       </div>
 
-      {/* Scrollable list */}
-      <div className="flex-1 overflow-y-auto px-1.5 py-2">
-        {entries.length === 0 ? (
-          <p className="text-[11.5px] px-3 pt-3 text-center" style={{ color: "var(--fg-tertiary)" }}>
-            {search ? "No matching concepts." : "No concepts extracted yet. Open a document to begin."}
-          </p>
-        ) : (
-          TYPE_ORDER.filter((t) => grouped[t]?.length).map((type) => (
-            <div key={type} className="mb-3">
-              {/* Group heading */}
-              {!typeFilter && (
-                <div
-                  className="text-[10px] font-semibold uppercase tracking-wider px-2 py-1"
-                  style={{ color: TYPE_META[type].color }}
-                >
-                  {TYPE_META[type].label}
-                </div>
-              )}
+      {/* Content area: list or graph */}
+      {viewMode === "graph" ? (
+        <div className="flex-1 overflow-hidden">
+          <ConceptGraph filterQuery={search || undefined} />
+        </div>
+      ) : (
+        <div className="flex-1 overflow-y-auto px-1.5 py-2">
+          {entries.length === 0 ? (
+            <p className="text-[11.5px] px-3 pt-3 text-center" style={{ color: "var(--fg-tertiary)" }}>
+              {search ? "No matching concepts." : "No concepts extracted yet. Open a document to begin."}
+            </p>
+          ) : (
+            TYPE_ORDER.filter((t) => grouped[t]?.length).map((type) => (
+              <div key={type} className="mb-3">
+                {/* Group heading */}
+                {!typeFilter && (
+                  <div
+                    className="text-[10px] font-semibold uppercase tracking-wider px-2 py-1"
+                    style={{ color: TYPE_META[type].color }}
+                  >
+                    {TYPE_META[type].label}
+                  </div>
+                )}
 
-              {/* Items */}
-              <div className="space-y-px">
-                {grouped[type]!.map((entry) => (
-                  <ConceptItem
-                    key={entry.concept.name}
-                    entry={entry}
-                    isExpanded={expandedConcept === entry.concept.name}
-                    onToggle={() =>
-                      setExpandedConcept(
-                        expandedConcept === entry.concept.name ? null : entry.concept.name
-                      )
-                    }
-                  />
-                ))}
+                {/* Items */}
+                <div className="space-y-px">
+                  {grouped[type]!.map((entry) => (
+                    <ConceptItem
+                      key={entry.concept.name}
+                      entry={entry}
+                      isExpanded={expandedConcept === entry.concept.name}
+                      onToggle={() =>
+                        setExpandedConcept(
+                          expandedConcept === entry.concept.name ? null : entry.concept.name
+                        )
+                      }
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          ))
-        )}
-      </div>
+            ))
+          )}
+        </div>
+      )}
     </aside>
   );
 }

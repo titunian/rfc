@@ -1,8 +1,12 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useAuthStore } from "../../stores/auth-store";
 import { useAppStore } from "../../stores/app-store";
 import { useEditorStore } from "../../stores/editor-store";
 import { useCloudStore } from "../../stores/cloud-store";
+import { useConceptsStore } from "../../stores/concepts-store";
+import { analyzeWithClaude } from "../../lib/ai-analyze";
+import { loadOrfcConfig } from "../../lib/orfc-config";
+import { AIConfigModal } from "../ai-config/AIConfigModal";
 
 // ── Plan status helpers ──────────────────────────────────────────
 
@@ -30,20 +34,90 @@ export function EditorActions() {
     openPublishDialog,
     openAuthModal,
     openSettings,
+    aiAnalyzing,
+    setAiAnalyzing,
+    setAiSummary,
+    aiConfigModalOpen,
+    openAiConfigModal,
+    closeAiConfigModal,
+    toggleConcepts,
   } = useAppStore();
   const planId = useEditorStore((s) => s.planId);
   const planUrl = useEditorStore((s) => s.planUrl);
   const isDirty = useEditorStore((s) => s.isDirty);
   const syncState = useEditorStore((s) => s.syncState);
   const planStatus = useEditorStore((s) => s.planStatus);
-  const hasContent = useEditorStore((s) => s.content.trim().length > 0);
+  const content = useEditorStore((s) => s.content);
+  const fileName = useEditorStore((s) => s.fileName);
+  const hasContent = content.trim().length > 0;
   const cloudUpdateAvailable = useEditorStore((s) => s.cloudUpdateAvailable);
   const comments = useCloudStore((s) => s.comments);
   const pullLatest = useCloudStore((s) => s.pullLatest);
   const updateStatus = useCloudStore((s) => s.updateStatus);
+  const mergeAIConcepts = useConceptsStore((s) => s.mergeAIConcepts);
   const { status } = useAuthStore();
 
   const unresolvedCount = comments.filter((c) => !c.resolved).length;
+
+  // ── AI Analysis ────────────────────────────────────────────────
+  const runAnalysis = useCallback(async (apiKey: string) => {
+    if (aiAnalyzing || !content.trim()) return;
+    setAiAnalyzing(true);
+    closeAiConfigModal();
+    try {
+      const result = await analyzeWithClaude(content, apiKey);
+      if (result.summary) {
+        setAiSummary(result.summary);
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => setAiSummary(null), 5000);
+      }
+      if (result.concepts.length > 0) {
+        const id = planId || "local";
+        const title = fileName || "Untitled";
+        mergeAIConcepts(id, title, result);
+        // Open concepts panel to show enriched results
+        const appState = useAppStore.getState();
+        if (!appState.conceptsVisible) toggleConcepts();
+      }
+    } catch (err) {
+      console.error("[ai-analyze] unexpected error:", err);
+    } finally {
+      setAiAnalyzing(false);
+    }
+  }, [aiAnalyzing, content, planId, fileName, setAiAnalyzing, setAiSummary, closeAiConfigModal, mergeAIConcepts, toggleConcepts]);
+
+  const handleAiAnalyze = useCallback(async () => {
+    if (aiAnalyzing) return;
+    try {
+      const config = await loadOrfcConfig();
+      if (config.anthropicApiKey) {
+        await runAnalysis(config.anthropicApiKey);
+      } else {
+        openAiConfigModal();
+      }
+    } catch {
+      openAiConfigModal();
+    }
+  }, [aiAnalyzing, runAnalysis, openAiConfigModal]);
+
+  // Keyboard shortcut: Cmd+Shift+A
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.metaKey && e.shiftKey && e.key.toLowerCase() === "a") {
+        e.preventDefault();
+        void handleAiAnalyze();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [handleAiAnalyze]);
+
+  // Command palette event
+  useEffect(() => {
+    const handler = () => void handleAiAnalyze();
+    window.addEventListener("orfc:ai-analyze", handler);
+    return () => window.removeEventListener("orfc:ai-analyze", handler);
+  }, [handleAiAnalyze]);
   // Show Publish only when there's something worth publishing:
   // - cloud-synced doc with local changes (dirty), OR
   // - a non-empty draft that's never been pushed to the cloud
@@ -54,7 +128,10 @@ export function EditorActions() {
     else openPublishDialog();
   };
 
+  const aiSummary = useAppStore((s) => s.aiSummary);
+
   return (
+    <>
     <div
       className="sticky top-0 z-20 flex items-center justify-end gap-0.5 px-4 py-2"
       style={{
@@ -63,6 +140,21 @@ export function EditorActions() {
         pointerEvents: "none",
       }}
     >
+      {/* AI Summary toast */}
+      {aiSummary && (
+        <div
+          className="absolute left-4 top-2 max-w-[50%] px-3 py-2 rounded-lg text-[12px] anim-fade-scale"
+          style={{
+            background: "color-mix(in srgb, var(--accent) 10%, var(--bg-elevated))",
+            border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)",
+            color: "var(--fg-secondary)",
+            pointerEvents: "auto",
+          }}
+        >
+          <span className="font-medium" style={{ color: "var(--accent)" }}>AI Summary: </span>
+          {aiSummary}
+        </div>
+      )}
       <div className="flex items-center gap-0.5" style={{ pointerEvents: "auto" }}>
         {/* Update available: cloud moved ahead */}
         {cloudUpdateAvailable && planId && (
@@ -213,6 +305,48 @@ export function EditorActions() {
           </IconButton>
         )}
 
+        {/* AI Deep Analyze */}
+        {hasContent && (
+          <IconButton
+            onClick={() => void handleAiAnalyze()}
+            title="Deep Analyze with AI · ⌘⇧A"
+            active={false}
+          >
+            {aiAnalyzing ? (
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="anim-spin"
+              >
+                <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+              </svg>
+            ) : (
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                <path d="M5 3v4" />
+                <path d="M19 17v4" />
+                <path d="M3 5h4" />
+                <path d="M17 19h4" />
+              </svg>
+            )}
+          </IconButton>
+        )}
+
         {/* Open in browser: only if published */}
         {planUrl && (
           <IconButton
@@ -236,6 +370,12 @@ export function EditorActions() {
         )}
       </div>
     </div>
+    <AIConfigModal
+      open={aiConfigModalOpen}
+      onClose={closeAiConfigModal}
+      onSaveAndAnalyze={(key) => void runAnalysis(key)}
+    />
+    </>
   );
 }
 

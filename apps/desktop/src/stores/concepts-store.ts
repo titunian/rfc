@@ -5,6 +5,7 @@
 
 import { create } from "zustand";
 import { extractConcepts, type Concept } from "../lib/extract-concepts";
+import type { AIAnalysisResult } from "../lib/ai-analyze";
 
 export interface ConceptEntry {
   concept: Concept;
@@ -27,6 +28,9 @@ interface ConceptsState {
 
   /** Search concepts by query string (fuzzy prefix match) */
   searchConcepts: (query: string) => ConceptEntry[];
+
+  /** Merge AI-extracted concepts into the index for a given plan */
+  mergeAIConcepts: (planId: string, planTitle: string, result: AIAnalysisResult) => void;
 
   /** Get all entries as an array */
   allEntries: () => ConceptEntry[];
@@ -120,6 +124,35 @@ export const useConceptsStore = create<ConceptsState>((set, get) => ({
       }
     }
     return results;
+  },
+
+  mergeAIConcepts: (planId: string, planTitle: string, result: AIAnalysisResult) => {
+    set((state) => {
+      const next = new Map(state.concepts);
+
+      for (const c of result.concepts) {
+        const key = c.name.toLowerCase().trim();
+        if (!key) continue;
+        const existing = next.get(key);
+        if (existing) {
+          if (!existing.planIds.includes(planId)) {
+            next.set(key, {
+              concept: existing.concept,
+              planIds: [...existing.planIds, planId],
+              planTitles: [...existing.planTitles, planTitle],
+            });
+          }
+        } else {
+          next.set(key, {
+            concept: { name: c.name, type: c.type, context: c.context },
+            planIds: [planId],
+            planTitles: [planTitle],
+          });
+        }
+      }
+
+      return { concepts: next };
+    });
   },
 
   allEntries: () => {

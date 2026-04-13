@@ -10,6 +10,7 @@ import {
 export interface OrfcConfig {
   apiUrl: string;
   apiKey?: string;
+  anthropicApiKey?: string;
   email?: string;
   name?: string;
 }

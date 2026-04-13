@@ -10,7 +10,7 @@ type Command = {
   id: string;
   label: string;
   hint?: string;
-  group: "Document" | "View" | "Cloud" | "Workflow";
+  group: "Document" | "View" | "Cloud" | "Workflow" | "AI";
   shortcut?: string;
   icon?: React.ReactNode;
   run: () => void;
@@ -115,23 +115,41 @@ export function CommandPalette() {
           /* no-op info row */
         },
       },
-      {
-        id: "publish",
-        label: planId ? "Publish update" : "Publish to orfc.dev",
-        hint: planId
-          ? "Push a new version"
-          : "Create a shareable URL for this draft",
-        group: "Cloud",
-        shortcut: "⌘P",
+    ];
+
+    // AI analysis: only when content exists
+    if (content.trim().length > 0) {
+      list.push({
+        id: "ai-analyze",
+        label: "Analyze with AI",
+        hint: "Deep analysis of concepts, tags, and summary via Claude",
+        group: "AI",
+        shortcut: "\u2318\u21e7A",
         icon: (
-          <Icon path="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+          <Icon path="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
         ),
         run: () => {
-          if (authStatus !== "signed-in") openAuthModal();
-          else openPublishDialog();
+          window.dispatchEvent(new CustomEvent("orfc:ai-analyze"));
         },
+      });
+    }
+
+    list.push({
+      id: "publish",
+      label: planId ? "Publish update" : "Publish to orfc.dev",
+      hint: planId
+        ? "Push a new version"
+        : "Create a shareable URL for this draft",
+      group: "Cloud",
+      shortcut: "⌘P",
+      icon: (
+        <Icon path="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+      ),
+      run: () => {
+        if (authStatus !== "signed-in") openAuthModal();
+        else openPublishDialog();
       },
-    ];
+    });
 
     // Cloud-plan-scoped commands
     if (planId) {
