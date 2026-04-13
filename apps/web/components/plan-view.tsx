@@ -148,6 +148,8 @@ export function PlanView({
       window.removeEventListener("keydown", onKey);
     };
   }, [userMenuOpen]);
+  const [newVersionAvailable, setNewVersionAvailable] = useState(false);
+
   // Always fetch fresh content on mount — server render may be cached/stale
   useEffect(() => {
     async function refreshPlan() {
@@ -162,6 +164,29 @@ export function PlanView({
     }
     refreshPlan();
   }, [initialPlan.id]);
+
+  // Poll for new versions every 30s — show a toast if the doc was updated
+  useEffect(() => {
+    if (!canView) return;
+    let lastKnownVersion = plan.currentVersion ?? 0;
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/plans/${plan.id}/versions`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const latest = data.currentVersion ?? 0;
+        if (latest > lastKnownVersion && lastKnownVersion > 0) {
+          setNewVersionAvailable(true);
+        }
+        lastKnownVersion = latest;
+      } catch {
+        // silent — don't disrupt reading
+      }
+    }, 30_000);
+
+    return () => clearInterval(interval);
+  }, [plan.id, plan.currentVersion, canView]);
 
   // When version history reports a newer version, re-fetch
   const handleVersionChange = useCallback(
@@ -779,6 +804,55 @@ export function PlanView({
               onClose={() => setSettingsOpen(false)}
             />
           </div>
+        </div>
+      )}
+
+      {/* New version toast */}
+      {newVersionAvailable && (
+        <div
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-2.5 rounded-xl font-sans shadow-lg"
+          style={{
+            background: "var(--fg)",
+            color: "var(--bg)",
+            animation: "slideUp 300ms cubic-bezier(0.16, 1, 0.3, 1)",
+          }}
+        >
+          <svg
+            className="w-4 h-4 shrink-0"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182"
+            />
+          </svg>
+          <span className="text-[13px] font-medium">
+            A new version of this document is available
+          </span>
+          <button
+            onClick={() => {
+              setNewVersionAvailable(false);
+              window.location.reload();
+            }}
+            className="text-[12px] font-semibold px-3 py-1 rounded-lg transition-colors"
+            style={{
+              background: "var(--bg)",
+              color: "var(--fg)",
+            }}
+          >
+            Refresh
+          </button>
+          <button
+            onClick={() => setNewVersionAvailable(false)}
+            className="text-[12px] opacity-60 hover:opacity-100 transition-opacity"
+            title="Dismiss"
+          >
+            ✕
+          </button>
         </div>
       )}
 
