@@ -13,10 +13,12 @@ function CliAuthFlow() {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [step, setStep] = useState<
-    "email" | "code" | "generating" | "done" | "error"
+    "email" | "code" | "generating" | "done" | "error" | "manual"
   >("email");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const [manualKey, setManualKey] = useState<{ key: string; email: string } | null>(null);
 
   const generateAndSendKey = useCallback(async () => {
     if (!port || !state) return;
@@ -30,20 +32,41 @@ function CliAuthFlow() {
       }
       const { key, email: userEmail } = await res.json();
 
-      const callbackRes = await fetch(
-        `http://localhost:${port}/callback`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ key, email: userEmail, state }),
-        }
-      );
+      // Try 1: redirect (works in Brave — navigations aren't blocked)
+      // The CLI callback server handles GET with query params.
+      const callbackUrl =
+        `http://localhost:${port}/callback?` +
+        `key=${encodeURIComponent(key)}` +
+        `&email=${encodeURIComponent(userEmail)}` +
+        `&state=${encodeURIComponent(state)}`;
 
-      if (!callbackRes.ok) {
-        throw new Error("Failed to send credentials to CLI");
+      // Try fetch first (works in Chrome/Safari/Firefox)
+      try {
+        const callbackRes = await fetch(
+          `http://localhost:${port}/callback`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ key, email: userEmail, state }),
+          }
+        );
+        if (callbackRes.ok) {
+          setStep("done");
+          return;
+        }
+      } catch {
+        // Brave / strict browsers block this fetch — fall through to redirect
       }
 
-      setStep("done");
+      // Try 2: redirect via navigation (Brave allows this)
+      // Save the key so we can show a manual fallback if even this fails
+      setManualKey({ key, email: userEmail });
+      window.location.href = callbackUrl;
+
+      // If we're still here after 3s, the redirect was also blocked — show manual
+      setTimeout(() => {
+        setStep("manual");
+      }, 3000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Authentication failed");
       setStep("error");
@@ -109,6 +132,52 @@ function CliAuthFlow() {
             You can close this tab and return to your terminal.
           </p>
         </div>
+      </div>
+    );
+  }
+
+  // Manual fallback — Brave or strict browsers blocked both fetch + redirect
+  if (step === "manual" && manualKey) {
+    return (
+      <div className="w-full max-w-sm px-6 text-center">
+        <div className="flex items-center justify-center gap-2.5 mb-4">
+          <span
+            className="inline-flex items-center justify-center h-8 w-8 rounded-[9px] text-[14px] font-bold shadow-sm"
+            style={{ background: "var(--fg)", color: "var(--bg)" }}
+          >
+            o
+          </span>
+          <span className="text-[22px] font-bold tracking-tight" style={{ color: "var(--fg)" }}>
+            orfc
+          </span>
+        </div>
+        <p className="text-[13px] mb-4" style={{ color: "var(--muted)" }}>
+          Your browser blocked the automatic callback. Paste this command in your terminal to finish setup:
+        </p>
+        <div
+          className="text-left rounded-lg p-3 font-mono text-[12px] break-all mb-3"
+          style={{
+            background: "var(--bg)",
+            border: "1px solid var(--border)",
+            color: "var(--fg)",
+          }}
+        >
+          orfc config set apiKey {manualKey.key}
+        </div>
+        <button
+          onClick={() => {
+            navigator.clipboard.writeText(
+              `orfc config set apiKey ${manualKey.key} && orfc config set email ${manualKey.email}`
+            );
+          }}
+          className="w-full py-2.5 text-[13px] font-medium rounded-lg transition-opacity"
+          style={{ background: "var(--fg)", color: "var(--bg)" }}
+        >
+          Copy command
+        </button>
+        <p className="text-[11px] mt-3" style={{ color: "var(--fg-tertiary)" }}>
+          Authenticated as {manualKey.email}
+        </p>
       </div>
     );
   }
