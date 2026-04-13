@@ -372,6 +372,9 @@ export function App() {
             {/* Welcome screen when signed out + no document open */}
             {isWelcome ? (
               <WelcomeScreen />
+            ) : conceptsVisible && !focusMode ? (
+              /* Knowledge graph takes over the main content area */
+              <ConceptsList fullscreen />
             ) : (
               <>
                 {!focusMode && <EditorActions />}
@@ -390,8 +393,7 @@ export function App() {
           </>
         )}
 
-        {/* Concepts panel */}
-        {conceptsVisible && !focusMode && <ConceptsList />}
+        {/* Concepts panel was here — now renders fullscreen in the main area above */}
       </div>
 
       {/* Overlay drawer on narrow windows */}

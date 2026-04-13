@@ -66,21 +66,27 @@ export function EditorActions() {
     closeAiConfigModal();
     try {
       const result = await analyzeWithClaude(content, apiKey);
-      if (result.summary) {
-        setAiSummary(result.summary);
-        // Auto-dismiss after 5 seconds
+      if (result.tags.length === 0 && result.concepts.length === 0 && !result.summary) {
+        setAiSummary("Analysis returned no results — check the console for errors.");
         setTimeout(() => setAiSummary(null), 5000);
-      }
-      if (result.concepts.length > 0) {
-        const id = planId || "local";
-        const title = fileName || "Untitled";
-        mergeAIConcepts(id, title, result);
-        // Open concepts panel to show enriched results
-        const appState = useAppStore.getState();
-        if (!appState.conceptsVisible) toggleConcepts();
+      } else {
+        if (result.summary) {
+          setAiSummary(result.summary);
+          setTimeout(() => setAiSummary(null), 8000);
+        }
+        if (result.concepts.length > 0) {
+          const id = planId || "local";
+          const title = fileName || "Untitled";
+          mergeAIConcepts(id, title, result);
+          const appState = useAppStore.getState();
+          if (!appState.conceptsVisible) toggleConcepts();
+        }
+        console.info("[ai-analyze] result:", result.tags.length, "tags,", result.concepts.length, "concepts");
       }
     } catch (err) {
       console.error("[ai-analyze] unexpected error:", err);
+      setAiSummary("Analysis failed — see console for details.");
+      setTimeout(() => setAiSummary(null), 5000);
     } finally {
       setAiAnalyzing(false);
     }

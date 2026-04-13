@@ -39,10 +39,18 @@ const indexed = new Set<string>();
 // ── Public API ───────────────────────────────────────────────────
 
 export function addDocument(doc: SearchDocument): void {
-  if (indexed.has(doc.id)) {
+  // Always try to remove first — the persisted index may have the doc
+  // even if the in-memory `indexed` Set doesn't track it yet.
+  try {
     ms.discard(doc.id);
+  } catch {
+    // Not in the index — that's fine.
   }
-  ms.add(doc);
+  try {
+    ms.add(doc);
+  } catch {
+    // Shouldn't happen after discard, but guard anyway.
+  }
   indexed.add(doc.id);
   schedulePersist();
 }

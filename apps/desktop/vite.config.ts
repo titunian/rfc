@@ -37,6 +37,12 @@ export default defineConfig(async () => ({
         changeOrigin: true,
         secure: true,
       },
+      "/anthropic": {
+        target: "https://api.anthropic.com",
+        changeOrigin: true,
+        secure: true,
+        rewrite: (p: string) => p.replace(/^\/anthropic/, ""),
+      },
     },
     watch: {
       ignored: ["**/src-tauri/**"],

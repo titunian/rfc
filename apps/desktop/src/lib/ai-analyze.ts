@@ -41,7 +41,18 @@ export async function analyzeWithClaude(
     // Truncate to first 8000 chars to keep costs low
     const truncated = content.slice(0, 8000);
 
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    // In dev, route through Vite proxy to avoid CORS issues.
+    // In production, call Anthropic directly (with the browser-access header).
+    const isDev =
+      typeof window !== "undefined" &&
+      window.location.hostname === "localhost";
+    const apiUrl = isDev
+      ? "/anthropic/v1/messages"
+      : "https://api.anthropic.com/v1/messages";
+
+    console.info("[ai-analyze] calling", apiUrl, "with", truncated.length, "chars");
+
+    const res = await fetch(apiUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -50,7 +61,7 @@ export async function analyzeWithClaude(
         "anthropic-dangerous-direct-browser-access": "true",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-6",
         max_tokens: 2048,
         system: SYSTEM_PROMPT,
         messages: [

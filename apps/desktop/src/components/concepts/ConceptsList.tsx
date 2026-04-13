@@ -17,23 +17,23 @@ type ViewMode = "list" | "graph";
 
 // ── Type config ──────────────────────────────────────────────────
 
-const TYPE_META: Record<ConceptType, { label: string; icon: string; color: string }> = {
-  system:   { label: "Systems",   icon: "S", color: "var(--accent)" },
-  decision: { label: "Decisions", icon: "D", color: "var(--gold)" },
-  pattern:  { label: "Patterns",  icon: "P", color: "var(--success)" },
-  question: { label: "Questions", icon: "?", color: "var(--danger)" },
-  person:   { label: "People",    icon: "@", color: "var(--fg-tertiary)" },
+const TYPE_META: Record<ConceptType, { label: string; icon: string; color: string; tooltip: string }> = {
+  system:   { label: "Systems",   icon: "S", color: "var(--accent)",       tooltip: "System — a technology, service, or infrastructure component" },
+  decision: { label: "Decisions", icon: "D", color: "var(--gold)",         tooltip: "Decision — an architectural or design choice" },
+  pattern:  { label: "Patterns",  icon: "P", color: "var(--success)",      tooltip: "Pattern — a recurring design pattern or practice" },
+  question: { label: "Questions", icon: "?", color: "var(--danger)",       tooltip: "Question — an open question or unresolved discussion" },
+  person:   { label: "People",    icon: "@", color: "var(--fg-tertiary)",  tooltip: "Person — a team member or stakeholder" },
 };
 
 const TYPE_ORDER: ConceptType[] = ["system", "decision", "pattern", "question", "person"];
 
 // ── Component ────────────────────────────────────────────────────
 
-export function ConceptsList() {
+export function ConceptsList({ fullscreen = false }: { fullscreen?: boolean }) {
   const [search, setSearch] = useState("");
   const [expandedConcept, setExpandedConcept] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<ConceptType | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [viewMode, setViewMode] = useState<ViewMode>("graph");
 
   const allEntries = useConceptsStore((s) => s.allEntries)();
   const searchConcepts = useConceptsStore((s) => s.searchConcepts);
@@ -61,27 +61,49 @@ export function ConceptsList() {
 
   return (
     <aside
-      className="h-full flex flex-col select-none shrink-0"
+      className={`flex flex-col select-none ${fullscreen ? "flex-1" : "h-full shrink-0"}`}
       style={{
-        width: 280,
-        background: "var(--bg-sidebar)",
-        borderRadius: "var(--panel-radius)",
-        border: "1px solid var(--border-subtle)",
-        boxShadow: "var(--shadow-sm)",
+        width: fullscreen ? "100%" : 280,
+        height: fullscreen ? "100%" : undefined,
+        background: fullscreen ? "var(--bg)" : "var(--bg-sidebar)",
+        ...(fullscreen
+          ? {}
+          : {
+              borderRadius: "var(--panel-radius)",
+              border: "1px solid var(--border-subtle)",
+              boxShadow: "var(--shadow-sm)",
+            }),
       }}
     >
       {/* Header */}
-      <div className="px-3 pt-3 pb-2" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+      <div
+        className={fullscreen ? "px-5 pt-4 pb-3" : "px-3 pt-3 pb-2"}
+        style={{ borderBottom: "1px solid var(--border-subtle)" }}
+      >
         <div className="flex items-center gap-2 mb-2">
+          {fullscreen && (
+            <button
+              onClick={toggleConcepts}
+              className="flex items-center justify-center rounded-[8px] transition-colors mr-1"
+              style={{ width: 28, height: 28, color: "var(--fg-tertiary)" }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg-hover)"; e.currentTarget.style.color = "var(--fg)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--fg-tertiary)"; }}
+              title="Back to editor · ⌘⇧G"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 12H5M12 19l-7-7 7-7" />
+              </svg>
+            </button>
+          )}
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--accent)" }}>
             <circle cx="12" cy="12" r="3" />
             <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" />
           </svg>
-          <span className="text-[12px] font-semibold tracking-tight" style={{ color: "var(--fg)" }}>
-            Concepts
+          <span className={`${fullscreen ? "text-[15px]" : "text-[12px]"} font-semibold tracking-tight`} style={{ color: "var(--fg)" }}>
+            Knowledge Graph
           </span>
           <span className="text-[10px] font-mono tabular-nums" style={{ color: "var(--fg-tertiary)" }}>
-            {allEntries.length}
+            {allEntries.length} concepts
           </span>
           <span className="flex-1" />
           {/* List / Graph toggle */}
@@ -168,6 +190,7 @@ export function ConceptsList() {
               <button
                 key={t}
                 onClick={() => setTypeFilter(isActive ? null : t)}
+                title={meta.tooltip}
                 className="text-[10px] font-medium px-1.5 py-[2px] rounded-md transition-colors"
                 style={{
                   background: isActive ? meta.color : "var(--bg)",
@@ -263,7 +286,8 @@ function ConceptItem({
       >
         {/* Type badge */}
         <span
-          className="shrink-0 inline-flex items-center justify-center rounded-[4px] text-[9px] font-bold"
+          title={meta.tooltip}
+          className="shrink-0 inline-flex items-center justify-center rounded-[4px] text-[9px] font-bold cursor-help"
           style={{
             width: 16,
             height: 16,
