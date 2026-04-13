@@ -345,6 +345,7 @@ function CommentCard({
 
   return (
     <div
+      data-comment-id={comment.id}
       onClick={onClick}
       className={`group relative rounded-xl cursor-pointer transition-all duration-150 border ${
         isActive

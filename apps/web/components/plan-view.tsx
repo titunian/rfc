@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo, type ReactNode } from "react";
 import { useSession, signOut } from "next-auth/react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -257,9 +257,14 @@ export function PlanView({
   }, [plan.id]);
 
   useEffect(() => {
-    if (canView) {
-      fetchComments();
-    }
+    if (!canView) return;
+    fetchComments();
+
+    // Poll for new comments every 15s — shows them in real time without
+    // requiring a page refresh. Lightweight: just a GET on the comments
+    // endpoint, same as the initial load.
+    const interval = setInterval(fetchComments, 15_000);
+    return () => clearInterval(interval);
   }, [fetchComments, canView]);
 
   const handleTextSelection = useCallback((e: MouseEvent) => {
@@ -442,7 +447,7 @@ export function PlanView({
     }
   }, [applyHighlights, canView]);
 
-  // Event delegation for clicking on highlighted text
+  // Event delegation for clicking on highlighted text → scroll to comment
   useEffect(() => {
     const el = contentRef.current;
     if (!el || !canView) return;
@@ -452,17 +457,31 @@ export function PlanView({
         ".comment-anchor"
       ) as HTMLElement;
       if (target?.dataset.commentId) {
-        setActiveCommentId((prev) =>
-          prev === target.dataset.commentId!
-            ? null
-            : target.dataset.commentId!
-        );
+        const id = target.dataset.commentId!;
+        setActiveCommentId((prev) => (prev === id ? null : id));
+        // Open sidebar if not open, and scroll to the comment card
+        if (!sidebarOpen) setSidebarOpen(true);
+        setTimeout(() => {
+          const card = document.querySelector(`[data-comment-id="${id}"]`);
+          card?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 100);
       }
     };
 
     el.addEventListener("click", handleClick);
     return () => el.removeEventListener("click", handleClick);
-  }, [canView]);
+  }, [canView, sidebarOpen]);
+
+  // When a comment is clicked in the sidebar → scroll to its highlight in the doc
+  useEffect(() => {
+    if (!activeCommentId || !contentRef.current) return;
+    const highlight = contentRef.current.querySelector(
+      `.comment-anchor[data-comment-id="${activeCommentId}"]`
+    );
+    if (highlight) {
+      highlight.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [activeCommentId]);
 
   const formatDate = (iso: string) => {
     const d = new Date(iso);
@@ -1098,9 +1117,9 @@ export function PlanView({
                         .replace(/[^\w\s-]/g, "")
                         .replace(/\s+/g, "-");
                       return (
-                        <h2 id={id} {...props}>
+                        <CollapsibleHeading id={id} level={2} {...props}>
                           {children}
-                        </h2>
+                        </CollapsibleHeading>
                       );
                     },
                     h3: ({ children, ...props }) => {
@@ -1468,6 +1487,87 @@ function AccessRow({
         )}
       </span>
     </button>
+  );
+}
+
+// ── Collapsible section heading ─────────────────────────────────
+//
+// Renders an h2 that, when clicked, collapses all sibling DOM nodes
+// until the next heading of the same or higher level. Uses a thin
+// CSS class toggle on the next-sibling elements rather than React
+// state, so it works inside ReactMarkdown's flat output.
+
+function CollapsibleHeading({
+  id,
+  level,
+  children,
+  ...props
+}: {
+  id: string;
+  level: number;
+  children: ReactNode;
+} & React.HTMLAttributes<HTMLHeadingElement>) {
+  const [collapsed, setCollapsed] = useState(false);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  const toggle = () => {
+    const el = headingRef.current;
+    if (!el) return;
+    const next = !collapsed;
+    setCollapsed(next);
+
+    // Walk siblings until we hit another heading of same or higher level
+    let sibling = el.nextElementSibling;
+    while (sibling) {
+      const tag = sibling.tagName;
+      // Stop at next h1 or h2
+      if (tag === "H1" || tag === "H2") break;
+      // Also stop if it's a collapsible heading wrapper
+      if (sibling.getAttribute("data-collapsible-section")) break;
+
+      if (next) {
+        (sibling as HTMLElement).style.display = "none";
+      } else {
+        (sibling as HTMLElement).style.display = "";
+      }
+      sibling = sibling.nextElementSibling;
+    }
+  };
+
+  const Tag = `h${level}` as "h2";
+
+  return (
+    <Tag
+      ref={headingRef}
+      id={id}
+      data-collapsible-section="true"
+      {...props}
+      style={{
+        cursor: "pointer",
+        userSelect: "none",
+        ...((props as Record<string, unknown>).style as React.CSSProperties | undefined),
+      }}
+      onClick={toggle}
+    >
+      <span className="inline-flex items-center gap-2">
+        <svg
+          className="shrink-0 transition-transform duration-150"
+          style={{
+            width: 12,
+            height: 12,
+            transform: collapsed ? "rotate(-90deg)" : "rotate(0deg)",
+            color: "var(--muted)",
+          }}
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2.5}
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+        </svg>
+        {children}
+      </span>
+    </Tag>
   );
 }
 

@@ -472,6 +472,20 @@ body {
   }
 }
 
+/* Collapsible section headings */
+.prose h2[data-collapsible-section]:hover {
+  color: var(--accent);
+}
+
+.prose h2[data-collapsible-section] svg {
+  opacity: 0;
+  transition: opacity 150ms;
+}
+
+.prose h2[data-collapsible-section]:hover svg {
+  opacity: 1;
+}
+
 @keyframes slideUp {
   from {
     opacity: 0;
