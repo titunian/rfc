@@ -37,6 +37,31 @@ function startCallbackServer(expectedState: string): Promise<{
         return;
       }
 
+      // GET /callback?key=...&email=...&state=... — used by Brave/strict
+      // browsers that block fetch() from https→http but allow navigations.
+      if (req.method === "GET" && req.url?.startsWith("/callback?")) {
+        const params = new URL(req.url, `http://localhost:${(server.address() as { port: number }).port}`).searchParams;
+        const key = params.get("key");
+        const email = params.get("email");
+        const state = params.get("state");
+
+        if (state !== expectedState) {
+          res.writeHead(403, { "Content-Type": "text/html" });
+          res.end("<html><body><h2>Invalid state</h2><p>Please try again.</p></body></html>");
+          return;
+        }
+        if (!key || !email) {
+          res.writeHead(400, { "Content-Type": "text/html" });
+          res.end("<html><body><h2>Missing credentials</h2></body></html>");
+          return;
+        }
+
+        res.writeHead(200, { "Content-Type": "text/html" });
+        res.end(`<html><body style="font-family:-apple-system,system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#faf9f7;color:#1a1a1a"><div style="text-align:center"><h2 style="font-size:20px;margin-bottom:8px">✓ Authenticated!</h2><p style="color:#666">You can close this tab and return to your terminal.</p></div></body></html>`);
+        resolveCallback({ key, email });
+        return;
+      }
+
       if (req.method === "POST" && req.url === "/callback") {
         let body = "";
         req.on("data", (chunk: Buffer) => (body += chunk.toString()));
