@@ -151,8 +151,11 @@ program
   .description(
     "Interactive setup wizard. Configures server URL and default settings.\n" +
     "  Config is stored at ~/.orfc/config.json.\n" +
-    "  Usually not needed — defaults point to https://orfc.dev."
+    "  Usually not needed — defaults point to https://orfc.dev.\n\n" +
+    "  --agent   Scaffold AI agent integration files (.claude/CLAUDE.md,\n" +
+    "            slash commands) so Claude Code and Codex understand orfc."
   )
+  .option("--agent", "Scaffold AI agent integration files for Claude Code / Codex")
   .action(initCommand);
 
 program
