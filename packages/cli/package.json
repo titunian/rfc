@@ -1,8 +1,15 @@
 {
   "name": "@orfc/cli",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "orfc — publish markdown plans, get feedback",
-  "keywords": ["markdown", "feedback", "review", "rfc", "cli", "collaboration"],
+  "keywords": [
+    "markdown",
+    "feedback",
+    "review",
+    "rfc",
+    "cli",
+    "collaboration"
+  ],
   "homepage": "https://orfc.dev",
   "repository": {
     "type": "git",
