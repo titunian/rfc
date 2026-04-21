@@ -7,7 +7,7 @@ import {
   LocalPlanVersion,
 } from "@/lib/db";
 import { plans, planVersions } from "@/lib/schema";
-import { getAuthUser } from "@/lib/auth";
+import { getAuthUser, checkAccess } from "@/lib/auth";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
@@ -30,6 +30,26 @@ export async function GET(
     }
     if (plan.expiresAt && plan.expiresAt < new Date()) {
       return NextResponse.json({ error: "Plan has expired" }, { status: 410 });
+    }
+
+    // Access control: enforce accessRule + allowedViewers before returning
+    // content. Previously this endpoint leaked the full body to anyone who
+    // could obtain the UUID (which is itself exposed via the public /p/:slug
+    // RSC payload), bypassing --viewers and --access restrictions.
+    const user = await getAuthUser(req);
+    const authorized = checkAccess(
+      {
+        accessRule: plan.accessRule,
+        allowedViewers: plan.allowedViewers,
+        authorEmail: plan.authorEmail,
+      },
+      user?.email || null,
+    );
+    if (!authorized) {
+      return NextResponse.json(
+        { error: user ? "Forbidden" : "Unauthorized" },
+        { status: user ? 403 : 401 },
+      );
     }
 
     return NextResponse.json({
