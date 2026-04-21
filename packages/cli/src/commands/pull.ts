@@ -12,7 +12,7 @@ function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function sanitizeAuthorName(name: string): string {
+export function sanitizeAuthorName(name: string): string {
   return name.replace(/[\n\r]/g, " ").replace(/-->/g, "—>").slice(0, 100);
 }
 
