@@ -39,6 +39,8 @@ export interface LocalPlan {
   authorEmail: string | null;
   accessRule: string;
   allowedViewers: string | null;
+  folderPath: string;
+  tags: string[];
   currentVersion: number;
   createdAt: string;
   updatedAt: string | null;

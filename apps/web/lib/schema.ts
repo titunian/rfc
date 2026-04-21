@@ -16,6 +16,12 @@ export const plans = pgTable("plans", {
   authorEmail: text("author_email"),
   accessRule: text("access_rule").default("authenticated").notNull(),
   allowedViewers: text("allowed_viewers"),  // comma-separated emails or @domain patterns
+  // Folder + tags organization. folderPath is slash-separated
+  // (e.g. "research/q1"). tags is a flat array of lowercase
+  // hyphenated tokens. Both default to empty — existing plans
+  // live at the root and have no tags until moved/tagged.
+  folderPath: text("folder_path").default("").notNull(),
+  tags: text("tags").array().default([]).notNull(),
   currentVersion: integer("current_version").default(1).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at"),

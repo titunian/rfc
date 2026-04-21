@@ -15,6 +15,13 @@
       "when": 1775552517137,
       "tag": "0001_chubby_madelyne_pryor",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1776780861931,
+      "tag": "0002_large_gamora",
+      "breakpoints": true
     }
   ]
 }

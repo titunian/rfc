@@ -7,6 +7,7 @@ import {
 } from "@/lib/db";
 import { plans } from "@/lib/schema";
 import { getAuthUser } from "@/lib/auth";
+import { normalizeFolderPath, normalizeTags } from "@/lib/folder-tags";
 import { desc, eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
@@ -47,6 +48,8 @@ export async function POST(req: NextRequest) {
   const slug = nanoid(10);
   const appUrl = (process.env.APP_URL || req.nextUrl.origin).trim();
   const expiresAt = parseExpiry(expiresIn);
+  const folderPath = normalizeFolderPath(body.folderPath);
+  const tags = normalizeTags(body.tags);
 
   if (isProductionDB()) {
     const user = await getAuthUser(req);
@@ -65,6 +68,8 @@ export async function POST(req: NextRequest) {
         authorEmail: user.email,
         accessRule: accessRule || "authenticated",
         allowedViewers: allowedViewers || null,
+        folderPath,
+        tags,
         expiresAt,
       })
       .returning();
@@ -74,6 +79,8 @@ export async function POST(req: NextRequest) {
       slug: plan.slug,
       url: `${appUrl}/p/${plan.slug}`,
       title: plan.title,
+      folderPath: plan.folderPath,
+      tags: plan.tags,
       createdAt: plan.createdAt.toISOString(),
     });
   }
@@ -88,6 +95,8 @@ export async function POST(req: NextRequest) {
     authorEmail: null as string | null,
     accessRule: accessRule || "authenticated",
     allowedViewers: allowedViewers || null,
+    folderPath,
+    tags,
     currentVersion: 1,
     createdAt: new Date().toISOString(),
     updatedAt: null as string | null,
@@ -103,11 +112,21 @@ export async function POST(req: NextRequest) {
     slug: plan.slug,
     url: `${appUrl}/p/${plan.slug}`,
     title: plan.title,
+    folderPath: plan.folderPath,
+    tags: plan.tags,
     createdAt: plan.createdAt,
   });
 }
 
 export async function GET(req: NextRequest) {
+  // Filter hints from the query string. folder = "" selects the root;
+  // omitting folder returns every plan across all folders.
+  const url = new URL(req.url);
+  const folderFilter = url.searchParams.has("folder")
+    ? normalizeFolderPath(url.searchParams.get("folder"))
+    : null;
+  const tagFilter = url.searchParams.get("tag")?.toLowerCase().trim() || null;
+
   if (isProductionDB()) {
     const user = await getAuthUser(req);
     if (!user) {
@@ -121,6 +140,8 @@ export async function GET(req: NextRequest) {
         slug: plans.slug,
         title: plans.title,
         accessRule: plans.accessRule,
+        folderPath: plans.folderPath,
+        tags: plans.tags,
         createdAt: plans.createdAt,
         expiresAt: plans.expiresAt,
       })
@@ -128,8 +149,14 @@ export async function GET(req: NextRequest) {
       .where(eq(plans.authorEmail, user.email))
       .orderBy(desc(plans.createdAt));
 
+    const filtered = rows.filter((r) => {
+      if (folderFilter !== null && r.folderPath !== folderFilter) return false;
+      if (tagFilter && !r.tags?.includes(tagFilter)) return false;
+      return true;
+    });
+
     return NextResponse.json({
-      plans: rows.map((r) => ({
+      plans: filtered.map((r) => ({
         ...r,
         createdAt: r.createdAt.toISOString(),
         expiresAt: r.expiresAt?.toISOString() || null,
@@ -140,15 +167,22 @@ export async function GET(req: NextRequest) {
   // Local mode
   const localDb = readLocalDB();
   const localPlans = localDb.plans
+    .filter((p) => {
+      if (folderFilter !== null && (p.folderPath ?? "") !== folderFilter) return false;
+      if (tagFilter && !(p.tags ?? []).includes(tagFilter)) return false;
+      return true;
+    })
     .sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )
-    .map(({ id, slug, title, accessRule, createdAt, expiresAt }) => ({
+    .map(({ id, slug, title, accessRule, folderPath, tags, createdAt, expiresAt }) => ({
       id,
       slug,
       title,
       accessRule,
+      folderPath: folderPath ?? "",
+      tags: tags ?? [],
       createdAt,
       expiresAt,
     }));

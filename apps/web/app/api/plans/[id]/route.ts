@@ -8,6 +8,7 @@ import {
 } from "@/lib/db";
 import { plans, planVersions } from "@/lib/schema";
 import { getAuthUser, checkAccess } from "@/lib/auth";
+import { normalizeFolderPath, normalizeTags } from "@/lib/folder-tags";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
@@ -131,6 +132,8 @@ export async function PUT(
     if (body.content !== undefined) updates.content = body.content;
     if (body.accessRule !== undefined) updates.accessRule = body.accessRule;
     if (body.allowedViewers !== undefined) updates.allowedViewers = body.allowedViewers;
+    if (body.folderPath !== undefined) updates.folderPath = normalizeFolderPath(body.folderPath);
+    if (body.tags !== undefined) updates.tags = normalizeTags(body.tags);
 
     const [plan] = await db
       .update(plans)
@@ -190,6 +193,8 @@ export async function PUT(
   if (body.content !== undefined) plan.content = body.content;
   if (body.accessRule !== undefined) plan.accessRule = body.accessRule;
   if (body.allowedViewers !== undefined) plan.allowedViewers = body.allowedViewers;
+  if (body.folderPath !== undefined) plan.folderPath = normalizeFolderPath(body.folderPath);
+  if (body.tags !== undefined) plan.tags = normalizeTags(body.tags);
   plan.updatedAt = new Date().toISOString();
   writeLocalDB(localDb);
 
