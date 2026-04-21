@@ -12,6 +12,10 @@ function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function sanitizeAuthorName(name: string): string {
+  return name.replace(/[\n\r]/g, " ").replace(/-->/g, "—>").slice(0, 100);
+}
+
 export function annotateMarkdown(
   markdown: string,
   comments: CommentItem[]
@@ -56,7 +60,7 @@ export function annotateMarkdown(
       }
     }
 
-    const commentBlock = `\n\n<!-- [COMMENT by ${c.authorName}]\nOn: "${anchor}"\n> ${c.content.replace(/\n/g, "\n> ")}\n-->`;
+    const commentBlock = `\n\n<!-- [COMMENT by ${sanitizeAuthorName(c.authorName)}]\nOn: "${anchor}"\n> ${c.content.replace(/\n/g, "\n> ").replace(/-->/g, "—>")}\n-->`;
 
     if (matchIdx !== -1) {
       // Find end of the paragraph (next blank line or end of string)
@@ -81,7 +85,7 @@ export function annotateMarkdown(
   if (general.length > 0) {
     result += "\n\n<!-- === GENERAL COMMENTS === -->";
     for (const c of general) {
-      result += `\n\n<!-- [COMMENT by ${c.authorName}]\n> ${c.content.replace(/\n/g, "\n> ")}\n-->`;
+      result += `\n\n<!-- [COMMENT by ${sanitizeAuthorName(c.authorName)}]\n> ${c.content.replace(/\n/g, "\n> ").replace(/-->/g, "—>")}\n-->`;
     }
   }
 

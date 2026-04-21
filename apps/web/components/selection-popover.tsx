@@ -8,11 +8,12 @@ export function SelectionPopover({
   onDismiss,
 }: {
   rect: DOMRect;
-  onComment: (text: string) => void;
+  onComment: (text: string) => void | Promise<void>;
   onDismiss: () => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [commentText, setCommentText] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -35,11 +36,17 @@ export function SelectionPopover({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onDismiss]);
 
-  const submit = () => {
-    if (commentText.trim()) {
-      onComment(commentText.trim());
+  const submit = async () => {
+    if (!commentText.trim() || submitting) return;
+    setSubmitting(true);
+    try {
+      await onComment(commentText.trim());
       setCommentText("");
       setIsExpanded(false);
+    } catch {
+      // Keep text so user can retry
+    } finally {
+      setSubmitting(false);
     }
   };
 

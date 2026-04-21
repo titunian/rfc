@@ -131,6 +131,7 @@ program
   .command("delete <slug>")
   .alias("rm")
   .description("Permanently delete a published plan and all its comments.")
+  .option("-f, --force", "Skip confirmation prompt")
   .action(deleteCommand);
 
 program

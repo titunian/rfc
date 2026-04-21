@@ -19,6 +19,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -29,12 +30,18 @@ export default function DashboardPage() {
   useEffect(() => {
     if (status === "authenticated") {
       fetch("/api/plans")
-        .then((res) => res.json())
+        .then((res) => {
+          if (!res.ok) throw new Error(`Failed to load documents (${res.status})`);
+          return res.json();
+        })
         .then((data) => {
           setPlans(data.plans || []);
           setLoading(false);
         })
-        .catch(() => setLoading(false));
+        .catch((err) => {
+          setError(err instanceof Error ? err.message : "Failed to load documents");
+          setLoading(false);
+        });
     }
   }, [status]);
 
@@ -120,6 +127,18 @@ export default function DashboardPage() {
             <div className="text-[14px] text-[var(--muted)] font-sans animate-pulse">
               Loading…
             </div>
+          </div>
+        ) : error ? (
+          <div className="py-20 text-center">
+            <p className="text-[14px] text-red-600 font-sans mb-2">
+              {error}
+            </p>
+            <button
+              onClick={() => { setError(null); setLoading(true); window.location.reload(); }}
+              className="text-[13px] text-[var(--muted)] hover:text-[var(--fg)] font-sans underline"
+            >
+              Try again
+            </button>
           </div>
         ) : plans.length === 0 ? (
           <div className="py-20 text-center">

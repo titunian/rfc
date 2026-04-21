@@ -78,6 +78,10 @@ export async function PUT(
 ) {
   const body = await req.json();
 
+  if (body.content !== undefined && typeof body.content === "string" && !body.content.trim()) {
+    return NextResponse.json({ error: "Content cannot be empty" }, { status: 400 });
+  }
+
   if (isProductionDB()) {
     const user = await getAuthUser(req);
     if (!user) {

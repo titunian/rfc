@@ -30,9 +30,9 @@ export async function editCommand(slug: string) {
     const planId = await resolveSlug(api, slug);
     const plan = await api.getPlan(planId);
 
-    // Write content to temp file
-    const tmpFile = join(tmpdir(), `orfc-${slug}.md`);
-    writeFileSync(tmpFile, plan.content, "utf-8");
+    // Write content to temp file with restricted permissions
+    const tmpFile = join(tmpdir(), `orfc-${slug}-${Date.now()}.md`);
+    writeFileSync(tmpFile, plan.content, { encoding: "utf-8", mode: 0o600 });
 
     // Open in editor
     const result = spawnSync(editor, [tmpFile], {

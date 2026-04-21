@@ -14,10 +14,16 @@ interface DiffLine {
   lineNumber?: number;
 }
 
+const MAX_DIFF_LINES = 5000;
+
 // Simple line-based diff using longest common subsequence
 function computeDiff(oldText: string, newText: string): DiffLine[] {
   const oldLines = oldText.split("\n");
   const newLines = newText.split("\n");
+
+  if (oldLines.length > MAX_DIFF_LINES || newLines.length > MAX_DIFF_LINES) {
+    throw new Error("Document too large for diff (max 5000 lines per version)");
+  }
 
   // LCS table
   const m = oldLines.length;
@@ -140,7 +146,11 @@ export async function GET(
       return NextResponse.json({ error: "\"to\" version not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ diff: computeDiff(fromContent, toContent) });
+    try {
+      return NextResponse.json({ diff: computeDiff(fromContent, toContent) });
+    } catch (e) {
+      return NextResponse.json({ error: (e as Error).message }, { status: 413 });
+    }
   }
 
   // Local mode
@@ -162,5 +172,9 @@ export async function GET(
     return NextResponse.json({ error: "\"to\" version not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ diff: computeDiff(fromContent, toContent) });
+  try {
+    return NextResponse.json({ diff: computeDiff(fromContent, toContent) });
+  } catch (e) {
+    return NextResponse.json({ error: (e as Error).message }, { status: 413 });
+  }
 }
