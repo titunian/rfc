@@ -86,11 +86,14 @@ export function checkAccess(
   if (authorEmail && email === authorEmail.toLowerCase()) return true;
 
   // If allowedViewers is set, restrict to those patterns
-  if (allowedViewers) {
+  if (allowedViewers !== undefined && allowedViewers !== null) {
     const patterns = allowedViewers
       .split(",")
       .map((p) => p.trim().toLowerCase())
       .filter(Boolean);
+
+    // Empty viewer list with a non-public accessRule means nobody except the author
+    if (patterns.length === 0) return false;
 
     return patterns.some((pattern) => {
       if (pattern.startsWith("@")) {

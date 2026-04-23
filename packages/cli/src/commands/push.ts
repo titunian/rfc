@@ -70,7 +70,10 @@ export async function pushCommand(
         console.error(`\n  ✗ Plan not found: ${options.update}`);
         process.exit(1);
       }
-      plan = await api.updatePlan(match.id, { title, content });
+      const updateData: { title: string; content: string; accessRule?: string; allowedViewers?: string | null } = { title, content };
+      if (options.access) updateData.accessRule = accessRule;
+      if (options.viewers !== undefined) updateData.allowedViewers = options.viewers || null;
+      plan = await api.updatePlan(match.id, updateData);
       console.log(`\n  ✓ Updated: ${plan.url}`);
     } else {
       plan = await api.createPlan({

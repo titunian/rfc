@@ -52,13 +52,23 @@ export async function generateMetadata({
     return { title: "Not Found — orfc" };
   }
 
+  const isPublic = !plan.accessRule || plan.accessRule === "anyone";
+  const url = `https://www.orfc.dev/p/${plan.slug}`;
+
+  if (!isPublic) {
+    return {
+      title: "RFC — orfc",
+      description: "A plan shared on orfc — sign in to view.",
+      robots: { index: false, follow: false },
+      alternates: { canonical: url },
+    };
+  }
+
   const title = plan.title ? `${plan.title} — orfc` : "Untitled Plan — orfc";
 
   const description = plan.content
     ? extractDescription(plan.content)
     : "A plan shared on orfc — open request for comments.";
-
-  const url = `https://www.orfc.dev/p/${plan.slug}`;
 
   return {
     title,
@@ -131,9 +141,9 @@ export default async function PlanPage({
         title: plan.title,
         content,
         authorName: plan.authorName,
-        authorEmail: plan.authorEmail,
+        authorEmail: isOwner ? plan.authorEmail : null,
         accessRule: plan.accessRule || "authenticated",
-        allowedViewers: plan.allowedViewers,
+        allowedViewers: isOwner ? plan.allowedViewers : null,
         currentVersion: plan.currentVersion,
         createdAt: plan.createdAt,
       }}

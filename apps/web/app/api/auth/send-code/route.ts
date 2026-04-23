@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDb, isProductionDB } from "@/lib/db";
 import { verificationCodes } from "@/lib/schema";
 import { Resend } from "resend";
-import { lt } from "drizzle-orm";
+import { lt, eq, and } from "drizzle-orm";
+import { randomInt } from "crypto";
 
 function generateCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return randomInt(100000, 999999).toString();
 }
 
 export async function POST(req: NextRequest) {
@@ -28,6 +29,9 @@ export async function POST(req: NextRequest) {
 
   // Clean up expired codes
   await db.delete(verificationCodes).where(lt(verificationCodes.expiresAt, new Date()));
+
+  // Invalidate any existing codes for this email to prevent accumulation
+  await db.delete(verificationCodes).where(eq(verificationCodes.email, email.toLowerCase()));
 
   // Store new code
   await db.insert(verificationCodes).values({

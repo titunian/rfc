@@ -41,16 +41,37 @@ export async function PATCH(
       return NextResponse.json({ error: "Plan not found" }, { status: 404 });
     }
 
+    if (!user?.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const hasAccess = checkAccess(
       {
         accessRule: plan.accessRule,
         allowedViewers: plan.allowedViewers,
         authorEmail: plan.authorEmail,
       },
-      user?.email || null
+      user.email
     );
     if (!hasAccess) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Only plan author or comment author may resolve/unresolve
+    const [existing] = await db
+      .select({ authorEmail: comments.authorEmail })
+      .from(comments)
+      .where(and(eq(comments.id, params.commentId), eq(comments.planId, params.id)))
+      .limit(1);
+
+    if (!existing) {
+      return NextResponse.json({ error: "Comment not found" }, { status: 404 });
+    }
+
+    const isPlanAuthor = plan.authorEmail && user.email.toLowerCase() === plan.authorEmail.toLowerCase();
+    const isCommentAuthor = existing.authorEmail && user.email.toLowerCase() === existing.authorEmail.toLowerCase();
+    if (!isPlanAuthor && !isCommentAuthor) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const [updated] = await db
