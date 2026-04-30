@@ -15,6 +15,8 @@ export async function pushCommand(
     update?: string;
     to?: string;
     slack?: string;
+    folder?: string;
+    tag?: string;
   }
 ) {
   let content: string;
@@ -56,6 +58,13 @@ export async function pushCommand(
   const title = options.title || inferredTitle || "Untitled Plan";
   const accessRule = options.access || config.defaultAccess || "authenticated";
   const expiresIn = options.expires || config.defaultExpiry;
+  const folderPath = options.folder;
+  const tags = options.tag
+    ? options.tag
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean)
+    : undefined;
 
   try {
     const api = new ApiClient();
@@ -70,7 +79,12 @@ export async function pushCommand(
         console.error(`\n  ✗ Plan not found: ${options.update}`);
         process.exit(1);
       }
-      plan = await api.updatePlan(match.id, { title, content });
+      plan = await api.updatePlan(match.id, {
+        title,
+        content,
+        ...(folderPath !== undefined && { folderPath }),
+        ...(tags !== undefined && { tags }),
+      });
       console.log(`\n  ✓ Updated: ${plan.url}`);
     } else {
       plan = await api.createPlan({
@@ -79,10 +93,18 @@ export async function pushCommand(
         accessRule,
         allowedViewers: options.viewers,
         expiresIn,
+        ...(folderPath !== undefined && { folderPath }),
+        ...(tags !== undefined && { tags }),
       });
       console.log(`\n  ✓ Published: ${plan.url}`);
       if (options.viewers) {
         console.log(`  ✓ Restricted to: ${options.viewers}`);
+      }
+      if (folderPath) {
+        console.log(`  ✓ Folder: ${folderPath}`);
+      }
+      if (tags && tags.length > 0) {
+        console.log(`  ✓ Tags: ${tags.join(", ")}`);
       }
     }
 

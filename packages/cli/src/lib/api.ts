@@ -74,6 +74,8 @@ export class ApiClient {
     accessRule?: string;
     allowedViewers?: string;
     expiresIn?: string;
+    folderPath?: string;
+    tags?: string[];
   }): Promise<PlanResponse> {
     const res = await this.request("/api/plans", {
       method: "POST",
@@ -114,7 +116,12 @@ export class ApiClient {
 
   async updatePlan(
     id: string,
-    data: { title?: string; content: string }
+    data: {
+      title?: string;
+      content: string;
+      folderPath?: string;
+      tags?: string[];
+    }
   ): Promise<PlanResponse> {
     const res = await this.request(`/api/plans/${id}`, {
       method: "PUT",

@@ -21,6 +21,8 @@ type Plan = {
   authorEmail: string | null;
   accessRule: string;
   allowedViewers?: string | null;
+  folderPath?: string;
+  tags?: string[];
   currentVersion?: number;
   createdAt: string;
 };
@@ -982,11 +984,16 @@ export function PlanView({
 
           {/* Title block */}
           <div className="max-w-[68ch] mx-auto mb-6">
+            {plan.folderPath && (
+              <div className="text-[12px] font-mono text-[var(--muted)] mb-2 truncate">
+                {plan.folderPath}/
+              </div>
+            )}
             <h1 className="text-[1.25rem] sm:text-[1.5rem] font-semibold tracking-[-0.02em] font-sans leading-[1.3] mb-2 text-[var(--fg)]">
               {activeTitle || "Untitled"}
             </h1>
             {!previewVersion && (
-            <div className="flex items-center gap-2 text-[12px] text-[var(--muted)] font-sans">
+            <div className="flex items-center gap-2 text-[12px] text-[var(--muted)] font-sans flex-wrap">
               {authorDisplay && (
                 <span className="font-medium text-[var(--fg-secondary)]">
                   {authorDisplay}
@@ -998,6 +1005,21 @@ export function PlanView({
                 </span>
               )}
               <time>{formatDate(plan.createdAt)}</time>
+              {plan.tags && plan.tags.length > 0 && (
+                <>
+                  <span className="text-[var(--border)]" aria-hidden="true">·</span>
+                  <span className="flex items-center gap-1.5 flex-wrap">
+                    {plan.tags.map((t) => (
+                      <span
+                        key={t}
+                        className="text-[11px] font-mono text-[var(--muted)] bg-[var(--bg)] border border-[var(--border-light)] px-1.5 py-0.5 rounded-full"
+                      >
+                        #{t}
+                      </span>
+                    ))}
+                  </span>
+                </>
+              )}
             </div>
             )}
           </div>
