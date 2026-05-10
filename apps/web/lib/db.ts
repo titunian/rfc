@@ -35,6 +35,7 @@ export interface LocalPlan {
   slug: string;
   title: string | null;
   content: string;
+  contentType: "markdown" | "html";
   authorName: string | null;
   authorEmail: string | null;
   accessRule: string;
@@ -53,6 +54,7 @@ export interface LocalPlanVersion {
   version: number;
   title: string | null;
   content: string;
+  contentType: "markdown" | "html";
   authorEmail: string | null;
   createdAt: string;
 }

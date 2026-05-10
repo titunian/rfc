@@ -14,6 +14,7 @@ interface PlanDetail {
   slug: string;
   title: string | null;
   content: string;
+  contentType?: "markdown" | "html";
   authorName: string | null;
   createdAt: string;
   updatedAt: string | null;
@@ -71,6 +72,7 @@ export class ApiClient {
   async createPlan(data: {
     title?: string;
     content: string;
+    contentType?: "markdown" | "html";
     accessRule?: string;
     allowedViewers?: string;
     expiresIn?: string;
@@ -123,6 +125,7 @@ export class ApiClient {
     data: {
       title?: string;
       content: string;
+      contentType?: "markdown" | "html";
       accessRule?: string;
       allowedViewers?: string | null;
       folderPath?: string;

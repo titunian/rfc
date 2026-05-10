@@ -12,6 +12,9 @@ export const plans = pgTable("plans", {
   slug: text("slug").notNull().unique(),
   title: text("title"),
   content: text("content").notNull(),
+  // "markdown" (default) or "html". HTML content is stored raw and
+  // sanitized at render time; the markdown pipeline is bypassed.
+  contentType: text("content_type").default("markdown").notNull(),
   authorName: text("author_name"),
   authorEmail: text("author_email"),
   accessRule: text("access_rule").default("authenticated").notNull(),
@@ -53,6 +56,7 @@ export const planVersions = pgTable("plan_versions", {
   version: integer("version").notNull(),
   title: text("title"),
   content: text("content").notNull(),
+  contentType: text("content_type").default("markdown").notNull(),
   authorEmail: text("author_email"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

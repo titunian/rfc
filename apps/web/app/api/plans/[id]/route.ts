@@ -8,7 +8,11 @@ import {
 } from "@/lib/db";
 import { plans, planVersions } from "@/lib/schema";
 import { getAuthUser, checkAccess } from "@/lib/auth";
-import { normalizeFolderPath, normalizeTags } from "@/lib/folder-tags";
+import {
+  normalizeContentType,
+  normalizeFolderPath,
+  normalizeTags,
+} from "@/lib/folder-tags";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
@@ -120,6 +124,7 @@ export async function PUT(
         version: existing.currentVersion,
         title: existing.title,
         content: existing.content,
+        contentType: existing.contentType,
         authorEmail: existing.authorEmail,
       });
     }
@@ -134,6 +139,7 @@ export async function PUT(
     };
     if (body.title !== undefined) updates.title = body.title;
     if (body.content !== undefined) updates.content = body.content;
+    if (body.contentType !== undefined) updates.contentType = normalizeContentType(body.contentType);
     if (body.accessRule !== undefined) updates.accessRule = body.accessRule;
     if (body.allowedViewers !== undefined) updates.allowedViewers = body.allowedViewers;
     if (body.folderPath !== undefined) updates.folderPath = normalizeFolderPath(body.folderPath);
@@ -186,6 +192,7 @@ export async function PUT(
       version: plan.currentVersion,
       title: plan.title,
       content: plan.content,
+      contentType: plan.contentType ?? "markdown",
       authorEmail: plan.authorEmail,
       createdAt: new Date().toISOString(),
     };
@@ -195,6 +202,7 @@ export async function PUT(
 
   if (body.title !== undefined) plan.title = body.title;
   if (body.content !== undefined) plan.content = body.content;
+  if (body.contentType !== undefined) plan.contentType = normalizeContentType(body.contentType);
   if (body.accessRule !== undefined) plan.accessRule = body.accessRule;
   if (body.allowedViewers !== undefined) plan.allowedViewers = body.allowedViewers;
   if (body.folderPath !== undefined) plan.folderPath = normalizeFolderPath(body.folderPath);

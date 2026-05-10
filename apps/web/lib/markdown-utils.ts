@@ -37,15 +37,21 @@ export function stripMarkdown(md: string): string {
   );
 }
 
+import { htmlToPlainText } from "./sanitize";
+
 /**
- * Extract a description from markdown content.
+ * Extract a description from plan content.
  * Returns the first ~155 characters of plain text (for meta description).
+ * Branches on contentType so HTML docs don't get fed through the
+ * markdown stripper (which would leave attribute strings in the output).
  */
 export function extractDescription(
   content: string,
-  maxLength: number = 155
+  maxLength: number = 155,
+  contentType: "markdown" | "html" = "markdown"
 ): string {
-  const plain = stripMarkdown(content);
+  const plain =
+    contentType === "html" ? htmlToPlainText(content) : stripMarkdown(content);
   if (plain.length <= maxLength) return plain;
   const truncated = plain.slice(0, maxLength);
   const lastSpace = truncated.lastIndexOf(" ");

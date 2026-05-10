@@ -5,6 +5,7 @@ import { useSession, signOut } from "next-auth/react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { CommentSidebar } from "./comment-sidebar";
 import { SelectionPopover } from "./selection-popover";
 import { MermaidBlock } from "./mermaid-block";
@@ -17,6 +18,7 @@ type Plan = {
   slug: string;
   title: string | null;
   content: string;
+  contentType?: "markdown" | "html";
   authorName: string | null;
   authorEmail: string | null;
   accessRule: string;
@@ -212,19 +214,32 @@ export function PlanView({
 
   // Strip first H1 from content if it matches plan title (avoids double title)
   const activeTitle = previewVersion ? previewVersion.title : plan.title;
+  const contentType = plan.contentType ?? "markdown";
   const displayContent = useMemo(() => {
     const content = previewVersion ? previewVersion.content : plan.content;
     const title = previewVersion ? previewVersion.title : plan.title;
     if (!title || !content) return content;
+    // Markdown-only: strip a leading "# Title" that duplicates plan.title.
+    // For HTML the title comes from <title>/<h1> on the server side, and
+    // we leave the body untouched to avoid mangling user markup.
+    if (contentType !== "markdown") return content;
     const match = content.match(/^#\s+(.+?)(?:\n|$)/);
     if (match && match[1].trim() === title.trim()) {
       return content.replace(/^#[^\n]+\n?/, "").trimStart();
     }
     return content;
-  }, [plan.content, plan.title, previewVersion]);
+  }, [plan.content, plan.title, previewVersion, contentType]);
 
-  // Extract TOC from content
-  const toc = useMemo(() => extractToc(displayContent), [displayContent]);
+  // Extract TOC from content (markdown only — HTML docs skip TOC for now)
+  const toc = useMemo(
+    () => (contentType === "markdown" ? extractToc(displayContent) : []),
+    [displayContent, contentType]
+  );
+
+  const sanitizedHtml = useMemo(
+    () => (contentType === "html" ? sanitizeHtml(displayContent) : ""),
+    [displayContent, contentType]
+  );
 
   // TOC scroll spy
   useEffect(() => {
@@ -548,7 +563,7 @@ export function PlanView({
             {/* Icon button cluster */}
             {canView && !editing && (
               <div className="flex items-center gap-0.5">
-                {isOwner && (
+                {isOwner && contentType === "markdown" && (
                   <button
                     onClick={() => setEditing(true)}
                     title="Edit document"
@@ -1045,9 +1060,17 @@ export function PlanView({
                   }}
                 >
                   <div className="prose">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {plan.content}
-                    </ReactMarkdown>
+                    {contentType === "html" ? (
+                      <div
+                        dangerouslySetInnerHTML={{
+                          __html: sanitizeHtml(plan.content),
+                        }}
+                      />
+                    ) : (
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {plan.content}
+                      </ReactMarkdown>
+                    )}
                   </div>
                 </div>
 
@@ -1119,7 +1142,15 @@ export function PlanView({
               </div>
             )}
 
-            {canView && (
+            {canView && contentType === "html" && (
+              <div
+                ref={contentRef}
+                className="prose"
+                dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+              />
+            )}
+
+            {canView && contentType === "markdown" && (
               <div ref={contentRef} className="prose">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}

@@ -11,6 +11,16 @@ export function normalizeFolderPath(raw: unknown): string {
     .replace(/[^a-z0-9\-_/]/g, "");
 }
 
+export type ContentType = "markdown" | "html";
+
+// Coerce an arbitrary value into a valid ContentType. Anything other
+// than the two allowed strings (including missing/null) becomes
+// "markdown" — keeps the API forgiving for older clients that don't
+// send the field.
+export function normalizeContentType(raw: unknown): ContentType {
+  return raw === "html" ? "html" : "markdown";
+}
+
 // Lowercase, hyphenate, deduplicate. Drops anything empty or non-ascii-safe.
 export function normalizeTags(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];

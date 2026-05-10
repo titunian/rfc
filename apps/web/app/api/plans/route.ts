@@ -7,7 +7,11 @@ import {
 } from "@/lib/db";
 import { plans } from "@/lib/schema";
 import { getAuthUser } from "@/lib/auth";
-import { normalizeFolderPath, normalizeTags } from "@/lib/folder-tags";
+import {
+  normalizeContentType,
+  normalizeFolderPath,
+  normalizeTags,
+} from "@/lib/folder-tags";
 import { desc, eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
@@ -50,6 +54,7 @@ export async function POST(req: NextRequest) {
   const expiresAt = parseExpiry(expiresIn);
   const folderPath = normalizeFolderPath(body.folderPath);
   const tags = normalizeTags(body.tags);
+  const contentType = normalizeContentType(body.contentType);
 
   if (isProductionDB()) {
     const user = await getAuthUser(req);
@@ -64,6 +69,7 @@ export async function POST(req: NextRequest) {
         slug,
         title: title || "Untitled RFC",
         content,
+        contentType,
         authorName: user.name || null,
         authorEmail: user.email,
         accessRule: accessRule || "authenticated",
@@ -79,6 +85,7 @@ export async function POST(req: NextRequest) {
       slug: plan.slug,
       url: `${appUrl}/p/${plan.slug}`,
       title: plan.title,
+      contentType: plan.contentType,
       folderPath: plan.folderPath,
       tags: plan.tags,
       createdAt: plan.createdAt.toISOString(),
@@ -91,6 +98,7 @@ export async function POST(req: NextRequest) {
     slug,
     title: title || "Untitled RFC",
     content,
+    contentType,
     authorName: null as string | null,
     authorEmail: null as string | null,
     accessRule: accessRule || "authenticated",
@@ -112,6 +120,7 @@ export async function POST(req: NextRequest) {
     slug: plan.slug,
     url: `${appUrl}/p/${plan.slug}`,
     title: plan.title,
+    contentType: plan.contentType,
     folderPath: plan.folderPath,
     tags: plan.tags,
     createdAt: plan.createdAt,
@@ -140,6 +149,7 @@ export async function GET(req: NextRequest) {
         slug: plans.slug,
         title: plans.title,
         accessRule: plans.accessRule,
+        contentType: plans.contentType,
         folderPath: plans.folderPath,
         tags: plans.tags,
         createdAt: plans.createdAt,
@@ -176,11 +186,12 @@ export async function GET(req: NextRequest) {
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )
-    .map(({ id, slug, title, accessRule, folderPath, tags, createdAt, expiresAt }) => ({
+    .map(({ id, slug, title, accessRule, contentType, folderPath, tags, createdAt, expiresAt }) => ({
       id,
       slug,
       title,
       accessRule,
+      contentType: contentType ?? "markdown",
       folderPath: folderPath ?? "",
       tags: tags ?? [],
       createdAt,
