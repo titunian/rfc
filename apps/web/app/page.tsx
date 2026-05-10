@@ -54,7 +54,7 @@ export default function Home() {
 
           {/* What's new — small pill linking to the handbook */}
           <a
-            href="https://www.orfc.dev/p/KjUYyuGKwH"
+            href="https://www.orfc.dev/p/jmtALHPTei"
             className="inline-flex items-center gap-2 mb-12 px-3.5 py-1.5 rounded-full border border-[var(--border)] bg-[var(--bg)] text-[12.5px] font-sans hover:border-[var(--fg-secondary)] transition-colors group"
           >
             <span className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[var(--accent)]">
