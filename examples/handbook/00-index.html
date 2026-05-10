@@ -1,0 +1,156 @@
+<div style="
+  --bg: #f5efe2; --surface: #fbf6ea; --ink: #28201a; --ink-soft: #4d4036;
+  --muted: #8c7d6b; --line: #e3d9c4; --line-soft: #efe7d4;
+  --accent: #a8513f; --accent-soft: #f3dcd5;
+  --serif: 'Charter', 'Iowan Old Style', 'Source Serif Pro', Georgia, serif;
+  --sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Inter, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: var(--bg); color: var(--ink); font-family: var(--sans);
+  font-size: 15px; line-height: 1.65;
+  padding: 64px 64px 72px; margin: 8px 0 24px;
+  border-radius: 14px; border: 1px solid var(--line);
+">
+
+<!-- Masthead -->
+<div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 36px;">
+  <div style="display: flex; align-items: center; gap: 10px; font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.18em; font-weight: 700;">
+    <span style="display: inline-block; width: 7px; height: 7px; border-radius: 999px; background: var(--accent);"></span>
+    The orfc Handbook
+  </div>
+  <div style="font-size: 12px; color: var(--muted); letter-spacing: 0.04em; font-variant-numeric: tabular-nums;">v0.4 · 2026-05-10</div>
+</div>
+
+<h1 style="font-family: var(--serif); font-size: 56px; line-height: 1.02; letter-spacing: -0.025em; font-weight: 700; margin: 0 0 18px;">
+  Everything we know about<br/>shipping orfc.
+</h1>
+
+<p style="font-family: var(--serif); font-size: 21px; line-height: 1.45; color: var(--ink-soft); margin: 0 0 16px; letter-spacing: -0.005em; max-width: 36em;">
+  A working handbook for the people building, deploying, and reviewing
+  on orfc. Four sections, deep links between them, written like a doc
+  rather than a wiki.
+</p>
+
+<p style="font-size: 13.5px; color: var(--muted); margin: 0 0 48px;">
+  Authored by <span style="color: var(--ink-soft); font-weight: 500;">Abhishek</span> ·
+  Last reviewed <span style="color: var(--ink-soft); font-weight: 500;">2026-05-10</span> ·
+  Status <span style="color: var(--ink-soft); font-weight: 500;">living document</span>
+</p>
+
+<!-- Quick stats -->
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-bottom: 48px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); overflow: hidden;">
+  <div style="padding: 20px 22px; border-right: 1px solid var(--line);">
+    <div style="font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.13em; font-weight: 600;">Pages</div>
+    <div style="font-size: 28px; font-family: var(--serif); font-weight: 700; letter-spacing: -0.025em; margin-top: 6px;">4</div>
+  </div>
+  <div style="padding: 20px 22px; border-right: 1px solid var(--line);">
+    <div style="font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.13em; font-weight: 600;">CLI version</div>
+    <div style="font-size: 28px; font-family: var(--serif); font-weight: 700; letter-spacing: -0.025em; margin-top: 6px;">v0.4.0</div>
+  </div>
+  <div style="padding: 20px 22px; border-right: 1px solid var(--line);">
+    <div style="font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.13em; font-weight: 600;">Tests</div>
+    <div style="font-size: 28px; font-family: var(--serif); font-weight: 700; letter-spacing: -0.025em; margin-top: 6px;">91 <span style="font-size: 14px; color: var(--muted); font-weight: 500;">passing</span></div>
+  </div>
+  <div style="padding: 20px 22px;">
+    <div style="font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.13em; font-weight: 600;">Latency</div>
+    <div style="font-size: 28px; font-family: var(--serif); font-weight: 700; letter-spacing: -0.025em; margin-top: 6px;">42<span style="font-size: 14px; color: var(--muted); font-weight: 500;">ms p50</span></div>
+  </div>
+</div>
+
+<!-- Section grid -->
+<div style="margin-bottom: 16px;">
+  <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.13em; font-weight: 600; margin-bottom: 18px;">Sections</div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin-bottom: 48px;">
+
+  <!-- Architecture card -->
+  <a href="https://www.orfc.dev/p/Ay5Rc0Nkff" style="display: block; text-decoration: none; color: inherit; padding: 24px 26px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface);">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px;">
+      <div style="font-family: var(--serif); font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: 0.18em; text-transform: uppercase;">01</div>
+      <span style="font-size: 11px; color: var(--muted); letter-spacing: 0.05em;">~5 min read</span>
+    </div>
+    <h2 style="font-family: var(--serif); font-size: 22px; font-weight: 700; letter-spacing: -0.015em; margin: 0 0 8px;">Architecture</h2>
+    <p style="font-size: 13.5px; color: var(--ink-soft); margin: 0 0 12px; line-height: 1.55;">
+      How the CLI, web, sanitizer, and Postgres talk to each other — with a system diagram, the stack, and the four invariants we don't break.
+    </p>
+    <div style="font-size: 11px; color: var(--accent); font-weight: 600; letter-spacing: 0.05em;">READ →</div>
+  </a>
+
+  <!-- API card -->
+  <a href="https://www.orfc.dev/p/ua0P9bj3ae" style="display: block; text-decoration: none; color: inherit; padding: 24px 26px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface);">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px;">
+      <div style="font-family: var(--serif); font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: 0.18em; text-transform: uppercase;">02</div>
+      <span style="font-size: 11px; color: var(--muted); letter-spacing: 0.05em;">~4 min read</span>
+    </div>
+    <h2 style="font-family: var(--serif); font-size: 22px; font-weight: 700; letter-spacing: -0.015em; margin: 0 0 8px;">API reference</h2>
+    <p style="font-size: 13.5px; color: var(--ink-soft); margin: 0 0 12px; line-height: 1.55;">
+      Every endpoint orfc exposes — plans, comments, notify — with auth, status codes, and an end-to-end example for HTML publishing.
+    </p>
+    <div style="font-size: 11px; color: var(--accent); font-weight: 600; letter-spacing: 0.05em;">READ →</div>
+  </a>
+
+  <!-- Deployment card -->
+  <a href="https://www.orfc.dev/p/eWGIpSyTDD" style="display: block; text-decoration: none; color: inherit; padding: 24px 26px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface);">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px;">
+      <div style="font-family: var(--serif); font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: 0.18em; text-transform: uppercase;">03</div>
+      <span style="font-size: 11px; color: var(--muted); letter-spacing: 0.05em;">~3 min read</span>
+    </div>
+    <h2 style="font-family: var(--serif); font-size: 22px; font-weight: 700; letter-spacing: -0.015em; margin: 0 0 8px;">Deployment</h2>
+    <p style="font-size: 13.5px; color: var(--ink-soft); margin: 0 0 12px; line-height: 1.55;">
+      The pipeline from <code style="font-family: var(--mono); font-size: 12px; background: var(--line-soft); padding: 1px 5px; border-radius: 3px;">git push</code> to <code style="font-family: var(--mono); font-size: 12px; background: var(--line-soft); padding: 1px 5px; border-radius: 3px;">orfc.dev</code>, env vars, and the migration trip-wire that bit us on 2026-05-10.
+    </p>
+    <div style="font-size: 11px; color: var(--accent); font-weight: 600; letter-spacing: 0.05em;">READ →</div>
+  </a>
+
+  <!-- Changelog card -->
+  <a href="https://www.orfc.dev/p/ihoHbSDMIR" style="display: block; text-decoration: none; color: inherit; padding: 24px 26px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface);">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px;">
+      <div style="font-family: var(--serif); font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: 0.18em; text-transform: uppercase;">04</div>
+      <span style="font-size: 11px; color: var(--muted); letter-spacing: 0.05em;">~2 min read</span>
+    </div>
+    <h2 style="font-family: var(--serif); font-size: 22px; font-weight: 700; letter-spacing: -0.015em; margin: 0 0 8px;">Changelog</h2>
+    <p style="font-size: 13.5px; color: var(--ink-soft); margin: 0 0 12px; line-height: 1.55;">
+      Recent <code style="font-family: var(--mono); font-size: 12px; background: var(--line-soft); padding: 1px 5px; border-radius: 3px;">@orfc/cli</code> releases — what shipped in v0.4, v0.3, v0.2, v0.1 and what's loaded for the next minor.
+    </p>
+    <div style="font-size: 11px; color: var(--accent); font-weight: 600; letter-spacing: 0.05em;">READ →</div>
+  </a>
+</div>
+
+<!-- Pull quote -->
+<blockquote style="margin: 36px 0 48px; padding: 26px 32px; border-left: 3px solid var(--accent); background: var(--accent-soft); border-radius: 4px;">
+  <p style="margin: 0; font-family: var(--serif); font-size: 21px; line-height: 1.45; letter-spacing: -0.005em; color: var(--ink);">
+    "Documents that ship don't need to be markdown. orfc treats HTML
+    as a first-class citizen — render it sanitized, preserve the
+    author's theme, comment on it the same way you would on prose."
+  </p>
+  <footer style="margin-top: 12px; font-size: 12px; color: var(--muted); font-style: normal; letter-spacing: 0.04em;">
+    — design note · v0.4 release
+  </footer>
+</blockquote>
+
+<!-- About this handbook -->
+<h2 style="font-family: var(--serif); font-size: 24px; letter-spacing: -0.015em; font-weight: 700; margin: 0 0 14px;">About this handbook</h2>
+
+<p style="margin: 0 0 12px; color: var(--ink-soft);">
+  Every page in this handbook is a separate orfc plan, with its own
+  slug, version history, and comment thread. They share a folder
+  (<code style="font-family: var(--mono); font-size: 13px; background: var(--line-soft); padding: 1px 5px; border-radius: 3px;">handbook</code>) and a tag
+  (<code style="font-family: var(--mono); font-size: 13px; background: var(--line-soft); padding: 1px 5px; border-radius: 3px;">#handbook</code>) so they group together in the dashboard.
+</p>
+
+<p style="margin: 0 0 0; color: var(--ink-soft);">
+  Each page is HTML, not markdown. They're authored as standalone
+  files in <code style="font-family: var(--mono); font-size: 13px; background: var(--line-soft); padding: 1px 5px; border-radius: 3px;">examples/handbook/</code>
+  and pushed via <code style="font-family: var(--mono); font-size: 13px; background: var(--line-soft); padding: 1px 5px; border-radius: 3px;">orfc push &lt;file&gt;.html</code>.
+  Update one and re-push with <code style="font-family: var(--mono); font-size: 13px; background: var(--line-soft); padding: 1px 5px; border-radius: 3px;">--update &lt;slug&gt;</code> — old versions stay accessible from the version-history sidebar.
+</p>
+
+<!-- Footer -->
+<div style="margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--muted);">
+  <div>The orfc Handbook · 2026</div>
+  <div>
+    <a href="https://github.com/titunian/rfc" target="_blank" rel="noopener" style="color: var(--accent); text-decoration: none; border-bottom: 1px solid currentColor;">github.com/titunian/rfc</a>
+  </div>
+</div>
+
+</div>

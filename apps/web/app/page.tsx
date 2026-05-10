@@ -46,11 +46,28 @@ export default function Home() {
           <p className="text-[20px] text-[var(--muted)] font-sans leading-relaxed mb-4">
             Your team reviews it. You iterate.
           </p>
-          <p className="text-[15px] text-[var(--muted)] font-sans leading-relaxed mb-14 max-w-md mx-auto">
+          <p className="text-[15px] text-[var(--muted)] font-sans leading-relaxed mb-8 max-w-md mx-auto">
             Share any markdown <em className="not-italic text-[var(--fg-secondary)]">or HTML</em> —
             architecture docs, implementation plans, RFCs, dashboards with charts —
             collect inline feedback, edit in-browser, and track every revision with built-in version history.
           </p>
+
+          {/* What's new — small pill linking to the handbook */}
+          <a
+            href="https://www.orfc.dev/p/KjUYyuGKwH"
+            className="inline-flex items-center gap-2 mb-12 px-3.5 py-1.5 rounded-full border border-[var(--border)] bg-[var(--bg)] text-[12.5px] font-sans hover:border-[var(--fg-secondary)] transition-colors group"
+          >
+            <span className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[var(--accent)]">
+              New
+            </span>
+            <span className="h-3 w-px bg-[var(--border)]" aria-hidden="true" />
+            <span className="text-[var(--fg-secondary)]">
+              Folders, tags, and HTML docs
+            </span>
+            <span className="text-[var(--muted)] group-hover:text-[var(--fg)] transition-colors">
+              →
+            </span>
+          </a>
 
           {/* Install */}
           <div className="mb-4">

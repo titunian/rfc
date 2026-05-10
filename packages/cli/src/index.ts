@@ -52,7 +52,7 @@ program
 
   Config is stored in ~/.orfc/config.json. Use "orfc config show" to view.`
   )
-  .version("0.3.0");
+  .version("0.4.0");
 
 program
   .command("login")

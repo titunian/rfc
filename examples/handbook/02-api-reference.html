@@ -1,0 +1,181 @@
+<div style="
+  --bg: #f5efe2; --surface: #fbf6ea; --ink: #28201a; --ink-soft: #4d4036;
+  --muted: #8c7d6b; --line: #e3d9c4; --line-soft: #efe7d4;
+  --accent: #a8513f; --accent-soft: #f3dcd5;
+  --serif: 'Charter', 'Iowan Old Style', 'Source Serif Pro', Georgia, serif;
+  --sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Inter, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: var(--bg); color: var(--ink); font-family: var(--sans);
+  font-size: 15px; line-height: 1.65;
+  padding: 56px 56px 64px; margin: 8px 0 24px;
+  border-radius: 14px; border: 1px solid var(--line);
+">
+
+<div style="font-size: 12px; color: var(--muted); margin-bottom: 28px; letter-spacing: 0.02em;">
+  <span style="font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.18em;">orfc handbook</span>
+  <span style="margin: 0 10px; color: var(--line);">/</span>
+  <span>API reference</span>
+</div>
+
+<h1 style="font-family: var(--serif); font-size: 42px; line-height: 1.05; letter-spacing: -0.022em; font-weight: 700; margin: 0 0 14px;">
+  API reference
+</h1>
+
+<p style="font-family: var(--serif); font-size: 19px; line-height: 1.5; color: var(--ink-soft); margin: 0 0 36px;">
+  Every endpoint orfc exposes. The CLI is built on these — there's
+  nothing it can do that you can't reach with <code style="font-family: var(--mono); font-size: 16px; background: var(--line-soft); padding: 1px 6px; border-radius: 4px;">curl</code>
+  and a Bearer token.
+</p>
+
+<!-- Auth -->
+<div style="border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; background: var(--surface); margin-bottom: 32px;">
+  <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.13em; font-weight: 600; margin-bottom: 10px;">Authentication</div>
+  <p style="margin: 0 0 10px; color: var(--ink-soft); font-size: 14px;">
+    Web requests use a NextAuth session cookie. CLI requests use a Bearer token issued by <code style="font-family: var(--mono); font-size: 13px; background: var(--line-soft); padding: 1px 5px; border-radius: 3px;">orfc login</code>:
+  </p>
+  <pre style="font-family: var(--mono); font-size: 12.5px; background: #1f1a14; color: #f5efe2; padding: 12px 16px; border-radius: 6px; margin: 0; overflow-x: auto;"><code>curl https://orfc.dev/api/plans -H "Authorization: Bearer orfc_live_…"</code></pre>
+</div>
+
+<!-- Plans table -->
+<h2 style="font-family: var(--serif); font-size: 24px; letter-spacing: -0.015em; font-weight: 700; margin: 0 0 14px;">
+  Plans
+</h2>
+
+<div style="border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); margin-bottom: 32px;">
+  <table style="width: 100%; border-collapse: collapse; font-size: 13.5px;">
+    <thead>
+      <tr style="background: var(--line-soft);">
+        <th style="text-align: left; padding: 11px 16px; font-weight: 600; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; width: 90px;">Method</th>
+        <th style="text-align: left; padding: 11px 16px; font-weight: 600; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase;">Path</th>
+        <th style="text-align: left; padding: 11px 16px; font-weight: 600; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase;">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-top: 1px solid var(--line);">
+        <td style="padding: 13px 16px; vertical-align: top;"><span style="font-family: var(--mono); font-size: 11px; padding: 2px 7px; background: #e7f3ec; color: #16713a; border-radius: 3px; font-weight: 700; letter-spacing: 0.04em;">GET</span></td>
+        <td style="padding: 13px 16px; vertical-align: top; font-family: var(--mono); font-size: 12.5px; color: var(--ink);">/api/plans</td>
+        <td style="padding: 13px 16px; vertical-align: top; color: var(--ink-soft);">List the caller's plans. Optional <code style="font-family: var(--mono); font-size: 12px; background: var(--line-soft); padding: 0 4px; border-radius: 2px;">?folder=</code> and <code style="font-family: var(--mono); font-size: 12px; background: var(--line-soft); padding: 0 4px; border-radius: 2px;">?tag=</code> filters.</td>
+      </tr>
+      <tr style="border-top: 1px solid var(--line);">
+        <td style="padding: 13px 16px; vertical-align: top;"><span style="font-family: var(--mono); font-size: 11px; padding: 2px 7px; background: #e0eaff; color: #2c3e8c; border-radius: 3px; font-weight: 700; letter-spacing: 0.04em;">POST</span></td>
+        <td style="padding: 13px 16px; vertical-align: top; font-family: var(--mono); font-size: 12.5px; color: var(--ink);">/api/plans</td>
+        <td style="padding: 13px 16px; vertical-align: top; color: var(--ink-soft);">Create a plan. Body accepts <code style="font-family: var(--mono); font-size: 12px; background: var(--line-soft); padding: 0 4px; border-radius: 2px;">title</code>, <code style="font-family: var(--mono); font-size: 12px; background: var(--line-soft); padding: 0 4px; border-radius: 2px;">content</code>, <code style="font-family: var(--mono); font-size: 12px; background: var(--line-soft); padding: 0 4px; border-radius: 2px;">contentType</code>, <code style="font-family: var(--mono); font-size: 12px; background: var(--line-soft); padding: 0 4px; border-radius: 2px;">accessRule</code>, <code style="font-family: var(--mono); font-size: 12px; background: var(--line-soft); padding: 0 4px; border-radius: 2px;">folderPath</code>, <code style="font-family: var(--mono); font-size: 12px; background: var(--line-soft); padding: 0 4px; border-radius: 2px;">tags</code>.</td>
+      </tr>
+      <tr style="border-top: 1px solid var(--line);">
+        <td style="padding: 13px 16px; vertical-align: top;"><span style="font-family: var(--mono); font-size: 11px; padding: 2px 7px; background: #e7f3ec; color: #16713a; border-radius: 3px; font-weight: 700; letter-spacing: 0.04em;">GET</span></td>
+        <td style="padding: 13px 16px; vertical-align: top; font-family: var(--mono); font-size: 12.5px; color: var(--ink);">/api/plans/{id}</td>
+        <td style="padding: 13px 16px; vertical-align: top; color: var(--ink-soft);">Fetch one plan. Returns 401/403 if access rules don't match the caller.</td>
+      </tr>
+      <tr style="border-top: 1px solid var(--line);">
+        <td style="padding: 13px 16px; vertical-align: top;"><span style="font-family: var(--mono); font-size: 11px; padding: 2px 7px; background: #fcf3e2; color: #b1620e; border-radius: 3px; font-weight: 700; letter-spacing: 0.04em;">PUT</span></td>
+        <td style="padding: 13px 16px; vertical-align: top; font-family: var(--mono); font-size: 12.5px; color: var(--ink);">/api/plans/{id}</td>
+        <td style="padding: 13px 16px; vertical-align: top; color: var(--ink-soft);">Update a plan. Optimistic concurrency via <code style="font-family: var(--mono); font-size: 12px; background: var(--line-soft); padding: 0 4px; border-radius: 2px;">expectedVersion</code>. Old content is snapshotted into <code style="font-family: var(--mono); font-size: 12px; background: var(--line-soft); padding: 0 4px; border-radius: 2px;">plan_versions</code>.</td>
+      </tr>
+      <tr style="border-top: 1px solid var(--line);">
+        <td style="padding: 13px 16px; vertical-align: top;"><span style="font-family: var(--mono); font-size: 11px; padding: 2px 7px; background: #fbe5e2; color: #b32424; border-radius: 3px; font-weight: 700; letter-spacing: 0.04em;">DELETE</span></td>
+        <td style="padding: 13px 16px; vertical-align: top; font-family: var(--mono); font-size: 12.5px; color: var(--ink);">/api/plans/{id}</td>
+        <td style="padding: 13px 16px; vertical-align: top; color: var(--ink-soft);">Delete a plan. Author-only. Cascades to comments and versions.</td>
+      </tr>
+      <tr style="border-top: 1px solid var(--line);">
+        <td style="padding: 13px 16px; vertical-align: top;"><span style="font-family: var(--mono); font-size: 11px; padding: 2px 7px; background: #e7f3ec; color: #16713a; border-radius: 3px; font-weight: 700; letter-spacing: 0.04em;">GET</span></td>
+        <td style="padding: 13px 16px; vertical-align: top; font-family: var(--mono); font-size: 12.5px; color: var(--ink);">/api/plans/{id}/versions</td>
+        <td style="padding: 13px 16px; vertical-align: top; color: var(--ink-soft);">List previous versions for the version-history sidebar.</td>
+      </tr>
+      <tr style="border-top: 1px solid var(--line);">
+        <td style="padding: 13px 16px; vertical-align: top;"><span style="font-family: var(--mono); font-size: 11px; padding: 2px 7px; background: #e7f3ec; color: #16713a; border-radius: 3px; font-weight: 700; letter-spacing: 0.04em;">GET</span></td>
+        <td style="padding: 13px 16px; vertical-align: top; font-family: var(--mono); font-size: 12.5px; color: var(--ink);">/api/plans/{id}/diff</td>
+        <td style="padding: 13px 16px; vertical-align: top; color: var(--ink-soft);">Line-LCS diff between two versions. Capped at 5,000 lines.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Comments + notify -->
+<h2 style="font-family: var(--serif); font-size: 24px; letter-spacing: -0.015em; font-weight: 700; margin: 0 0 14px;">
+  Comments &amp; notifications
+</h2>
+
+<div style="border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); margin-bottom: 32px;">
+  <table style="width: 100%; border-collapse: collapse; font-size: 13.5px;">
+    <thead>
+      <tr style="background: var(--line-soft);">
+        <th style="text-align: left; padding: 11px 16px; font-weight: 600; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; width: 90px;">Method</th>
+        <th style="text-align: left; padding: 11px 16px; font-weight: 600; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase;">Path</th>
+        <th style="text-align: left; padding: 11px 16px; font-weight: 600; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase;">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-top: 1px solid var(--line);">
+        <td style="padding: 13px 16px;"><span style="font-family: var(--mono); font-size: 11px; padding: 2px 7px; background: #e7f3ec; color: #16713a; border-radius: 3px; font-weight: 700;">GET</span></td>
+        <td style="padding: 13px 16px; font-family: var(--mono); font-size: 12.5px;">/api/plans/{id}/comments</td>
+        <td style="padding: 13px 16px; color: var(--ink-soft);">List comments. Polled every 15s by the plan view.</td>
+      </tr>
+      <tr style="border-top: 1px solid var(--line);">
+        <td style="padding: 13px 16px;"><span style="font-family: var(--mono); font-size: 11px; padding: 2px 7px; background: #e0eaff; color: #2c3e8c; border-radius: 3px; font-weight: 700;">POST</span></td>
+        <td style="padding: 13px 16px; font-family: var(--mono); font-size: 12.5px;">/api/plans/{id}/comments</td>
+        <td style="padding: 13px 16px; color: var(--ink-soft);">Add a comment. Anchors via <code style="font-family: var(--mono); font-size: 12px; background: var(--line-soft); padding: 0 4px; border-radius: 2px;">anchorText</code> + block index.</td>
+      </tr>
+      <tr style="border-top: 1px solid var(--line);">
+        <td style="padding: 13px 16px;"><span style="font-family: var(--mono); font-size: 11px; padding: 2px 7px; background: #fcf3e2; color: #b1620e; border-radius: 3px; font-weight: 700;">PATCH</span></td>
+        <td style="padding: 13px 16px; font-family: var(--mono); font-size: 12.5px;">/api/plans/{id}/comments/{cid}</td>
+        <td style="padding: 13px 16px; color: var(--ink-soft);">Toggle resolved. Plan author or comment author only.</td>
+      </tr>
+      <tr style="border-top: 1px solid var(--line);">
+        <td style="padding: 13px 16px;"><span style="font-family: var(--mono); font-size: 11px; padding: 2px 7px; background: #e0eaff; color: #2c3e8c; border-radius: 3px; font-weight: 700;">POST</span></td>
+        <td style="padding: 13px 16px; font-family: var(--mono); font-size: 12.5px;">/api/notify</td>
+        <td style="padding: 13px 16px; color: var(--ink-soft);">Email + Slack notify. URL must match app domain.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Sample request -->
+<h2 style="font-family: var(--serif); font-size: 24px; letter-spacing: -0.015em; font-weight: 700; margin: 0 0 14px;">
+  Example: publish an HTML plan
+</h2>
+
+<pre style="font-family: var(--mono); font-size: 12.5px; line-height: 1.65; background: #1f1a14; color: #f5efe2; padding: 18px 22px; border-radius: 10px; overflow-x: auto; margin: 0 0 36px;"><code>curl https://orfc.dev/api/plans \
+  -H "Authorization: Bearer $ORFC_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Q2 platform plan",
+    "content": "&lt;h1&gt;orfc Q2 …&lt;/h1&gt;",
+    "contentType": "html",
+    "accessRule": "anyone",
+    "folderPath": "platform/2026",
+    "tags": ["roadmap", "html"]
+  }'</code></pre>
+
+<!-- Status codes -->
+<h2 style="font-family: var(--serif); font-size: 24px; letter-spacing: -0.015em; font-weight: 700; margin: 0 0 14px;">
+  Status codes
+</h2>
+
+<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 4px;">
+  <div style="padding: 12px 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); display: flex; align-items: baseline; gap: 12px;">
+    <span style="font-family: var(--mono); font-weight: 700; color: #16713a; font-size: 14px;">2xx</span>
+    <span style="font-size: 13px; color: var(--ink-soft);">Success. JSON body.</span>
+  </div>
+  <div style="padding: 12px 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); display: flex; align-items: baseline; gap: 12px;">
+    <span style="font-family: var(--mono); font-weight: 700; color: #b1620e; font-size: 14px;">401</span>
+    <span style="font-size: 13px; color: var(--ink-soft);">No auth or expired session. Run <code style="font-family: var(--mono); font-size: 12px; background: var(--line-soft); padding: 0 4px; border-radius: 2px;">orfc login</code>.</span>
+  </div>
+  <div style="padding: 12px 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); display: flex; align-items: baseline; gap: 12px;">
+    <span style="font-family: var(--mono); font-weight: 700; color: #b1620e; font-size: 14px;">403</span>
+    <span style="font-size: 13px; color: var(--ink-soft);">Authed but not on the viewer list.</span>
+  </div>
+  <div style="padding: 12px 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); display: flex; align-items: baseline; gap: 12px;">
+    <span style="font-family: var(--mono); font-weight: 700; color: #b32424; font-size: 14px;">409</span>
+    <span style="font-size: 13px; color: var(--ink-soft);">Concurrency. Re-fetch and retry.</span>
+  </div>
+  <div style="padding: 12px 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); display: flex; align-items: baseline; gap: 12px;">
+    <span style="font-family: var(--mono); font-weight: 700; color: #b32424; font-size: 14px;">410</span>
+    <span style="font-size: 13px; color: var(--ink-soft);">Plan expired (used <code style="font-family: var(--mono); font-size: 12px; background: var(--line-soft); padding: 0 4px; border-radius: 2px;">--expires</code>).</span>
+  </div>
+  <div style="padding: 12px 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); display: flex; align-items: baseline; gap: 12px;">
+    <span style="font-family: var(--mono); font-weight: 700; color: #b32424; font-size: 14px;">500</span>
+    <span style="font-size: 13px; color: var(--ink-soft);">Server error. Check Vercel logs.</span>
+  </div>
+</div>
+
+</div>

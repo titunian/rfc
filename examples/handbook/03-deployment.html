@@ -1,0 +1,160 @@
+<div style="
+  --bg: #f5efe2; --surface: #fbf6ea; --ink: #28201a; --ink-soft: #4d4036;
+  --muted: #8c7d6b; --line: #e3d9c4; --line-soft: #efe7d4;
+  --accent: #a8513f; --accent-soft: #f3dcd5;
+  --serif: 'Charter', 'Iowan Old Style', 'Source Serif Pro', Georgia, serif;
+  --sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Inter, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: var(--bg); color: var(--ink); font-family: var(--sans);
+  font-size: 15px; line-height: 1.65;
+  padding: 56px 56px 64px; margin: 8px 0 24px;
+  border-radius: 14px; border: 1px solid var(--line);
+">
+
+<div style="font-size: 12px; color: var(--muted); margin-bottom: 28px; letter-spacing: 0.02em;">
+  <span style="font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.18em;">orfc handbook</span>
+  <span style="margin: 0 10px; color: var(--line);">/</span>
+  <span>Deployment</span>
+</div>
+
+<h1 style="font-family: var(--serif); font-size: 42px; line-height: 1.05; letter-spacing: -0.022em; font-weight: 700; margin: 0 0 14px;">
+  Deployment
+</h1>
+
+<p style="font-family: var(--serif); font-size: 19px; line-height: 1.5; color: var(--ink-soft); margin: 0 0 36px;">
+  How orfc gets from <code style="font-family: var(--mono); font-size: 16px; background: var(--line-soft); padding: 1px 6px; border-radius: 4px;">git push</code>
+  to <code style="font-family: var(--mono); font-size: 16px; background: var(--line-soft); padding: 1px 6px; border-radius: 4px;">orfc.dev</code>.
+  Vercel handles build + edge, Neon handles Postgres, schema migrations
+  are still a manual step (until they're not).
+</p>
+
+<!-- Pipeline timeline -->
+<div style="border: 1px solid var(--line); border-radius: 12px; padding: 28px 24px 32px; background: var(--surface); margin-bottom: 36px;">
+<svg viewBox="0 0 720 150" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto; display: block;" role="img" aria-label="Deployment pipeline">
+  <line x1="40" y1="74" x2="680" y2="74" stroke="#e3d9c4" stroke-width="2"/>
+  <line x1="40" y1="74" x2="555" y2="74" stroke="#a8513f" stroke-width="2.5" stroke-linecap="round"/>
+
+  <g font-family="ui-sans-serif, system-ui">
+    <!-- Push -->
+    <circle cx="40" cy="74" r="6" fill="#a8513f"/>
+    <text x="40" y="50" text-anchor="middle" font-size="10" fill="#8c7d6b">step 1</text>
+    <text x="40" y="102" text-anchor="middle" font-size="13" font-weight="600" fill="#28201a">git push</text>
+    <text x="40" y="119" text-anchor="middle" font-size="11" fill="#8c7d6b">main · feat/*</text>
+
+    <!-- Build -->
+    <circle cx="170" cy="74" r="6" fill="#a8513f"/>
+    <text x="170" y="50" text-anchor="middle" font-size="10" fill="#8c7d6b">step 2</text>
+    <text x="170" y="102" text-anchor="middle" font-size="13" font-weight="600" fill="#28201a">Vercel build</text>
+    <text x="170" y="119" text-anchor="middle" font-size="11" fill="#8c7d6b">turbo · next build · ~90s</text>
+
+    <!-- Migrate -->
+    <circle cx="300" cy="74" r="9" fill="#fbf6ea" stroke="#a8513f" stroke-width="3"/>
+    <circle cx="300" cy="74" r="3" fill="#a8513f"/>
+    <text x="300" y="50" text-anchor="middle" font-size="10" fill="#a8513f" font-weight="700" letter-spacing="0.05em">⚠ MANUAL</text>
+    <text x="300" y="102" text-anchor="middle" font-size="13" font-weight="600" fill="#28201a">db migrate</text>
+    <text x="300" y="119" text-anchor="middle" font-size="11" fill="#8c7d6b">npm run db:push</text>
+
+    <!-- Deploy -->
+    <circle cx="425" cy="74" r="6" fill="#a8513f"/>
+    <text x="425" y="50" text-anchor="middle" font-size="10" fill="#8c7d6b">step 4</text>
+    <text x="425" y="102" text-anchor="middle" font-size="13" font-weight="600" fill="#28201a">Edge deploy</text>
+    <text x="425" y="119" text-anchor="middle" font-size="11" fill="#8c7d6b">atomic · zero downtime</text>
+
+    <!-- Smoke -->
+    <circle cx="555" cy="74" r="6" fill="#a8513f"/>
+    <text x="555" y="50" text-anchor="middle" font-size="10" fill="#8c7d6b">step 5</text>
+    <text x="555" y="102" text-anchor="middle" font-size="13" font-weight="600" fill="#28201a">Smoke check</text>
+    <text x="555" y="119" text-anchor="middle" font-size="11" fill="#8c7d6b">/dashboard 200</text>
+
+    <!-- Live -->
+    <circle cx="680" cy="74" r="6" fill="#fbf6ea" stroke="#e3d9c4" stroke-width="2"/>
+    <text x="680" y="50" text-anchor="middle" font-size="10" fill="#b8b1a3">step 6</text>
+    <text x="680" y="102" text-anchor="middle" font-size="13" font-weight="600" fill="#4d4036">Live</text>
+    <text x="680" y="119" text-anchor="middle" font-size="11" fill="#b8b1a3">orfc.dev</text>
+  </g>
+</svg>
+<div style="font-size: 12px; color: var(--muted); text-align: center; margin-top: 14px; letter-spacing: 0.02em;">
+  Step 3 is the trip-wire. The 2026-05-10 outage skipped it; the deploy went green while the schema lagged behind by two columns.
+</div>
+</div>
+
+<!-- Env vars -->
+<h2 style="font-family: var(--serif); font-size: 24px; letter-spacing: -0.015em; font-weight: 700; margin: 0 0 14px;">
+  Environment variables
+</h2>
+
+<div style="border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); margin-bottom: 36px;">
+  <table style="width: 100%; border-collapse: collapse; font-size: 13.5px;">
+    <thead>
+      <tr style="background: var(--line-soft);">
+        <th style="text-align: left; padding: 11px 16px; font-weight: 600; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase;">Key</th>
+        <th style="text-align: left; padding: 11px 16px; font-weight: 600; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; width: 100px;">Required</th>
+        <th style="text-align: left; padding: 11px 16px; font-weight: 600; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase;">Used by</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-top: 1px solid var(--line);">
+        <td style="padding: 13px 16px; font-family: var(--mono); font-size: 12.5px;">DATABASE_URL</td>
+        <td style="padding: 13px 16px;"><span style="color: #b32424; font-weight: 600; font-size: 12px;">prod</span></td>
+        <td style="padding: 13px 16px; color: var(--ink-soft);">Neon connection string. Empty in local dev → JSON file fallback.</td>
+      </tr>
+      <tr style="border-top: 1px solid var(--line);">
+        <td style="padding: 13px 16px; font-family: var(--mono); font-size: 12.5px;">NEXTAUTH_SECRET</td>
+        <td style="padding: 13px 16px;"><span style="color: #b32424; font-weight: 600; font-size: 12px;">all</span></td>
+        <td style="padding: 13px 16px; color: var(--ink-soft);">Session signing.</td>
+      </tr>
+      <tr style="border-top: 1px solid var(--line);">
+        <td style="padding: 13px 16px; font-family: var(--mono); font-size: 12.5px;">NEXTAUTH_URL</td>
+        <td style="padding: 13px 16px;"><span style="color: #b1620e; font-weight: 600; font-size: 12px;">prod</span></td>
+        <td style="padding: 13px 16px; color: var(--ink-soft);">Callback URL base. <code style="font-family: var(--mono); font-size: 12px; background: var(--line-soft); padding: 0 4px; border-radius: 2px;">https://orfc.dev</code> in prod.</td>
+      </tr>
+      <tr style="border-top: 1px solid var(--line);">
+        <td style="padding: 13px 16px; font-family: var(--mono); font-size: 12.5px;">RESEND_API_KEY</td>
+        <td style="padding: 13px 16px;"><span style="color: #b1620e; font-weight: 600; font-size: 12px;">prod</span></td>
+        <td style="padding: 13px 16px; color: var(--ink-soft);">OTP email and review notifications.</td>
+      </tr>
+      <tr style="border-top: 1px solid var(--line);">
+        <td style="padding: 13px 16px; font-family: var(--mono); font-size: 12.5px;">APP_URL</td>
+        <td style="padding: 13px 16px;"><span style="color: #8c7d6b; font-weight: 600; font-size: 12px;">opt</span></td>
+        <td style="padding: 13px 16px; color: var(--ink-soft);">Override for the URL embedded in API responses. Defaults to request origin.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Migration warning -->
+<div style="border-left: 3px solid #b32424; background: #fbe5e2; padding: 18px 22px; border-radius: 4px; margin-bottom: 36px;">
+  <div style="font-size: 11px; color: #b32424; text-transform: uppercase; letter-spacing: 0.13em; font-weight: 700; margin-bottom: 6px;">Trip-wire</div>
+  <p style="margin: 0; color: var(--ink); font-size: 14px; line-height: 1.6;">
+    Schema-touching PRs need <strong>db push before merge</strong>, not after.
+    Vercel auto-deploys main on merge, so a code-and-schema PR that
+    skips the db step ends up deployed against an old schema and the
+    API blows up everywhere. Until the migration is wired into the
+    deploy pipeline, <em>run it first</em>.
+  </p>
+</div>
+
+<!-- Migration recipe -->
+<h2 style="font-family: var(--serif); font-size: 24px; letter-spacing: -0.015em; font-weight: 700; margin: 0 0 14px;">
+  Running a migration
+</h2>
+
+<p style="margin: 0 0 14px; color: var(--ink-soft);">
+  From the repo root, with prod <code style="font-family: var(--mono); font-size: 13px; background: var(--line-soft); padding: 1px 5px; border-radius: 3px;">DATABASE_URL</code> in your shell or <code style="font-family: var(--mono); font-size: 13px; background: var(--line-soft); padding: 1px 5px; border-radius: 3px;">.env.production.local</code>:
+</p>
+
+<pre style="font-family: var(--mono); font-size: 12.5px; line-height: 1.65; background: #1f1a14; color: #f5efe2; padding: 18px 22px; border-radius: 10px; overflow-x: auto; margin: 0 0 14px;"><code><span style="color: #b8a988;"># option A — drizzle migrate (tracks applied migrations)</span>
+npm run db:migrate
+
+<span style="color: #b8a988;"># option B — drizzle push (diffs schema.ts vs DB, no journal)</span>
+npm run db:push
+
+<span style="color: #b8a988;"># option C — vercel-managed env</span>
+vercel env pull .env.production.local
+npx -y dotenv-cli -e .env.production.local -- npx drizzle-kit migrate</code></pre>
+
+<p style="margin: 0 0 0; color: var(--muted); font-size: 13px;">
+  <code style="font-family: var(--mono); font-size: 12.5px; background: var(--line-soft); padding: 1px 5px; border-radius: 3px;">push</code> is fine for solo / small-team work — no migration files needed. Switch to <code style="font-family: var(--mono); font-size: 12.5px; background: var(--line-soft); padding: 1px 5px; border-radius: 3px;">migrate</code> once you have multiple writers and want a paper trail.
+</p>
+
+</div>

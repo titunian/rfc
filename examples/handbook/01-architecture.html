@@ -1,0 +1,156 @@
+<div style="
+  --bg: #f5efe2; --surface: #fbf6ea; --ink: #28201a; --ink-soft: #4d4036;
+  --muted: #8c7d6b; --line: #e3d9c4; --line-soft: #efe7d4;
+  --accent: #a8513f; --accent-soft: #f3dcd5;
+  --serif: 'Charter', 'Iowan Old Style', 'Source Serif Pro', Georgia, serif;
+  --sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Inter, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: var(--bg); color: var(--ink); font-family: var(--sans);
+  font-size: 15px; line-height: 1.65;
+  padding: 56px 56px 64px; margin: 8px 0 24px;
+  border-radius: 14px; border: 1px solid var(--line);
+">
+
+<!-- Breadcrumb -->
+<div style="font-size: 12px; color: var(--muted); margin-bottom: 28px; letter-spacing: 0.02em;">
+  <span style="font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.18em;">orfc handbook</span>
+  <span style="margin: 0 10px; color: var(--line);">/</span>
+  <span>Architecture</span>
+</div>
+
+<h1 style="font-family: var(--serif); font-size: 42px; line-height: 1.05; letter-spacing: -0.022em; font-weight: 700; margin: 0 0 14px;">
+  Architecture
+</h1>
+
+<p style="font-family: var(--serif); font-size: 19px; line-height: 1.5; color: var(--ink-soft); margin: 0 0 36px;">
+  How orfc actually fits together — a Next.js web app, a Postgres
+  store, a TypeScript CLI, and a single sanitization choke-point that
+  keeps user-authored HTML safe to render.
+</p>
+
+<!-- System diagram -->
+<div style="border: 1px solid var(--line); border-radius: 12px; padding: 28px 24px; background: var(--surface); margin-bottom: 36px;">
+<svg viewBox="0 0 740 360" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto; display: block;" role="img" aria-label="orfc system architecture">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#a8513f"/>
+    </marker>
+  </defs>
+
+  <!-- CLI box -->
+  <rect x="40" y="40" width="180" height="80" rx="10" fill="#fbf6ea" stroke="#28201a" stroke-width="1.4"/>
+  <text x="130" y="68" text-anchor="middle" font-family="ui-sans-serif, system-ui" font-size="13" font-weight="700" fill="#28201a">@orfc/cli</text>
+  <text x="130" y="86" text-anchor="middle" font-family="ui-monospace, monospace" font-size="11" fill="#8c7d6b">orfc push / pull / edit</text>
+  <text x="130" y="103" text-anchor="middle" font-family="ui-sans-serif, system-ui" font-size="11" fill="#8c7d6b">Node 18+ · Commander</text>
+
+  <!-- Browser box -->
+  <rect x="40" y="240" width="180" height="80" rx="10" fill="#fbf6ea" stroke="#28201a" stroke-width="1.4"/>
+  <text x="130" y="268" text-anchor="middle" font-family="ui-sans-serif, system-ui" font-size="13" font-weight="700" fill="#28201a">Browser</text>
+  <text x="130" y="286" text-anchor="middle" font-family="ui-sans-serif, system-ui" font-size="11" fill="#8c7d6b">/p/[slug] · /dashboard</text>
+  <text x="130" y="303" text-anchor="middle" font-family="ui-sans-serif, system-ui" font-size="11" fill="#8c7d6b">React 18 · Next App Router</text>
+
+  <!-- Web app box (center) -->
+  <rect x="290" y="120" width="180" height="120" rx="10" fill="#a8513f" stroke="#28201a" stroke-width="1.4"/>
+  <text x="380" y="150" text-anchor="middle" font-family="ui-sans-serif, system-ui" font-size="13" font-weight="700" fill="#fbf6ea">@orfc/web</text>
+  <text x="380" y="170" text-anchor="middle" font-family="ui-sans-serif, system-ui" font-size="11" fill="#f3dcd5">Next.js 14 · Vercel</text>
+  <line x1="320" y1="184" x2="440" y2="184" stroke="#f3dcd5" stroke-width="1" stroke-opacity="0.4"/>
+  <text x="380" y="200" text-anchor="middle" font-family="ui-sans-serif, system-ui" font-size="11" fill="#f3dcd5">/api/plans</text>
+  <text x="380" y="216" text-anchor="middle" font-family="ui-sans-serif, system-ui" font-size="11" fill="#f3dcd5">/api/comments</text>
+  <text x="380" y="232" text-anchor="middle" font-family="ui-sans-serif, system-ui" font-size="11" fill="#f3dcd5">/api/notify</text>
+
+  <!-- Sanitizer (small inline block on web edge) -->
+  <rect x="290" y="48" width="180" height="50" rx="8" fill="#f3dcd5" stroke="#a8513f" stroke-width="1.2"/>
+  <text x="380" y="68" text-anchor="middle" font-family="ui-sans-serif, system-ui" font-size="12" font-weight="700" fill="#a8513f">DOMPurify (html + svg)</text>
+  <text x="380" y="86" text-anchor="middle" font-family="ui-sans-serif, system-ui" font-size="10.5" fill="#a8513f" letter-spacing="0.04em">render-time sanitization</text>
+
+  <!-- Postgres box -->
+  <rect x="540" y="120" width="160" height="120" rx="10" fill="#fbf6ea" stroke="#28201a" stroke-width="1.4"/>
+  <text x="620" y="150" text-anchor="middle" font-family="ui-sans-serif, system-ui" font-size="13" font-weight="700" fill="#28201a">Postgres (Neon)</text>
+  <text x="620" y="170" text-anchor="middle" font-family="ui-sans-serif, system-ui" font-size="11" fill="#8c7d6b">Drizzle ORM</text>
+  <line x1="560" y1="184" x2="680" y2="184" stroke="#e3d9c4" stroke-width="1"/>
+  <text x="620" y="200" text-anchor="middle" font-family="ui-monospace, monospace" font-size="11" fill="#8c7d6b">plans</text>
+  <text x="620" y="216" text-anchor="middle" font-family="ui-monospace, monospace" font-size="11" fill="#8c7d6b">plan_versions</text>
+  <text x="620" y="232" text-anchor="middle" font-family="ui-monospace, monospace" font-size="11" fill="#8c7d6b">comments</text>
+
+  <!-- Arrows -->
+  <line x1="220" y1="80" x2="280" y2="80" stroke="#a8513f" stroke-width="1.6" marker-end="url(#arr)"/>
+  <text x="250" y="72" text-anchor="middle" font-family="ui-sans-serif, system-ui" font-size="10" fill="#a8513f" letter-spacing="0.04em">HTTPS · API key</text>
+
+  <line x1="220" y1="280" x2="280" y2="200" stroke="#a8513f" stroke-width="1.6" marker-end="url(#arr)"/>
+  <text x="226" y="244" font-family="ui-sans-serif, system-ui" font-size="10" fill="#a8513f" letter-spacing="0.04em">cookie · OAuth</text>
+
+  <line x1="470" y1="180" x2="540" y2="180" stroke="#a8513f" stroke-width="1.6" marker-end="url(#arr)"/>
+  <text x="505" y="172" text-anchor="middle" font-family="ui-sans-serif, system-ui" font-size="10" fill="#a8513f" letter-spacing="0.04em">SQL</text>
+</svg>
+<div style="font-size: 12px; color: var(--muted); text-align: center; margin-top: 12px; letter-spacing: 0.02em;">
+  Figure 1 · Request flows. CLI authenticates with an API key; browsers use a session cookie. Both hit the same Next.js API.
+</div>
+</div>
+
+<!-- Tech stack -->
+<h2 style="font-family: var(--serif); font-size: 24px; letter-spacing: -0.015em; font-weight: 700; margin: 0 0 14px;">
+  Stack
+</h2>
+
+<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 36px;">
+  <div style="border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; background: var(--surface);">
+    <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.13em; font-weight: 600; margin-bottom: 6px;">Frontend</div>
+    <div style="font-weight: 600; font-size: 14px;">Next.js 14 · React 18 · Tailwind</div>
+    <div style="font-size: 13px; color: var(--ink-soft); margin-top: 4px; line-height: 1.5;">App Router, server components for the public read path, client components for the editor and comment UI.</div>
+  </div>
+  <div style="border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; background: var(--surface);">
+    <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.13em; font-weight: 600; margin-bottom: 6px;">Database</div>
+    <div style="font-weight: 600; font-size: 14px;">Postgres · Drizzle ORM</div>
+    <div style="font-size: 13px; color: var(--ink-soft); margin-top: 4px; line-height: 1.5;">Neon serverless Postgres in production, JSON-file fallback in local dev so the CLI stays demo-able offline.</div>
+  </div>
+  <div style="border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; background: var(--surface);">
+    <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.13em; font-weight: 600; margin-bottom: 6px;">CLI</div>
+    <div style="font-weight: 600; font-size: 14px;">Node 18+ · Commander · TypeScript</div>
+    <div style="font-size: 13px; color: var(--ink-soft); margin-top: 4px; line-height: 1.5;">Single binary at <code style="font-family: var(--mono); font-size: 12px; background: var(--line-soft); padding: 1px 5px; border-radius: 3px;">@orfc/cli</code>. Reads <code style="font-family: var(--mono); font-size: 12px; background: var(--line-soft); padding: 1px 5px; border-radius: 3px;">~/.orfc/config.json</code> for credentials.</div>
+  </div>
+  <div style="border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; background: var(--surface);">
+    <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.13em; font-weight: 600; margin-bottom: 6px;">Auth &amp; mail</div>
+    <div style="font-weight: 600; font-size: 14px;">NextAuth · Resend · Slack webhooks</div>
+    <div style="font-size: 13px; color: var(--ink-soft); margin-top: 4px; line-height: 1.5;">Email-OTP login for both web and CLI. Optional Slack webhook for review notifications.</div>
+  </div>
+</div>
+
+<!-- Render path callout -->
+<div style="border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 18px 22px; border-radius: 4px; margin-bottom: 36px;">
+  <div style="font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.13em; font-weight: 700; margin-bottom: 6px;">Render path</div>
+  <p style="margin: 0; color: var(--ink); font-size: 14px; line-height: 1.6;">
+    A plan with <code style="font-family: var(--mono); font-size: 12.5px; background: rgba(255,255,255,0.6); padding: 1px 5px; border-radius: 3px;">contentType: "html"</code>
+    skips the <code style="font-family: var(--mono); font-size: 12.5px; background: rgba(255,255,255,0.6); padding: 1px 5px; border-radius: 3px;">react-markdown</code>
+    pipeline entirely. The body goes through DOMPurify with the
+    <em>html + svg + svgFilters</em> profiles, then drops into a typography-free
+    <code style="font-family: var(--mono); font-size: 12.5px; background: rgba(255,255,255,0.6); padding: 1px 5px; border-radius: 3px;">.orfc-html-doc</code>
+    container. The author's CSS variables and inline styles are preserved
+    verbatim — orfc never imposes its own theme on an HTML doc.
+  </p>
+</div>
+
+<!-- Key invariants -->
+<h2 style="font-family: var(--serif); font-size: 24px; letter-spacing: -0.015em; font-weight: 700; margin: 0 0 14px;">
+  Invariants
+</h2>
+
+<ul style="padding-left: 0; list-style: none; margin: 0 0 24px;">
+  <li style="position: relative; padding: 12px 0 12px 28px; border-bottom: 1px solid var(--line-soft); color: var(--ink-soft);">
+    <span style="position: absolute; left: 0; top: 14px; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; color: var(--surface); font-size: 11px; font-weight: 700;">1</span>
+    Every write goes through <code style="font-family: var(--mono); font-size: 12.5px; background: var(--line-soft); padding: 1px 5px; border-radius: 3px;">/api/plans</code>. The CLI is a thin client.
+  </li>
+  <li style="position: relative; padding: 12px 0 12px 28px; border-bottom: 1px solid var(--line-soft); color: var(--ink-soft);">
+    <span style="position: absolute; left: 0; top: 14px; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; color: var(--surface); font-size: 11px; font-weight: 700;">2</span>
+    Updates always snapshot the previous version into <code style="font-family: var(--mono); font-size: 12.5px; background: var(--line-soft); padding: 1px 5px; border-radius: 3px;">plan_versions</code> — nothing is overwritten in place.
+  </li>
+  <li style="position: relative; padding: 12px 0 12px 28px; border-bottom: 1px solid var(--line-soft); color: var(--ink-soft);">
+    <span style="position: absolute; left: 0; top: 14px; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; color: var(--surface); font-size: 11px; font-weight: 700;">3</span>
+    Sanitization happens at render, not at write. Stored content is the author's exact bytes; what the browser sees is filtered.
+  </li>
+  <li style="position: relative; padding: 12px 0 12px 28px; color: var(--ink-soft);">
+    <span style="position: absolute; left: 0; top: 14px; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; color: var(--surface); font-size: 11px; font-weight: 700;">4</span>
+    Comment anchors are DOM-based (block index + text snippet), so they survive the markdown ↔ HTML render-mode change.
+  </li>
+</ul>
+
+</div>
