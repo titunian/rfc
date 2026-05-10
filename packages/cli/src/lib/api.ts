@@ -88,11 +88,19 @@ export class ApiClient {
     return res.json() as Promise<PlanResponse>;
   }
 
+  private async throwOnError(res: Response): Promise<void> {
+    if (res.ok) return;
+    const err = await res.json().catch(() => ({ error: res.statusText })) as { error?: string };
+    const detail = err.error || res.statusText;
+    if (res.status === 401 || res.status === 403) {
+      throw new Error(`${detail}. Run \`orfc login\` to authenticate.`);
+    }
+    throw new Error(detail || `HTTP ${res.status}`);
+  }
+
   async listPlans(): Promise<{ plans: PlanListItem[] }> {
     const res = await this.request("/api/plans");
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
-    }
+    await this.throwOnError(res);
     return res.json() as Promise<{ plans: PlanListItem[] }>;
   }
 
@@ -100,17 +108,13 @@ export class ApiClient {
     const res = await this.request(`/api/plans/${id}`, {
       method: "DELETE",
     });
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
-    }
+    await this.throwOnError(res);
     return res.json() as Promise<{ deleted: boolean }>;
   }
 
   async getPlan(id: string): Promise<PlanDetail> {
     const res = await this.request(`/api/plans/${id}`);
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
-    }
+    await this.throwOnError(res);
     return res.json() as Promise<PlanDetail>;
   }
 
@@ -119,6 +123,8 @@ export class ApiClient {
     data: {
       title?: string;
       content: string;
+      accessRule?: string;
+      allowedViewers?: string | null;
       folderPath?: string;
       tags?: string[];
     }
@@ -136,9 +142,7 @@ export class ApiClient {
 
   async getComments(planId: string): Promise<{ comments: CommentItem[] }> {
     const res = await this.request(`/api/plans/${planId}/comments`);
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
-    }
+    await this.throwOnError(res);
     return res.json() as Promise<{ comments: CommentItem[] }>;
   }
 

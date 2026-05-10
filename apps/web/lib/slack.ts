@@ -6,6 +6,16 @@ export async function sendSlackNotification(opts: {
 }) {
   const { webhookUrl, fromName, title, url } = opts;
 
+  let parsed: URL;
+  try {
+    parsed = new URL(webhookUrl);
+  } catch {
+    throw new Error("Invalid Slack webhook URL");
+  }
+  if (parsed.protocol !== "https:" || !parsed.hostname.endsWith("hooks.slack.com")) {
+    throw new Error("Slack webhook URL must be an https://hooks.slack.com/ URL");
+  }
+
   await fetch(webhookUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

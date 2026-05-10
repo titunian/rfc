@@ -1,11 +1,20 @@
+import * as readline from "readline";
 import { ApiClient } from "../lib/api";
 
-export async function deleteCommand(slugOrId: string) {
+function confirm(prompt: string): Promise<boolean> {
+  const rl = readline.createInterface({ input: process.stdin, output: process.stderr });
+  return new Promise((resolve) => {
+    rl.question(prompt, (answer) => {
+      rl.close();
+      resolve(answer.trim().toLowerCase() === "y");
+    });
+  });
+}
+
+export async function deleteCommand(slugOrId: string, options: { force?: boolean } = {}) {
   try {
     const api = new ApiClient();
 
-    // The API uses plan IDs, but users will pass slugs.
-    // For now, list plans and find the matching one.
     const data = await api.listPlans();
     const plan = data.plans?.find(
       (p: { slug: string; id: string }) =>
@@ -15,6 +24,14 @@ export async function deleteCommand(slugOrId: string) {
     if (!plan) {
       console.error(`\n  ✗ RFC not found: ${slugOrId}\n`);
       process.exit(1);
+    }
+
+    if (!options.force) {
+      const ok = await confirm(`\n  Delete "${plan.title || "Untitled"}" (${plan.slug})? This cannot be undone. [y/N] `);
+      if (!ok) {
+        console.log("\n  Cancelled.\n");
+        return;
+      }
     }
 
     await api.deletePlan(plan.id);

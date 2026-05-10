@@ -106,9 +106,9 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Use email as display name for authenticated users
     const email = user?.email || null;
-    const name = email || authorName || "Anonymous";
+    // Authenticated users use their email; anonymous users get a fixed label
+    const name = email || "Anonymous";
 
     const db = getDb();
 

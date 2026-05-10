@@ -330,7 +330,8 @@ export function PlanView({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ content, parentId }),
     });
-    if (res.ok) fetchComments();
+    if (!res.ok) throw new Error("Failed to post reply");
+    fetchComments();
   };
 
   const handleAddComment = async (commentText: string) => {
@@ -348,11 +349,11 @@ export function PlanView({
       }),
     });
 
-    if (res.ok) {
-      setSelection(null);
-      window.getSelection()?.removeAllRanges();
-      fetchComments();
-    }
+    if (!res.ok) throw new Error("Failed to post comment");
+
+    setSelection(null);
+    window.getSelection()?.removeAllRanges();
+    fetchComments();
   };
 
   const handleResolve = async (commentId: string) => {
@@ -1275,6 +1276,7 @@ function PermissionsPanel({
   );
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const dirty =
     accessRule !== plan.accessRule ||
@@ -1282,6 +1284,7 @@ function PermissionsPanel({
 
   const handleSave = async () => {
     setSaving(true);
+    setSaveError(null);
     try {
       const res = await fetch(`/api/plans/${plan.id}`, {
         method: "PUT",
@@ -1302,7 +1305,12 @@ function PermissionsPanel({
           setSaved(false);
           onClose();
         }, 800);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setSaveError((data as { error?: string }).error || `Failed to save (${res.status})`);
       }
+    } catch {
+      setSaveError("Network error — could not save permissions");
     } finally {
       setSaving(false);
     }
@@ -1398,6 +1406,11 @@ function PermissionsPanel({
       </div>
 
       {/* Footer */}
+      {saveError && (
+        <div className="mx-6 mb-2 px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-red-700 text-[12px] font-sans">
+          {saveError}
+        </div>
+      )}
       <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--border-light)] bg-[var(--bg-warm)] rounded-b-2xl">
         <span className="text-[11.5px] text-[var(--muted)]">
           {saved

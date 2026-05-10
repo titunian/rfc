@@ -24,6 +24,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Filter state. folderFilter === ALL_PLANS means "no folder filter";
   // folderFilter === "" means "plans at the root only".
@@ -38,9 +39,15 @@ export default function DashboardPage() {
   }, [status, router]);
 
   async function reloadPlans() {
-    const res = await fetch("/api/plans");
-    const data = await res.json();
-    setPlans(data.plans || []);
+    try {
+      const res = await fetch("/api/plans");
+      if (!res.ok) throw new Error(`Failed to load documents (${res.status})`);
+      const data = await res.json();
+      setPlans(data.plans || []);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load documents");
+    }
   }
 
   useEffect(() => {
@@ -238,6 +245,19 @@ export default function DashboardPage() {
               <div className="text-[14px] text-[var(--muted)] font-sans animate-pulse">
                 Loading…
               </div>
+            </div>
+          ) : error ? (
+            <div className="py-20 text-center">
+              <p className="text-[14px] text-red-600 font-sans mb-2">{error}</p>
+              <button
+                onClick={() => {
+                  setLoading(true);
+                  reloadPlans().finally(() => setLoading(false));
+                }}
+                className="text-[13px] text-[var(--muted)] hover:text-[var(--fg)] font-sans underline"
+              >
+                Try again
+              </button>
             </div>
           ) : visible.length === 0 ? (
             <div className="py-20 text-center">

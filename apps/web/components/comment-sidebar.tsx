@@ -58,7 +58,7 @@ export function CommentSidebar({
   activeCommentId: string | null;
   onCommentClick: (id: string | null) => void;
   onResolve: (id: string) => void;
-  onReply: (parentId: string, content: string) => void;
+  onReply: (parentId: string, content: string) => void | Promise<void>;
 }) {
   const [showResolved, setShowResolved] = useState(false);
 
@@ -199,7 +199,7 @@ function CommentThread({
   activeCommentId: string | null;
   onCommentClick: (id: string | null) => void;
   onResolve: (id: string) => void;
-  onReply: (parentId: string, content: string) => void;
+  onReply: (parentId: string, content: string) => void | Promise<void>;
 }) {
   const [replyOpen, setReplyOpen] = useState(false);
   const [replyText, setReplyText] = useState("");
@@ -209,9 +209,11 @@ function CommentThread({
     if (!replyText.trim()) return;
     setSending(true);
     try {
-      onReply(comment.id, replyText.trim());
+      await onReply(comment.id, replyText.trim());
       setReplyText("");
       setReplyOpen(false);
+    } catch {
+      // Keep text so user can retry
     } finally {
       setSending(false);
     }

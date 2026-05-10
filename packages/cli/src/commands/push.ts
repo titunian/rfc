@@ -79,12 +79,19 @@ export async function pushCommand(
         console.error(`\n  ✗ Plan not found: ${options.update}`);
         process.exit(1);
       }
-      plan = await api.updatePlan(match.id, {
-        title,
-        content,
-        ...(folderPath !== undefined && { folderPath }),
-        ...(tags !== undefined && { tags }),
-      });
+      const updateData: {
+        title: string;
+        content: string;
+        accessRule?: string;
+        allowedViewers?: string | null;
+        folderPath?: string;
+        tags?: string[];
+      } = { title, content };
+      if (options.access) updateData.accessRule = accessRule;
+      if (options.viewers !== undefined) updateData.allowedViewers = options.viewers || null;
+      if (folderPath !== undefined) updateData.folderPath = folderPath;
+      if (tags !== undefined) updateData.tags = tags;
+      plan = await api.updatePlan(match.id, updateData);
       console.log(`\n  ✓ Updated: ${plan.url}`);
     } else {
       plan = await api.createPlan({

@@ -1,7 +1,10 @@
 import { loadConfig, setConfigValue } from "../lib/config";
 
 const CONFIG_KEYS: Record<string, string> = {
+  "api-key": "apiKey",
   "api-url": "apiUrl",
+  "email": "email",
+  "name": "name",
   "slack-webhook": "slackWebhook",
   "default-reviewers": "defaultReviewers",
   "default-access": "defaultAccess",

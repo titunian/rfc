@@ -12,6 +12,15 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const { title, url, emails, slackWebhook } = body;
 
+  // Validate that the URL points to this app to prevent phishing
+  const appHost = (process.env.APP_URL || "https://www.orfc.dev").replace(/\/$/, "");
+  if (!url || !url.startsWith(appHost + "/")) {
+    return NextResponse.json(
+      { error: "URL must point to this orfc instance" },
+      { status: 400 }
+    );
+  }
+
   const results: { email?: boolean; slack?: boolean } = {};
 
   if (emails?.length) {
