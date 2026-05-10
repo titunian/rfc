@@ -1332,6 +1332,7 @@ export function PlanView({
         <div ref={popoverRef}>
           <SelectionPopover
             rect={selection.rect}
+            selectedText={selection.text}
             onComment={handleAddComment}
             onDismiss={() => setSelection(null)}
           />

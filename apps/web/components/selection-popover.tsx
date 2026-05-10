@@ -4,10 +4,12 @@ import { useState, useRef, useEffect } from "react";
 
 export function SelectionPopover({
   rect,
+  selectedText,
   onComment,
   onDismiss,
 }: {
   rect: DOMRect;
+  selectedText: string;
   onComment: (text: string) => void | Promise<void>;
   onDismiss: () => void;
 }) {
@@ -83,13 +85,26 @@ export function SelectionPopover({
     );
   }
 
+  // Snippet preview of what's being commented on. Trim long selections
+  // and add an ellipsis so the popover stays compact.
+  const previewText =
+    selectedText.length > 140
+      ? selectedText.slice(0, 137).trimEnd() + "…"
+      : selectedText;
+
   return (
     <div
       ref={popoverRef}
       className="selection-popover"
       style={{ top, left, transform: "translateX(-50%)" }}
     >
-      <div className="bg-[var(--bg)] border border-[var(--border)] rounded-xl shadow-[0_12px_32px_rgba(0,0,0,0.18)] p-3 w-[320px] font-sans">
+      <div className="bg-[var(--bg)] border border-[var(--border)] rounded-xl shadow-[0_12px_32px_rgba(0,0,0,0.18)] p-3 w-[340px] font-sans">
+        <div
+          className="text-[12.5px] leading-snug text-[var(--fg-secondary)] mb-2.5 pl-2.5 border-l-2 border-[var(--accent)] max-h-[64px] overflow-hidden"
+          title={selectedText}
+        >
+          <span className="italic">&ldquo;{previewText}&rdquo;</span>
+        </div>
         <textarea
           ref={textareaRef}
           value={commentText}
