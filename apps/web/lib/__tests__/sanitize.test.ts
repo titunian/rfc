@@ -59,6 +59,7 @@ describe("sanitizeHtml", () => {
       '<svg viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg">' +
       '<defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#f00"/></linearGradient></defs>' +
       '<rect x="0" y="0" width="100" height="50" fill="url(#g)"/>' +
+      '<line x1="0" y1="0" x2="100" y2="50" stroke="blue" stroke-width="2"/>' +
       '<text x="50" y="25" text-anchor="middle">Hi</text>' +
       "</svg>";
     const out = sanitizeHtml(svg);
@@ -66,6 +67,15 @@ describe("sanitizeHtml", () => {
     expect(out).toContain("<linearGradient");
     expect(out).toContain("<rect");
     expect(out).toContain("<text");
+    // Geometry attrs — these were silently being stripped by an
+    // overly strict ALLOWED_URI_REGEXP earlier. Charts can't render
+    // without them, so assert each one explicitly.
+    expect(out).toContain('viewBox="0 0 100 50"');
+    expect(out).toContain('x1="0"');
+    expect(out).toContain('y2="50"');
+    expect(out).toContain('width="100"');
+    expect(out).toContain('stroke-width="2"');
+    expect(out).toContain('text-anchor="middle"');
   });
 
   it("strips <svg onload> handlers but keeps the svg", () => {

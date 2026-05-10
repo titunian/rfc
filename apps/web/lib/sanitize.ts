@@ -16,15 +16,16 @@ const FORBID_ATTR = [
 
 export function sanitizeHtml(dirty: string): string {
   return DOMPurify.sanitize(dirty, {
-    // Use the html + svg profiles so SVG charts/diagrams render
-    // correctly (camelCase tags like <clipPath>, <linearGradient>
-    // need DOMPurify's case-aware SVG handling).
+    // html + svg profiles preserve case-sensitive SVG tags
+    // (<clipPath>, <linearGradient>) and their geometry attrs
+    // (viewBox, x1, width, …). Don't add ALLOWED_URI_REGEXP here —
+    // DOMPurify applies it to *every* URI-like attribute, which
+    // includes SVG coords, and a strict regex strips them all.
+    // Default URI handling already blocks javascript:, vbscript:,
+    // and data: in href/src — verified.
     USE_PROFILES: { html: true, svg: true, svgFilters: true },
     FORBID_TAGS,
     FORBID_ATTR,
-    // Block all URI schemes except http(s), mailto, and protocol-relative.
-    // Notably blocks javascript:, file:, and data: in href contexts.
-    ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto):|[/?#]|[a-z0-9.+-]*[/?#])/i,
     // Allow target/rel on <a> so external links can open in a new tab.
     ADD_ATTR: ["target", "rel"],
     KEEP_CONTENT: true,
