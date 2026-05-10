@@ -1,9 +1,10 @@
 {
   "name": "@orfc/cli",
-  "version": "0.3.0",
-  "description": "orfc — publish markdown plans, get feedback",
+  "version": "0.4.0",
+  "description": "orfc — publish markdown or HTML plans, get feedback",
   "keywords": [
     "markdown",
+    "html",
     "feedback",
     "review",
     "rfc",
