@@ -91,7 +91,12 @@ describe("sanitizeHtml", () => {
     const out = sanitizeHtml(
       '<div style="color: red; padding: 8px">Boxed</div>'
     );
-    expect(out).toContain('style="color: red; padding: 8px"');
+    // sanitize-html may collapse internal whitespace inside style
+    // values; assert presence of both declarations rather than the
+    // exact string.
+    expect(out).toMatch(/<div style="[^"]*color\s*:\s*red[^"]*"/);
+    expect(out).toMatch(/padding\s*:\s*8px/);
+    expect(out).toContain("Boxed");
   });
 });
 
