@@ -1,0 +1,442 @@
+<div class="hb">
+
+<style>
+  /* All scoped under .hb so author CSS can't escape and disrupt
+     the orfc chrome. */
+  .hb {
+    --bg: #f5efe2; --surface: #fbf6ea; --ink: #28201a;
+    --ink-soft: #4d4036; --muted: #8c7d6b;
+    --line: #e3d9c4; --line-soft: #efe7d4;
+    --accent: #a8513f; --accent-soft: #f3dcd5;
+    --serif: 'Charter', 'Iowan Old Style', Georgia, serif;
+    --sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+    background: var(--bg); color: var(--ink); font-family: var(--sans);
+    font-size: 15px; line-height: 1.65;
+    border-radius: 14px; border: 1px solid var(--line);
+    margin: 8px 0 24px; overflow: hidden;
+    display: grid; grid-template-columns: 200px 1fr;
+  }
+  .hb-side {
+    background: var(--surface); border-right: 1px solid var(--line);
+    padding: 32px 18px; position: sticky; top: 0; align-self: start;
+  }
+  .hb-side h2 {
+    font-family: var(--sans); font-size: 11px; font-weight: 700;
+    color: var(--muted); text-transform: uppercase; letter-spacing: 0.13em;
+    margin: 0 0 14px; padding-left: 8px;
+  }
+  .hb-side ol {
+    list-style: none; counter-reset: nav;
+    padding: 0; margin: 0 0 28px;
+  }
+  .hb-side ol li {
+    counter-increment: nav; display: block;
+  }
+  .hb-side a {
+    display: flex; align-items: baseline; gap: 10px;
+    padding: 9px 8px; border-radius: 6px;
+    color: var(--ink-soft); text-decoration: none;
+    font-size: 13.5px; line-height: 1.3;
+    transition: background 0.12s, color 0.12s;
+  }
+  .hb-side a::before {
+    content: counter(nav, decimal-leading-zero);
+    font-family: var(--mono); font-size: 10.5px;
+    color: var(--muted); font-weight: 600; letter-spacing: 0.04em;
+    width: 18px; text-align: right;
+  }
+  .hb-side a:hover {
+    background: var(--line-soft); color: var(--ink);
+  }
+  /* Active state — when a page is :target, light up its sidebar link.
+     Uses :has() to look at siblings within .hb. */
+  .hb:has(#overview:target)   a[href="#overview"],
+  .hb:has(#architecture:target) a[href="#architecture"],
+  .hb:has(#api:target)        a[href="#api"],
+  .hb:has(#deployment:target) a[href="#deployment"],
+  .hb:has(#changelog:target)  a[href="#changelog"],
+  /* Default — overview is the active link when no hash is set. */
+  .hb:not(:has(.page:target)) a[href="#overview"] {
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .hb:has(#overview:target)   a[href="#overview"]::before,
+  .hb:has(#architecture:target) a[href="#architecture"]::before,
+  .hb:has(#api:target)        a[href="#api"]::before,
+  .hb:has(#deployment:target) a[href="#deployment"]::before,
+  .hb:has(#changelog:target)  a[href="#changelog"]::before,
+  .hb:not(:has(.page:target)) a[href="#overview"]::before {
+    color: var(--accent);
+  }
+  .hb-side .meta {
+    padding: 16px 8px 0; border-top: 1px solid var(--line);
+    font-size: 11px; color: var(--muted); line-height: 1.55;
+  }
+  .hb-main { padding: 56px 56px 64px; }
+  .hb .page { display: none; }
+  .hb .page:target { display: block; }
+  /* Default page when no hash. :has() lets us hide the default
+     once any other section is :target. */
+  .hb:not(:has(.page:target)) #overview { display: block; }
+
+  /* Shared content styles */
+  .hb h1 {
+    font-family: var(--serif); font-size: 42px; line-height: 1.05;
+    letter-spacing: -0.022em; font-weight: 700; margin: 0 0 14px;
+    color: var(--ink);
+  }
+  .hb .lede {
+    font-family: var(--serif); font-size: 19px; line-height: 1.5;
+    color: var(--ink-soft); margin: 0 0 36px;
+  }
+  .hb h2 {
+    font-family: var(--serif); font-size: 24px; letter-spacing: -0.015em;
+    font-weight: 700; margin: 32px 0 14px; color: var(--ink);
+  }
+  .hb h2:first-of-type { margin-top: 0; }
+  .hb h3 {
+    font-family: var(--serif); font-size: 18px; letter-spacing: -0.01em;
+    font-weight: 700; margin: 20px 0 8px;
+  }
+  .hb p { margin: 0 0 14px; color: var(--ink-soft); }
+  .hb code {
+    font-family: var(--mono); font-size: 0.875em;
+    background: var(--line-soft); padding: 1px 5px; border-radius: 3px;
+  }
+  .hb pre {
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.65;
+    background: #1f1a14; color: #f5efe2; padding: 18px 22px;
+    border-radius: 10px; overflow-x: auto; margin: 0 0 24px;
+  }
+  .hb pre code { background: transparent; padding: 0; font-size: inherit; }
+  .hb .crumb {
+    font-size: 11px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.18em;
+    font-weight: 700; color: var(--accent); margin-bottom: 24px;
+  }
+  .hb .table-wrap {
+    border: 1px solid var(--line); border-radius: 10px;
+    overflow: hidden; background: var(--surface);
+    margin-bottom: 24px;
+  }
+  .hb table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .hb th {
+    text-align: left; padding: 11px 16px; font-weight: 600;
+    font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase;
+    background: var(--line-soft);
+  }
+  .hb td {
+    padding: 13px 16px; vertical-align: top; color: var(--ink-soft);
+    border-top: 1px solid var(--line);
+  }
+  .hb .pill {
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    padding: 2px 7px; border-radius: 3px; letter-spacing: 0.04em;
+  }
+  .hb .pill-get  { background: #e7f3ec; color: #16713a; }
+  .hb .pill-post { background: #e0eaff; color: #2c3e8c; }
+  .hb .pill-put  { background: #fcf3e2; color: #b1620e; }
+  .hb .pill-del  { background: #fbe5e2; color: #b32424; }
+</style>
+
+<!-- Sidebar -->
+<nav class="hb-side">
+  <h2>Handbook</h2>
+  <ol>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#api">API reference</a></li>
+    <li><a href="#deployment">Deployment</a></li>
+    <li><a href="#changelog">Changelog</a></li>
+  </ol>
+  <div class="meta">
+    v0.4 · 2026-05-10<br/>
+    Single document<br/>
+    Click to switch sections
+  </div>
+</nav>
+
+<!-- Main -->
+<main class="hb-main">
+
+  <!-- Overview -->
+  <section class="page" id="overview">
+    <div class="crumb">orfc handbook</div>
+    <h1>Everything we know about shipping orfc.</h1>
+    <p class="lede">A working handbook for the people building, deploying, and reviewing on orfc — five sections, in-page navigation, no link jumping. Click an item in the sidebar to switch.</p>
+
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 28px 0 32px;">
+      <div style="border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; background: var(--surface);">
+        <div style="font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.13em; font-weight: 600;">Sections</div>
+        <div style="font-size: 28px; font-family: var(--serif); font-weight: 700; letter-spacing: -0.025em; margin-top: 6px;">5</div>
+      </div>
+      <div style="border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; background: var(--surface);">
+        <div style="font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.13em; font-weight: 600;">CLI</div>
+        <div style="font-size: 28px; font-family: var(--serif); font-weight: 700; letter-spacing: -0.025em; margin-top: 6px;">v0.4.0</div>
+      </div>
+      <div style="border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; background: var(--surface);">
+        <div style="font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.13em; font-weight: 600;">Tests</div>
+        <div style="font-size: 28px; font-family: var(--serif); font-weight: 700; letter-spacing: -0.025em; margin-top: 6px;">70 <span style="font-size: 14px; color: var(--muted); font-weight: 500;">passing</span></div>
+      </div>
+      <div style="border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; background: var(--surface);">
+        <div style="font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.13em; font-weight: 600;">Latency</div>
+        <div style="font-size: 28px; font-family: var(--serif); font-weight: 700; letter-spacing: -0.025em; margin-top: 6px;">42<span style="font-size: 14px; color: var(--muted); font-weight: 500;">ms p50</span></div>
+      </div>
+    </div>
+
+    <h2>What's in here</h2>
+    <p><strong>Architecture.</strong> How the CLI, web app, sanitizer, and Postgres talk to each other — system diagram, stack, the four invariants we don't break.</p>
+    <p><strong>API reference.</strong> Every endpoint orfc exposes — plans, comments, notify — with auth, status codes, and an end-to-end example.</p>
+    <p><strong>Deployment.</strong> The pipeline from <code>git push</code> to <code>orfc.dev</code>, env vars, and the migration trip-wire that bit us once.</p>
+    <p><strong>Changelog.</strong> Recent <code>@orfc/cli</code> releases.</p>
+
+    <blockquote style="margin: 28px 0; padding: 22px 28px; border-left: 3px solid var(--accent); background: var(--accent-soft); border-radius: 4px;">
+      <p style="margin: 0; font-family: var(--serif); font-size: 19px; line-height: 1.45; color: var(--ink);">
+        "Documents that ship don't need to be markdown. orfc treats HTML as a first-class citizen — render it sanitized, preserve the author's theme, comment on it the same way you would on prose."
+      </p>
+      <footer style="margin-top: 10px; font-size: 12px; color: var(--muted); font-style: normal;">
+        — design note · v0.4 release
+      </footer>
+    </blockquote>
+  </section>
+
+  <!-- Architecture -->
+  <section class="page" id="architecture">
+    <div class="crumb">orfc handbook · 02</div>
+    <h1>Architecture</h1>
+    <p class="lede">A Next.js web app, a Postgres store, a TypeScript CLI, and a single sanitization choke-point that keeps user-authored HTML safe to render.</p>
+
+    <div style="border: 1px solid var(--line); border-radius: 12px; padding: 24px 20px; background: var(--surface); margin-bottom: 24px;">
+      <svg viewBox="0 0 720 340" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto; display: block;">
+        <defs>
+          <marker id="arr-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#a8513f"/>
+          </marker>
+        </defs>
+        <rect x="40" y="30" width="180" height="78" rx="10" fill="#fbf6ea" stroke="#28201a" stroke-width="1.4"/>
+        <text x="130" y="58" text-anchor="middle" font-size="13" font-weight="700" fill="#28201a">@orfc/cli</text>
+        <text x="130" y="76" text-anchor="middle" font-family="ui-monospace, monospace" font-size="11" fill="#8c7d6b">orfc push / pull / edit</text>
+        <text x="130" y="93" text-anchor="middle" font-size="11" fill="#8c7d6b">Node 18+ · Commander</text>
+
+        <rect x="40" y="232" width="180" height="78" rx="10" fill="#fbf6ea" stroke="#28201a" stroke-width="1.4"/>
+        <text x="130" y="260" text-anchor="middle" font-size="13" font-weight="700" fill="#28201a">Browser</text>
+        <text x="130" y="278" text-anchor="middle" font-size="11" fill="#8c7d6b">/p/[slug] · /dashboard</text>
+        <text x="130" y="295" text-anchor="middle" font-size="11" fill="#8c7d6b">React 18 · Next App</text>
+
+        <rect x="290" y="115" width="180" height="120" rx="10" fill="#a8513f" stroke="#28201a" stroke-width="1.4"/>
+        <text x="380" y="145" text-anchor="middle" font-size="13" font-weight="700" fill="#fbf6ea">@orfc/web</text>
+        <text x="380" y="165" text-anchor="middle" font-size="11" fill="#f3dcd5">Next.js 14 · Vercel</text>
+        <line x1="320" y1="180" x2="440" y2="180" stroke="#f3dcd5" stroke-opacity="0.4"/>
+        <text x="380" y="196" text-anchor="middle" font-size="11" fill="#f3dcd5">/api/plans</text>
+        <text x="380" y="212" text-anchor="middle" font-size="11" fill="#f3dcd5">/api/comments</text>
+        <text x="380" y="228" text-anchor="middle" font-size="11" fill="#f3dcd5">/api/notify</text>
+
+        <rect x="290" y="38" width="180" height="50" rx="8" fill="#f3dcd5" stroke="#a8513f" stroke-width="1.2"/>
+        <text x="380" y="58" text-anchor="middle" font-size="12" font-weight="700" fill="#a8513f">sanitize-html</text>
+        <text x="380" y="76" text-anchor="middle" font-size="10.5" fill="#a8513f">render-time sanitization</text>
+
+        <rect x="540" y="115" width="160" height="120" rx="10" fill="#fbf6ea" stroke="#28201a" stroke-width="1.4"/>
+        <text x="620" y="145" text-anchor="middle" font-size="13" font-weight="700" fill="#28201a">Postgres (Neon)</text>
+        <text x="620" y="165" text-anchor="middle" font-size="11" fill="#8c7d6b">Drizzle ORM</text>
+        <line x1="560" y1="180" x2="680" y2="180" stroke="#e3d9c4"/>
+        <text x="620" y="196" text-anchor="middle" font-family="ui-monospace, monospace" font-size="11" fill="#8c7d6b">plans</text>
+        <text x="620" y="212" text-anchor="middle" font-family="ui-monospace, monospace" font-size="11" fill="#8c7d6b">plan_versions</text>
+        <text x="620" y="228" text-anchor="middle" font-family="ui-monospace, monospace" font-size="11" fill="#8c7d6b">comments</text>
+
+        <line x1="220" y1="69" x2="280" y2="69" stroke="#a8513f" stroke-width="1.6" marker-end="url(#arr-a)"/>
+        <line x1="220" y1="271" x2="280" y2="195" stroke="#a8513f" stroke-width="1.6" marker-end="url(#arr-a)"/>
+        <line x1="470" y1="175" x2="540" y2="175" stroke="#a8513f" stroke-width="1.6" marker-end="url(#arr-a)"/>
+      </svg>
+    </div>
+
+    <h2>Stack</h2>
+    <p><strong>Frontend.</strong> Next.js 14, React 18, Tailwind. App Router with server components for the public read path, client components for the editor and comment UI.</p>
+    <p><strong>Database.</strong> Postgres on Neon serverless, JSON-file fallback in local dev so the CLI stays demo-able offline.</p>
+    <p><strong>CLI.</strong> Node 18+, Commander, TypeScript. Single binary at <code>@orfc/cli</code>. Reads <code>~/.orfc/config.json</code> for credentials.</p>
+    <p><strong>Auth + mail.</strong> NextAuth, Resend, Slack webhooks. Email-OTP login for both web and CLI.</p>
+
+    <h2>Invariants</h2>
+    <p><strong>1.</strong> Every write goes through <code>/api/plans</code>. The CLI is a thin client.</p>
+    <p><strong>2.</strong> Updates always snapshot the previous version into <code>plan_versions</code> — nothing is overwritten in place.</p>
+    <p><strong>3.</strong> Sanitization happens at render, not at write. Stored content is the author's exact bytes; what the browser sees is filtered.</p>
+    <p><strong>4.</strong> Comment anchors are DOM-based (block index + text snippet), so they survive the markdown ↔ HTML render-mode change.</p>
+  </section>
+
+  <!-- API reference -->
+  <section class="page" id="api">
+    <div class="crumb">orfc handbook · 03</div>
+    <h1>API reference</h1>
+    <p class="lede">Every endpoint orfc exposes. The CLI is built on these — there's nothing it can do that you can't reach with <code>curl</code> and a Bearer token.</p>
+
+    <h2>Auth</h2>
+    <p>Web requests use a NextAuth session cookie. CLI requests use a Bearer token issued by <code>orfc login</code>:</p>
+    <pre><code>curl https://orfc.dev/api/plans -H "Authorization: Bearer orfc_live_…"</code></pre>
+
+    <h2>Plans</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th style="width: 90px;">Method</th><th>Path</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pill pill-get">GET</span></td><td><code>/api/plans</code></td><td>List the caller's plans. Optional <code>?folder=</code> and <code>?tag=</code> filters.</td></tr>
+        <tr><td><span class="pill pill-post">POST</span></td><td><code>/api/plans</code></td><td>Create a plan. Body: <code>title, content, contentType, accessRule, folderPath, tags</code>.</td></tr>
+        <tr><td><span class="pill pill-get">GET</span></td><td><code>/api/plans/{id}</code></td><td>Fetch one plan. 401/403 if access rules don't match.</td></tr>
+        <tr><td><span class="pill pill-put">PUT</span></td><td><code>/api/plans/{id}</code></td><td>Update. Optimistic concurrency via <code>expectedVersion</code>.</td></tr>
+        <tr><td><span class="pill pill-del">DELETE</span></td><td><code>/api/plans/{id}</code></td><td>Author-only. Cascades.</td></tr>
+        <tr><td><span class="pill pill-get">GET</span></td><td><code>/api/plans/{id}/versions</code></td><td>List previous versions.</td></tr>
+        <tr><td><span class="pill pill-get">GET</span></td><td><code>/api/plans/{id}/diff</code></td><td>Line-LCS diff. 5,000-line cap.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h2>Comments &amp; notifications</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th style="width: 90px;">Method</th><th>Path</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pill pill-get">GET</span></td><td><code>/api/plans/{id}/comments</code></td><td>List comments. Polled every 15s.</td></tr>
+        <tr><td><span class="pill pill-post">POST</span></td><td><code>/api/plans/{id}/comments</code></td><td>Add a comment with <code>anchorText</code> + block index.</td></tr>
+        <tr><td><span class="pill pill-put">PATCH</span></td><td><code>/api/plans/{id}/comments/{cid}</code></td><td>Toggle resolved. Plan author or comment author only.</td></tr>
+        <tr><td><span class="pill pill-post">POST</span></td><td><code>/api/notify</code></td><td>Email + Slack notify. URL must match app domain.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h2>Example: publish HTML</h2>
+    <pre><code>curl https://orfc.dev/api/plans \
+  -H "Authorization: Bearer $ORFC_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Q2 platform plan",
+    "content": "&lt;h1&gt;orfc Q2 …&lt;/h1&gt;",
+    "contentType": "html",
+    "accessRule": "anyone"
+  }'</code></pre>
+  </section>
+
+  <!-- Deployment -->
+  <section class="page" id="deployment">
+    <div class="crumb">orfc handbook · 04</div>
+    <h1>Deployment</h1>
+    <p class="lede">From <code>git push</code> to <code>orfc.dev</code>. Vercel handles build + edge, Neon handles Postgres, schema migrations are still a manual step (until they're not).</p>
+
+    <div style="border: 1px solid var(--line); border-radius: 12px; padding: 28px 20px 32px; background: var(--surface); margin-bottom: 24px;">
+      <svg viewBox="0 0 720 150" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto; display: block;">
+        <line x1="40" y1="74" x2="680" y2="74" stroke="#e3d9c4" stroke-width="2"/>
+        <line x1="40" y1="74" x2="555" y2="74" stroke="#a8513f" stroke-width="2.5" stroke-linecap="round"/>
+        <g font-family="ui-sans-serif, system-ui">
+          <circle cx="40" cy="74" r="6" fill="#a8513f"/>
+          <text x="40" y="50" text-anchor="middle" font-size="10" fill="#8c7d6b">step 1</text>
+          <text x="40" y="102" text-anchor="middle" font-size="13" font-weight="600" fill="#28201a">git push</text>
+          <text x="40" y="119" text-anchor="middle" font-size="11" fill="#8c7d6b">main · feat/*</text>
+
+          <circle cx="170" cy="74" r="6" fill="#a8513f"/>
+          <text x="170" y="50" text-anchor="middle" font-size="10" fill="#8c7d6b">step 2</text>
+          <text x="170" y="102" text-anchor="middle" font-size="13" font-weight="600" fill="#28201a">Vercel build</text>
+          <text x="170" y="119" text-anchor="middle" font-size="11" fill="#8c7d6b">turbo · ~90s</text>
+
+          <circle cx="300" cy="74" r="9" fill="#fbf6ea" stroke="#a8513f" stroke-width="3"/>
+          <circle cx="300" cy="74" r="3" fill="#a8513f"/>
+          <text x="300" y="50" text-anchor="middle" font-size="10" fill="#a8513f" font-weight="700" letter-spacing="0.05em">⚠ MANUAL</text>
+          <text x="300" y="102" text-anchor="middle" font-size="13" font-weight="600" fill="#28201a">db migrate</text>
+          <text x="300" y="119" text-anchor="middle" font-size="11" fill="#8c7d6b">npm run db:push</text>
+
+          <circle cx="425" cy="74" r="6" fill="#a8513f"/>
+          <text x="425" y="50" text-anchor="middle" font-size="10" fill="#8c7d6b">step 4</text>
+          <text x="425" y="102" text-anchor="middle" font-size="13" font-weight="600" fill="#28201a">Edge deploy</text>
+          <text x="425" y="119" text-anchor="middle" font-size="11" fill="#8c7d6b">atomic</text>
+
+          <circle cx="555" cy="74" r="6" fill="#a8513f"/>
+          <text x="555" y="50" text-anchor="middle" font-size="10" fill="#8c7d6b">step 5</text>
+          <text x="555" y="102" text-anchor="middle" font-size="13" font-weight="600" fill="#28201a">Smoke check</text>
+          <text x="555" y="119" text-anchor="middle" font-size="11" fill="#8c7d6b">/dashboard 200</text>
+
+          <circle cx="680" cy="74" r="6" fill="#fbf6ea" stroke="#e3d9c4" stroke-width="2"/>
+          <text x="680" y="50" text-anchor="middle" font-size="10" fill="#b8b1a3">step 6</text>
+          <text x="680" y="102" text-anchor="middle" font-size="13" font-weight="600" fill="#4d4036">Live</text>
+          <text x="680" y="119" text-anchor="middle" font-size="11" fill="#b8b1a3">orfc.dev</text>
+        </g>
+      </svg>
+    </div>
+
+    <h2>Environment variables</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Key</th><th style="width: 100px;">Required</th><th>Used by</th></tr></thead>
+      <tbody>
+        <tr><td><code>DATABASE_URL</code></td><td><span style="color: #b32424; font-weight: 600;">prod</span></td><td>Neon connection string. Empty in dev → JSON file fallback.</td></tr>
+        <tr><td><code>NEXTAUTH_SECRET</code></td><td><span style="color: #b32424; font-weight: 600;">all</span></td><td>Session signing.</td></tr>
+        <tr><td><code>NEXTAUTH_URL</code></td><td><span style="color: #b1620e; font-weight: 600;">prod</span></td><td>Callback URL base. <code>https://orfc.dev</code> in prod.</td></tr>
+        <tr><td><code>RESEND_API_KEY</code></td><td><span style="color: #b1620e; font-weight: 600;">prod</span></td><td>OTP email + review notifications.</td></tr>
+        <tr><td><code>APP_URL</code></td><td><span style="color: #8c7d6b; font-weight: 600;">opt</span></td><td>URL embedded in API responses.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h2>Migration trip-wire</h2>
+    <p style="border-left: 3px solid #b32424; background: #fbe5e2; padding: 16px 20px; border-radius: 4px;">
+      Schema-touching PRs need <strong>db push before merge</strong>, not after. Vercel auto-deploys main on merge, so a code-and-schema PR that skips the db step ends up deployed against an old schema and the API blows up everywhere. Until the migration is wired into the deploy pipeline, <em>run it first</em>.
+    </p>
+
+    <h2>Running a migration</h2>
+    <pre><code># Option A — drizzle migrate (tracks applied migrations)
+npm run db:migrate
+
+# Option B — drizzle push (diffs schema.ts vs DB, no journal)
+npm run db:push
+
+# Option C — Vercel-managed env
+vercel env pull .env.production.local
+npx -y dotenv-cli -e .env.production.local -- npx drizzle-kit migrate</code></pre>
+  </section>
+
+  <!-- Changelog -->
+  <section class="page" id="changelog">
+    <div class="crumb">orfc handbook · 05</div>
+    <h1>Changelog</h1>
+    <p class="lede">Recent releases. Versions track <code>@orfc/cli</code>; the web app rolls forward continuously off <code>main</code>.</p>
+
+    <div style="display: grid; grid-template-columns: 100px 1fr; gap: 20px; padding: 18px 0; border-bottom: 1px solid var(--line);">
+      <div>
+        <div style="font-family: var(--serif); font-size: 20px; font-weight: 700;">v0.4.0</div>
+        <div style="font-size: 11px; color: var(--muted); margin-top: 3px;">2026-05-10</div>
+        <span style="display: inline-block; margin-top: 8px; font-size: 10.5px; padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-weight: 700; letter-spacing: 0.05em;">CURRENT</span>
+      </div>
+      <div>
+        <h3>HTML content type, folder tree, theme toggle</h3>
+        <p>CLI <code>orfc push design.html</code> detects content type from extension or sniff. HTML docs render through sanitize-html (after a brief detour through isomorphic-dompurify), inline SVG and styles preserved. Dashboard sidebar with folder tree + tag chips. <code>--folder</code> / <code>--tag</code> on push. Theme toggle in plan header for every viewer. Comment popover shows the snippet. Forced <code>::selection</code> highlight.</p>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 100px 1fr; gap: 20px; padding: 18px 0; border-bottom: 1px solid var(--line);">
+      <div>
+        <div style="font-family: var(--serif); font-size: 20px; font-weight: 700; color: var(--ink-soft);">v0.3.0</div>
+        <div style="font-size: 11px; color: var(--muted); margin-top: 3px;">2026-04-28</div>
+      </div>
+      <div>
+        <h3 style="color: var(--ink-soft);">Security pass + test infrastructure</h3>
+        <p>OTP via <code>crypto.randomInt</code>. SSRF defense on Slack webhooks. Plan GET enforces access rules. CSP + baseline headers. Vitest across cli + web with 63 security-focused tests on day one. CLI <code>push --update</code> applies <code>--access</code> / <code>--viewers</code>.</p>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 100px 1fr; gap: 20px; padding: 18px 0; border-bottom: 1px solid var(--line);">
+      <div>
+        <div style="font-family: var(--serif); font-size: 20px; font-weight: 700; color: var(--ink-soft);">v0.2.0</div>
+        <div style="font-size: 11px; color: var(--muted); margin-top: 3px;">2026-04-12</div>
+      </div>
+      <div>
+        <h3 style="color: var(--ink-soft);">Inline comments + version history</h3>
+        <p>Highlight any text → leave a threaded comment, anchored to the snippet. Real-time poll for new comments (15s). Every <code>push --update</code> snapshots the previous version with diff view. Web editor with Cmd+S save, replacing the CLI-only edit path.</p>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 100px 1fr; gap: 20px; padding: 18px 0;">
+      <div>
+        <div style="font-family: var(--serif); font-size: 20px; font-weight: 700; color: var(--ink-soft);">v0.1.0</div>
+        <div style="font-size: 11px; color: var(--muted); margin-top: 3px;">2026-03-22</div>
+      </div>
+      <div>
+        <h3 style="color: var(--ink-soft);">Initial public release</h3>
+        <p>CLI: <code>push</code>, <code>pull</code>, <code>list</code>, <code>delete</code>, <code>login</code>. Markdown render via react-markdown + remark-gfm. Mermaid block support. Access rules: authenticated, anyone, viewer-list. Postgres on Neon. OTP login via Resend.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+</div>

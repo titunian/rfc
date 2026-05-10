@@ -43,9 +43,13 @@ describe("sanitizeHtml", () => {
     expect(out).not.toContain("<iframe");
   });
 
-  it("strips <style> blocks (CSS injection vector)", () => {
+  it("keeps <style> blocks (needed for :target sub-page nav)", () => {
+    // <style> is intentionally allowed so HTML docs can ship
+    // self-contained CSS for in-page navigation. CSS can't execute
+    // JS, so the risk is bounded to layout/presentation drift
+    // within the doc's own container.
     const out = sanitizeHtml("<style>body{display:none}</style><p>Hi</p>");
-    expect(out).not.toContain("<style");
+    expect(out).toContain("<style>");
     expect(out).toContain("<p>Hi</p>");
   });
 
@@ -97,6 +101,15 @@ describe("sanitizeHtml", () => {
     expect(out).toMatch(/<div style="[^"]*color\s*:\s*red[^"]*"/);
     expect(out).toMatch(/padding\s*:\s*8px/);
     expect(out).toContain("Boxed");
+  });
+
+  it("preserves <style> blocks for in-page navigation", () => {
+    const out = sanitizeHtml(
+      "<style>.page { display: none } .page:target { display: block }</style><div class=\"page\" id=\"a\">A</div>"
+    );
+    expect(out).toContain("<style>");
+    expect(out).toContain(".page:target");
+    expect(out).toContain('id="a"');
   });
 });
 

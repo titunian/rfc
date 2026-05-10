@@ -18,8 +18,8 @@ const HTML_TAGS = [
   "h1", "h2", "h3", "h4", "h5", "h6", "header", "hgroup", "hr", "i",
   "img", "ins", "kbd", "li", "main", "mark", "nav", "ol", "p", "picture",
   "pre", "q", "s", "samp", "section", "small", "source", "span",
-  "strong", "sub", "summary", "sup", "table", "tbody", "td", "tfoot",
-  "th", "thead", "time", "tr", "u", "ul", "var", "wbr",
+  "strong", "style", "sub", "summary", "sup", "table", "tbody", "td",
+  "tfoot", "th", "thead", "time", "tr", "u", "ul", "var", "wbr",
 ];
 
 const SVG_TAGS = [
@@ -91,8 +91,10 @@ export function sanitizeHtml(dirty: string): string {
     // dangerous schemes still gets caught by allowedSchemes above.
     allowedStyles: undefined,
     // Drop content inside disallowed tags (don't show raw script
-    // bodies as text).
-    nonTextTags: ["style", "script", "textarea", "option", "noscript"],
+    // bodies as text). <style> is now an allowed tag so HTML docs
+    // can use :target / :has() for in-page navigation.
+    nonTextTags: ["script", "textarea", "option", "noscript"],
+    allowVulnerableTags: true,
   });
 }
 
