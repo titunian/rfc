@@ -1040,8 +1040,14 @@ export function PlanView({
             )}
           </div>
 
-          {/* Content area with auth gating */}
-          <div className="max-w-[68ch] mx-auto relative">
+          {/* Content area with auth gating. HTML docs author their own
+              layout, so we widen the container and drop typography overrides
+              for them; markdown keeps the 68ch reading column. */}
+          <div
+            className={`mx-auto relative ${
+              contentType === "html" ? "max-w-[940px]" : "max-w-[68ch]"
+            }`}
+          >
             {showAuthGate && (
               <div className="relative">
                 {/* Blurred preview — only shows truncated server content */}
@@ -1059,19 +1065,20 @@ export function PlanView({
                     overflow: "hidden",
                   }}
                 >
-                  <div className="prose">
-                    {contentType === "html" ? (
-                      <div
-                        dangerouslySetInnerHTML={{
-                          __html: sanitizeHtml(plan.content),
-                        }}
-                      />
-                    ) : (
+                  {contentType === "html" ? (
+                    <div
+                      className="orfc-html-doc"
+                      dangerouslySetInnerHTML={{
+                        __html: sanitizeHtml(plan.content),
+                      }}
+                    />
+                  ) : (
+                    <div className="prose">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {plan.content}
                       </ReactMarkdown>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Overlay — differentiate signed-in-no-access vs not-signed-in */}
@@ -1145,7 +1152,7 @@ export function PlanView({
             {canView && contentType === "html" && (
               <div
                 ref={contentRef}
-                className="prose"
+                className="orfc-html-doc"
                 dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
               />
             )}
