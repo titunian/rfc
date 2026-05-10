@@ -26,10 +26,15 @@ const getPlan = cache(async (slug: string) => {
       slug: plan.slug,
       title: plan.title,
       content: plan.content,
+      contentType: (plan.contentType === "html" ? "html" : "markdown") as
+        | "markdown"
+        | "html",
       authorName: plan.authorName,
       authorEmail: plan.authorEmail,
       accessRule: plan.accessRule,
       allowedViewers: plan.allowedViewers,
+      folderPath: plan.folderPath,
+      tags: plan.tags,
       currentVersion: plan.currentVersion,
       createdAt: plan.createdAt.toISOString(),
       expiresAt: plan.expiresAt?.toISOString() || null,
@@ -67,7 +72,7 @@ export async function generateMetadata({
   const title = plan.title ? `${plan.title} — orfc` : "Untitled Plan — orfc";
 
   const description = plan.content
-    ? extractDescription(plan.content)
+    ? extractDescription(plan.content, 155, plan.contentType ?? "markdown")
     : "A plan shared on orfc — open request for comments.";
 
   return {
@@ -140,10 +145,13 @@ export default async function PlanPage({
         slug: plan.slug,
         title: plan.title,
         content,
+        contentType: (plan.contentType ?? "markdown") as "markdown" | "html",
         authorName: plan.authorName,
         authorEmail: isOwner ? plan.authorEmail : null,
         accessRule: plan.accessRule || "authenticated",
         allowedViewers: isOwner ? plan.allowedViewers : null,
+        folderPath: serverAuthed ? (plan.folderPath ?? "") : "",
+        tags: serverAuthed ? (plan.tags ?? []) : [],
         currentVersion: plan.currentVersion,
         createdAt: plan.createdAt,
       }}

@@ -1,8 +1,44 @@
 import { readFileSync } from "fs";
-import { basename, resolve } from "path";
+import { basename, extname, resolve } from "path";
 import { ApiClient } from "../lib/api";
 import { loadConfig } from "../lib/config";
 import { copyToClipboard } from "../lib/clipboard";
+
+type ContentType = "markdown" | "html";
+
+// Sniff the content type. Filename extension wins (.html/.htm), then a
+// quick header check for <!doctype html> / <html / <body — covers the
+// case where someone pipes HTML in via stdin without an extension.
+export function detectContentType(file: string | undefined, content: string): ContentType {
+  if (file) {
+    const ext = extname(file).toLowerCase();
+    if (ext === ".html" || ext === ".htm") return "html";
+    if (ext === ".md" || ext === ".markdown") return "markdown";
+  }
+  const head = content.trimStart().slice(0, 500).toLowerCase();
+  if (
+    head.startsWith("<!doctype html") ||
+    head.startsWith("<html") ||
+    /<\s*(body|head|article)\b/.test(head)
+  ) {
+    return "html";
+  }
+  return "markdown";
+}
+
+export function inferTitleFromHtml(html: string): string | null {
+  const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+  if (titleMatch) {
+    const t = titleMatch[1].replace(/\s+/g, " ").trim();
+    if (t) return t;
+  }
+  const h1Match = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+  if (h1Match) {
+    const t = h1Match[1].replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+    if (t) return t;
+  }
+  return null;
+}
 
 export async function pushCommand(
   file: string | undefined,
@@ -15,6 +51,8 @@ export async function pushCommand(
     update?: string;
     to?: string;
     slack?: string;
+    folder?: string;
+    tag?: string;
   }
 ) {
   let content: string;
@@ -28,7 +66,7 @@ export async function pushCommand(
       console.error(`  ✗ Could not read file: ${file}`);
       process.exit(1);
     }
-    inferredTitle = basename(file, ".md");
+    inferredTitle = basename(file, extname(file));
   } else if (!process.stdin.isTTY) {
     const chunks: Buffer[] = [];
     for await (const chunk of process.stdin) {
@@ -44,11 +82,19 @@ export async function pushCommand(
     process.exit(1);
   }
 
-  // Infer title from first heading
+  const contentType = detectContentType(file, content);
+
+  // Infer title from the document. Markdown: first "# Heading". HTML:
+  // <title> or first <h1>. Fall back to the basename inferred above.
   if (!options.title) {
-    const headingMatch = content.match(/^#\s+(.+)$/m);
-    if (headingMatch) {
-      inferredTitle = headingMatch[1].trim();
+    if (contentType === "html") {
+      const fromHtml = inferTitleFromHtml(content);
+      if (fromHtml) inferredTitle = fromHtml;
+    } else {
+      const headingMatch = content.match(/^#\s+(.+)$/m);
+      if (headingMatch) {
+        inferredTitle = headingMatch[1].trim();
+      }
     }
   }
 
@@ -56,6 +102,13 @@ export async function pushCommand(
   const title = options.title || inferredTitle || "Untitled Plan";
   const accessRule = options.access || config.defaultAccess || "authenticated";
   const expiresIn = options.expires || config.defaultExpiry;
+  const folderPath = options.folder;
+  const tags = options.tag
+    ? options.tag
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean)
+    : undefined;
 
   try {
     const api = new ApiClient();
@@ -70,22 +123,44 @@ export async function pushCommand(
         console.error(`\n  ✗ Plan not found: ${options.update}`);
         process.exit(1);
       }
-      const updateData: { title: string; content: string; accessRule?: string; allowedViewers?: string | null } = { title, content };
+      const updateData: {
+        title: string;
+        content: string;
+        contentType?: "markdown" | "html";
+        accessRule?: string;
+        allowedViewers?: string | null;
+        folderPath?: string;
+        tags?: string[];
+      } = { title, content, contentType };
       if (options.access) updateData.accessRule = accessRule;
       if (options.viewers !== undefined) updateData.allowedViewers = options.viewers || null;
+      if (folderPath !== undefined) updateData.folderPath = folderPath;
+      if (tags !== undefined) updateData.tags = tags;
       plan = await api.updatePlan(match.id, updateData);
       console.log(`\n  ✓ Updated: ${plan.url}`);
     } else {
       plan = await api.createPlan({
         title,
         content,
+        contentType,
         accessRule,
         allowedViewers: options.viewers,
         expiresIn,
+        ...(folderPath !== undefined && { folderPath }),
+        ...(tags !== undefined && { tags }),
       });
       console.log(`\n  ✓ Published: ${plan.url}`);
+      if (contentType === "html") {
+        console.log("  ✓ Type: HTML (rendered sanitized)");
+      }
       if (options.viewers) {
         console.log(`  ✓ Restricted to: ${options.viewers}`);
+      }
+      if (folderPath) {
+        console.log(`  ✓ Folder: ${folderPath}`);
+      }
+      if (tags && tags.length > 0) {
+        console.log(`  ✓ Tags: ${tags.join(", ")}`);
       }
     }
 

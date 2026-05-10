@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Force a visible selection highlight. Browser defaults can come
+   through as nearly-invisible on warm-white themes, and Tailwind's
+   preflight + iA-Writer-style CSS resets sometimes flatten the
+   selection background to 'inherit' which renders transparent
+   inside themed surfaces. Pin it to the accent token so docs in
+   either light or dark mode show clearly when text is grabbed. */
+::selection {
+  background: color-mix(in oklab, var(--accent) 26%, transparent);
+  color: var(--fg);
+}
+::-moz-selection {
+  background: color-mix(in oklab, var(--accent) 26%, transparent);
+  color: var(--fg);
+}
+
 :root {
   --bg: #ffffff;
   --bg-warm: #faf9f7;

@@ -5,6 +5,7 @@ import { useSession, signOut } from "next-auth/react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { CommentSidebar } from "./comment-sidebar";
 import { SelectionPopover } from "./selection-popover";
 import { MermaidBlock } from "./mermaid-block";
@@ -17,10 +18,13 @@ type Plan = {
   slug: string;
   title: string | null;
   content: string;
+  contentType?: "markdown" | "html";
   authorName: string | null;
   authorEmail: string | null;
   accessRule: string;
   allowedViewers?: string | null;
+  folderPath?: string;
+  tags?: string[];
   currentVersion?: number;
   createdAt: string;
 };
@@ -210,19 +214,32 @@ export function PlanView({
 
   // Strip first H1 from content if it matches plan title (avoids double title)
   const activeTitle = previewVersion ? previewVersion.title : plan.title;
+  const contentType = plan.contentType ?? "markdown";
   const displayContent = useMemo(() => {
     const content = previewVersion ? previewVersion.content : plan.content;
     const title = previewVersion ? previewVersion.title : plan.title;
     if (!title || !content) return content;
+    // Markdown-only: strip a leading "# Title" that duplicates plan.title.
+    // For HTML the title comes from <title>/<h1> on the server side, and
+    // we leave the body untouched to avoid mangling user markup.
+    if (contentType !== "markdown") return content;
     const match = content.match(/^#\s+(.+?)(?:\n|$)/);
     if (match && match[1].trim() === title.trim()) {
       return content.replace(/^#[^\n]+\n?/, "").trimStart();
     }
     return content;
-  }, [plan.content, plan.title, previewVersion]);
+  }, [plan.content, plan.title, previewVersion, contentType]);
 
-  // Extract TOC from content
-  const toc = useMemo(() => extractToc(displayContent), [displayContent]);
+  // Extract TOC from content (markdown only — HTML docs skip TOC for now)
+  const toc = useMemo(
+    () => (contentType === "markdown" ? extractToc(displayContent) : []),
+    [displayContent, contentType]
+  );
+
+  const sanitizedHtml = useMemo(
+    () => (contentType === "html" ? sanitizeHtml(displayContent) : ""),
+    [displayContent, contentType]
+  );
 
   // TOC scroll spy
   useEffect(() => {
@@ -534,6 +551,50 @@ export function PlanView({
 
           {/* Right cluster */}
           <div className="flex items-center gap-2 min-w-0">
+            {/* Theme toggle — visible to every viewer (auth or not), so HTML
+                docs can be read in light or dark even by signed-out readers. */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              title={
+                themeMounted
+                  ? `Switch to ${theme === "dark" ? "light" : "dark"} mode`
+                  : "Toggle theme"
+              }
+              aria-label="Toggle color theme"
+              className="h-8 w-8 rounded-lg text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[var(--button-hover)] transition-colors flex items-center justify-center"
+            >
+              {themeMounted && theme === "dark" ? (
+                <svg
+                  className="w-[15px] h-[15px]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.7}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="w-[15px] h-[15px]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.7}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21.752 15.002A9.72 9.72 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"
+                  />
+                </svg>
+              )}
+            </button>
+
             {status !== "loading" && !isAuthenticated && (
               <a
                 href={`/auth/signin?callbackUrl=/p/${plan.slug}`}
@@ -546,7 +607,7 @@ export function PlanView({
             {/* Icon button cluster */}
             {canView && !editing && (
               <div className="flex items-center gap-0.5">
-                {isOwner && (
+                {isOwner && contentType === "markdown" && (
                   <button
                     onClick={() => setEditing(true)}
                     title="Edit document"
@@ -983,11 +1044,16 @@ export function PlanView({
 
           {/* Title block */}
           <div className="max-w-[68ch] mx-auto mb-6">
+            {plan.folderPath && (
+              <div className="text-[12px] font-mono text-[var(--muted)] mb-2 truncate">
+                {plan.folderPath}/
+              </div>
+            )}
             <h1 className="text-[1.25rem] sm:text-[1.5rem] font-semibold tracking-[-0.02em] font-sans leading-[1.3] mb-2 text-[var(--fg)]">
               {activeTitle || "Untitled"}
             </h1>
             {!previewVersion && (
-            <div className="flex items-center gap-2 text-[12px] text-[var(--muted)] font-sans">
+            <div className="flex items-center gap-2 text-[12px] text-[var(--muted)] font-sans flex-wrap">
               {authorDisplay && (
                 <span className="font-medium text-[var(--fg-secondary)]">
                   {authorDisplay}
@@ -999,12 +1065,33 @@ export function PlanView({
                 </span>
               )}
               <time>{formatDate(plan.createdAt)}</time>
+              {plan.tags && plan.tags.length > 0 && (
+                <>
+                  <span className="text-[var(--border)]" aria-hidden="true">·</span>
+                  <span className="flex items-center gap-1.5 flex-wrap">
+                    {plan.tags.map((t) => (
+                      <span
+                        key={t}
+                        className="text-[11px] font-mono text-[var(--muted)] bg-[var(--bg)] border border-[var(--border-light)] px-1.5 py-0.5 rounded-full"
+                      >
+                        #{t}
+                      </span>
+                    ))}
+                  </span>
+                </>
+              )}
             </div>
             )}
           </div>
 
-          {/* Content area with auth gating */}
-          <div className="max-w-[68ch] mx-auto relative">
+          {/* Content area with auth gating. HTML docs author their own
+              layout, so we widen the container and drop typography overrides
+              for them; markdown keeps the 68ch reading column. */}
+          <div
+            className={`mx-auto relative ${
+              contentType === "html" ? "max-w-[940px]" : "max-w-[68ch]"
+            }`}
+          >
             {showAuthGate && (
               <div className="relative">
                 {/* Blurred preview — only shows truncated server content */}
@@ -1022,11 +1109,20 @@ export function PlanView({
                     overflow: "hidden",
                   }}
                 >
-                  <div className="prose">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {plan.content}
-                    </ReactMarkdown>
-                  </div>
+                  {contentType === "html" ? (
+                    <div
+                      className="orfc-html-doc"
+                      dangerouslySetInnerHTML={{
+                        __html: sanitizeHtml(plan.content),
+                      }}
+                    />
+                  ) : (
+                    <div className="prose">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {plan.content}
+                      </ReactMarkdown>
+                    </div>
+                  )}
                 </div>
 
                 {/* Overlay — differentiate signed-in-no-access vs not-signed-in */}
@@ -1097,7 +1193,15 @@ export function PlanView({
               </div>
             )}
 
-            {canView && (
+            {canView && contentType === "html" && (
+              <div
+                ref={contentRef}
+                className="orfc-html-doc"
+                dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+              />
+            )}
+
+            {canView && contentType === "markdown" && (
               <div ref={contentRef} className="prose">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
@@ -1228,6 +1332,7 @@ export function PlanView({
         <div ref={popoverRef}>
           <SelectionPopover
             rect={selection.rect}
+            selectedText={selection.text}
             onComment={handleAddComment}
             onDismiss={() => setSelection(null)}
           />

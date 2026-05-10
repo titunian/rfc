@@ -1,0 +1,421 @@
+<div style="
+  --doc-bg: #fbfaf7;
+  --doc-surface: #ffffff;
+  --doc-ink: #1b1b1f;
+  --doc-ink-soft: #4a4a52;
+  --doc-muted: #8b8b94;
+  --doc-line: #ececec;
+  --doc-line-soft: #f4f3ef;
+  --doc-accent: #2c3e8c;
+  --doc-accent-soft: #eef0fa;
+  --doc-positive: #16713a;
+  --doc-warn: #b1620e;
+  --doc-danger: #b32424;
+  --doc-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  --doc-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Inter, sans-serif;
+  --doc-serif: 'Charter', 'Iowan Old Style', 'Source Serif Pro', Georgia, serif;
+  background: var(--doc-bg);
+  color: var(--doc-ink);
+  font-family: var(--doc-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  padding: 56px 56px 64px;
+  margin: 8px 0 24px;
+  border-radius: 14px;
+  border: 1px solid var(--doc-line);
+  font-feature-settings: 'ss01', 'cv11';
+">
+
+<!-- Masthead -->
+<div style="display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 14px; margin-bottom: 28px; border-bottom: 1px solid var(--doc-line);">
+  <div style="display: flex; align-items: center; gap: 10px; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--doc-muted); font-weight: 600;">
+    <span style="display: inline-block; width: 6px; height: 6px; border-radius: 999px; background: var(--doc-accent);"></span>
+    <span>Platform · RFC-0042</span>
+  </div>
+  <div style="font-size: 11px; letter-spacing: 0.04em; color: var(--doc-muted); font-variant-numeric: tabular-nums;">10 May 2026 · v3 · DRAFT</div>
+</div>
+
+<h1 id="orfc-q2-platform-plan" style="font-family: var(--doc-serif); font-size: 44px; line-height: 1.05; letter-spacing: -0.022em; font-weight: 700; margin: 0 0 12px; color: var(--doc-ink);">
+  An RFC tool for documents that aren't markdown.
+</h1>
+
+<p style="font-family: var(--doc-serif); font-size: 19.5px; line-height: 1.5; color: var(--doc-ink-soft); margin: 0 0 12px; letter-spacing: -0.005em;">
+  We've outgrown markdown-as-the-only-content-type. This RFC proposes
+  first-class HTML support, the redesigned dashboard, and a roadmap to
+  ship the next three quarters on a single artifact graph.
+</p>
+
+<p style="font-size: 13.5px; color: var(--doc-muted); margin: 0 0 36px;">
+  By <span style="color: var(--doc-ink-soft); font-weight: 500;">Abhishek Damodara</span>
+  · Reviewers <span style="color: var(--doc-ink-soft); font-weight: 500;">@platform</span>
+  · Decision by <span style="color: var(--doc-ink-soft); font-weight: 500;">2026-05-24</span>
+</p>
+
+<!-- KPI strip -->
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin: 0 0 40px; border: 1px solid var(--doc-line); border-radius: 12px; background: var(--doc-surface); overflow: hidden;">
+  <div style="padding: 20px 22px; border-right: 1px solid var(--doc-line);">
+    <div style="font-size: 10.5px; color: var(--doc-muted); text-transform: uppercase; letter-spacing: 0.13em; font-weight: 600;">Active docs</div>
+    <div style="font-size: 28px; font-family: var(--doc-serif); font-weight: 700; letter-spacing: -0.025em; margin: 6px 0 2px; font-variant-numeric: tabular-nums;">1,284</div>
+    <div style="font-size: 12px; color: var(--doc-positive); font-variant-numeric: tabular-nums;">▲ 23% MoM</div>
+  </div>
+  <div style="padding: 20px 22px; border-right: 1px solid var(--doc-line);">
+    <div style="font-size: 10.5px; color: var(--doc-muted); text-transform: uppercase; letter-spacing: 0.13em; font-weight: 600;">Comments / wk</div>
+    <div style="font-size: 28px; font-family: var(--doc-serif); font-weight: 700; letter-spacing: -0.025em; margin: 6px 0 2px; font-variant-numeric: tabular-nums;">3,109</div>
+    <div style="font-size: 12px; color: var(--doc-positive); font-variant-numeric: tabular-nums;">▲ 41% MoM</div>
+  </div>
+  <div style="padding: 20px 22px; border-right: 1px solid var(--doc-line);">
+    <div style="font-size: 10.5px; color: var(--doc-muted); text-transform: uppercase; letter-spacing: 0.13em; font-weight: 600;">Time-to-ship</div>
+    <div style="font-size: 28px; font-family: var(--doc-serif); font-weight: 700; letter-spacing: -0.025em; margin: 6px 0 2px; font-variant-numeric: tabular-nums;">4.2<span style="font-size: 16px; color: var(--doc-muted); margin-left: 1px;">d</span></div>
+    <div style="font-size: 12px; color: var(--doc-positive); font-variant-numeric: tabular-nums;">▼ 1.3d MoM</div>
+  </div>
+  <div style="padding: 20px 22px;">
+    <div style="font-size: 10.5px; color: var(--doc-muted); text-transform: uppercase; letter-spacing: 0.13em; font-weight: 600;">NPS</div>
+    <div style="font-size: 28px; font-family: var(--doc-serif); font-weight: 700; letter-spacing: -0.025em; margin: 6px 0 2px; font-variant-numeric: tabular-nums;">62</div>
+    <div style="font-size: 12px; color: var(--doc-danger); font-variant-numeric: tabular-nums;">▼ 4 MoM</div>
+  </div>
+</div>
+
+<!-- Adoption chart -->
+<h2 id="adoption" style="font-family: var(--doc-serif); font-size: 24px; letter-spacing: -0.015em; font-weight: 700; margin: 40px 0 4px; color: var(--doc-ink);">Adoption, last 12 weeks</h2>
+<p style="margin: 0 0 18px; color: var(--doc-ink-soft); font-size: 14.5px;">
+  Document creation has compounded since the team-folders launch in week 4. The dotted line is the comments-per-doc ratio; we want to keep it above 2.0 to indicate real review, not just publication.
+</p>
+
+<div style="border: 1px solid var(--doc-line); border-radius: 12px; padding: 20px 18px 8px; background: var(--doc-surface);">
+<svg viewBox="0 0 720 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Weekly active documents and comments-per-doc ratio over 12 weeks" style="width: 100%; height: auto; display: block; color: #1b1b1f;">
+  <defs>
+    <linearGradient id="line-fill" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#2c3e8c" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#2c3e8c" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <g stroke="#1b1b1f" stroke-opacity="0.07" stroke-width="1">
+    <line x1="48" y1="32"  x2="704" y2="32"/>
+    <line x1="48" y1="80"  x2="704" y2="80"/>
+    <line x1="48" y1="128" x2="704" y2="128"/>
+    <line x1="48" y1="176" x2="704" y2="176"/>
+  </g>
+
+  <g font-size="11" fill="#8b8b94" font-family="ui-sans-serif, system-ui">
+    <text x="40" y="36" text-anchor="end">1.5k</text>
+    <text x="40" y="84" text-anchor="end">1.0k</text>
+    <text x="40" y="132" text-anchor="end">500</text>
+    <text x="40" y="180" text-anchor="end">0</text>
+  </g>
+
+  <path d="M 60,168 L 114,160 L 168,150 L 222,148 L 276,134 L 330,124 L 384,112 L 438,98 L 492,82 L 546,70 L 600,56 L 654,44 L 654,200 L 60,200 Z"
+        fill="url(#line-fill)"/>
+
+  <path d="M 60,168 L 114,160 L 168,150 L 222,148 L 276,134 L 330,124 L 384,112 L 438,98 L 492,82 L 546,70 L 600,56 L 654,44"
+        fill="none" stroke="#2c3e8c" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <g fill="#2c3e8c">
+    <circle cx="60"  cy="168" r="3"/>
+    <circle cx="114" cy="160" r="3"/>
+    <circle cx="168" cy="150" r="3"/>
+    <circle cx="222" cy="148" r="3"/>
+    <circle cx="276" cy="134" r="3"/>
+    <circle cx="330" cy="124" r="3"/>
+    <circle cx="384" cy="112" r="3"/>
+    <circle cx="438" cy="98"  r="3"/>
+    <circle cx="492" cy="82"  r="3"/>
+    <circle cx="546" cy="70"  r="3"/>
+    <circle cx="600" cy="56"  r="3"/>
+    <circle cx="654" cy="44"  r="4.5" fill="#1b1b1f" stroke="#2c3e8c" stroke-width="2.5"/>
+  </g>
+
+  <path d="M 60,140 L 114,134 L 168,130 L 222,124 L 276,118 L 330,112 L 384,104 L 438,98 L 492,94 L 546,88 L 600,80 L 654,76"
+        fill="none" stroke="#1b1b1f" stroke-opacity="0.4" stroke-width="1.5" stroke-dasharray="3 4" stroke-linecap="round"/>
+
+  <g font-size="11" fill="#8b8b94" font-family="ui-sans-serif, system-ui">
+    <text x="60"  y="220" text-anchor="middle">W1</text>
+    <text x="168" y="220" text-anchor="middle">W3</text>
+    <text x="276" y="220" text-anchor="middle">W5</text>
+    <text x="384" y="220" text-anchor="middle">W7</text>
+    <text x="492" y="220" text-anchor="middle">W9</text>
+    <text x="600" y="220" text-anchor="middle">W11</text>
+  </g>
+
+  <g>
+    <line x1="222" y1="148" x2="222" y2="32" stroke="#1b1b1f" stroke-opacity="0.18" stroke-width="1" stroke-dasharray="2 3"/>
+    <rect x="172" y="14" width="120" height="22" rx="11" fill="#fff" stroke="#1b1b1f" stroke-opacity="0.14"/>
+    <text x="232" y="29" text-anchor="middle" font-size="11" fill="#4a4a52" font-family="ui-sans-serif, system-ui">team folders ship</text>
+  </g>
+</svg>
+</div>
+
+<!-- Activity + Donut row -->
+<div style="display: grid; grid-template-columns: 1.25fr 1fr; gap: 20px; margin: 28px 0 8px;">
+
+  <!-- Bar chart: activity by day -->
+  <div style="border: 1px solid var(--doc-line); border-radius: 12px; padding: 20px 18px 14px; background: var(--doc-surface);">
+    <div style="font-size: 12px; font-weight: 600; color: var(--doc-ink); margin-bottom: 14px; letter-spacing: -0.005em;">Comments by day of week</div>
+    <svg viewBox="0 0 420 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Comments per day of week" style="width: 100%; height: auto; display: block;">
+      <g stroke="#1b1b1f" stroke-opacity="0.07" stroke-width="1">
+        <line x1="40" y1="20"  x2="400" y2="20"/>
+        <line x1="40" y1="70"  x2="400" y2="70"/>
+        <line x1="40" y1="120" x2="400" y2="120"/>
+        <line x1="40" y1="170" x2="400" y2="170"/>
+      </g>
+      <g font-size="10" fill="#8b8b94" font-family="ui-sans-serif, system-ui">
+        <text x="34" y="24" text-anchor="end">600</text>
+        <text x="34" y="74" text-anchor="end">400</text>
+        <text x="34" y="124" text-anchor="end">200</text>
+        <text x="34" y="174" text-anchor="end">0</text>
+      </g>
+      <g>
+        <rect x="56"  y="100" width="36" height="70"  rx="3" fill="#2c3e8c" opacity="0.4"/>
+        <rect x="106" y="40"  width="36" height="130" rx="3" fill="#2c3e8c"/>
+        <rect x="156" y="58"  width="36" height="112" rx="3" fill="#2c3e8c" opacity="0.85"/>
+        <rect x="206" y="72"  width="36" height="98"  rx="3" fill="#2c3e8c" opacity="0.7"/>
+        <rect x="256" y="80"  width="36" height="90"  rx="3" fill="#2c3e8c" opacity="0.55"/>
+        <rect x="306" y="136" width="36" height="34"  rx="3" fill="#2c3e8c" opacity="0.3"/>
+        <rect x="356" y="150" width="36" height="20"  rx="3" fill="#2c3e8c" opacity="0.25"/>
+      </g>
+      <g font-size="11" font-weight="600" fill="#1b1b1f" font-family="ui-sans-serif, system-ui">
+        <text x="74"  y="93"  text-anchor="middle">280</text>
+        <text x="124" y="33"  text-anchor="middle">540</text>
+        <text x="174" y="51"  text-anchor="middle">468</text>
+        <text x="224" y="65"  text-anchor="middle">412</text>
+        <text x="274" y="73"  text-anchor="middle">374</text>
+        <text x="324" y="129" text-anchor="middle">142</text>
+        <text x="374" y="143" text-anchor="middle">90</text>
+      </g>
+      <g font-size="11" fill="#8b8b94" font-family="ui-sans-serif, system-ui">
+        <text x="74"  y="190" text-anchor="middle">Mon</text>
+        <text x="124" y="190" text-anchor="middle" font-weight="600" fill="#1b1b1f">Tue</text>
+        <text x="174" y="190" text-anchor="middle">Wed</text>
+        <text x="224" y="190" text-anchor="middle">Thu</text>
+        <text x="274" y="190" text-anchor="middle">Fri</text>
+        <text x="324" y="190" text-anchor="middle">Sat</text>
+        <text x="374" y="190" text-anchor="middle">Sun</text>
+      </g>
+    </svg>
+  </div>
+
+  <!-- Donut: doc type split -->
+  <div style="border: 1px solid var(--doc-line); border-radius: 12px; padding: 20px 18px; background: var(--doc-surface); display: flex; flex-direction: column; gap: 14px;">
+    <div style="font-size: 12px; font-weight: 600; color: var(--doc-ink); letter-spacing: -0.005em;">Document type mix</div>
+    <div style="display: flex; align-items: center; gap: 18px;">
+      <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Document type breakdown" style="width: 130px; height: 130px; flex-shrink: 0;">
+        <circle cx="60" cy="60" r="46" fill="none" stroke="#ececec" stroke-width="13"/>
+        <circle cx="60" cy="60" r="46" fill="none" stroke="#2c3e8c" stroke-width="13"
+                stroke-dasharray="205 289" stroke-dashoffset="0" transform="rotate(-90 60 60)" stroke-linecap="round"/>
+        <circle cx="60" cy="60" r="46" fill="none" stroke="#7a4cb3" stroke-width="13"
+                stroke-dasharray="64 289" stroke-dashoffset="-205" transform="rotate(-90 60 60)" stroke-linecap="round"/>
+        <text x="60" y="58" text-anchor="middle" font-size="22" font-weight="700" fill="#1b1b1f" font-family="Charter, Georgia, serif">1,284</text>
+        <text x="60" y="76" text-anchor="middle" font-size="9.5" fill="#8b8b94" font-family="ui-sans-serif, system-ui" letter-spacing="0.05em">TOTAL DOCS</text>
+      </svg>
+      <div style="display: flex; flex-direction: column; gap: 9px; font-size: 12.5px; flex: 1;">
+        <div style="display: flex; align-items: center; gap: 9px;">
+          <span style="width: 8px; height: 8px; border-radius: 2px; background: #2c3e8c; display: inline-block;"></span>
+          <span style="color: #4a4a52;">Markdown</span>
+          <span style="margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 600;">71%</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 9px;">
+          <span style="width: 8px; height: 8px; border-radius: 2px; background: #7a4cb3; display: inline-block;"></span>
+          <span style="color: #4a4a52;">HTML <em style="color: #8b8b94; font-style: normal; font-size: 11px;">(new)</em></span>
+          <span style="margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 600;">22%</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 9px;">
+          <span style="width: 8px; height: 8px; border-radius: 2px; background: #ececec; display: inline-block;"></span>
+          <span style="color: #4a4a52;">Other / mixed</span>
+          <span style="margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 600;">7%</span>
+        </div>
+      </div>
+    </div>
+    <div style="font-size: 12px; color: var(--doc-muted); padding-top: 10px; border-top: 1px solid var(--doc-line-soft); line-height: 1.5;">
+      HTML reached 22% in week 6 of beta — exceeded the 15% target for GA.
+    </div>
+  </div>
+</div>
+
+<p style="margin: 18px 0 36px; color: var(--doc-ink-soft); font-size: 14.5px;">
+  Tuesday is the new "review day" — likely a side-effect of the email
+  digest landing Monday at 06:00. We should keep it and add a Friday
+  digest for owners with open feedback.
+</p>
+
+<!-- Proposal -->
+<h2 id="proposal" style="font-family: var(--doc-serif); font-size: 24px; letter-spacing: -0.015em; font-weight: 700; margin: 0 0 14px; color: var(--doc-ink);">The proposal</h2>
+
+<p style="margin: 0 0 16px;">Three workstreams, sequenced so each unblocks the next.</p>
+
+<ol style="padding-left: 0; list-style: none; counter-reset: prop; margin: 0 0 32px;">
+  <li style="counter-increment: prop; padding: 18px 20px; border: 1px solid var(--doc-line); border-radius: 10px; margin-bottom: 10px; background: var(--doc-surface); display: grid; grid-template-columns: 32px 1fr auto; gap: 14px; align-items: start;">
+    <span style="font-family: var(--doc-serif); font-size: 22px; font-weight: 700; color: var(--doc-accent); line-height: 1; letter-spacing: -0.02em;">01</span>
+    <div>
+      <div style="font-weight: 600; color: var(--doc-ink); margin-bottom: 4px;">Content types</div>
+      <div style="font-size: 13.5px; color: var(--doc-ink-soft); line-height: 1.55;">
+        Ship <code style="font-family: var(--doc-mono); font-size: 12.5px; background: var(--doc-line-soft); padding: 1px 6px; border-radius: 4px;">contentType: "html" | "markdown"</code>
+        on the plans table. Sanitize on render via DOMPurify. Bypass the markdown pipeline when html.
+      </div>
+    </div>
+    <span style="font-size: 11px; padding: 4px 10px; border-radius: 999px; background: #e7f3ec; color: var(--doc-positive); font-weight: 600; letter-spacing: 0.02em; align-self: center;">SHIPPED</span>
+  </li>
+  <li style="counter-increment: prop; padding: 18px 20px; border: 1px solid var(--doc-line); border-radius: 10px; margin-bottom: 10px; background: var(--doc-surface); display: grid; grid-template-columns: 32px 1fr auto; gap: 14px; align-items: start;">
+    <span style="font-family: var(--doc-serif); font-size: 22px; font-weight: 700; color: var(--doc-accent); line-height: 1; letter-spacing: -0.02em;">02</span>
+    <div>
+      <div style="font-weight: 600; color: var(--doc-ink); margin-bottom: 4px;">Block model</div>
+      <div style="font-size: 13.5px; color: var(--doc-ink-soft); line-height: 1.55;">
+        Convert both renderers to a shared block AST so comments anchor to stable IDs instead of text snippets.
+      </div>
+    </div>
+    <span style="font-size: 11px; padding: 4px 10px; border-radius: 999px; background: var(--doc-accent-soft); color: var(--doc-accent); font-weight: 600; letter-spacing: 0.02em; align-self: center;">IN&nbsp;DESIGN</span>
+  </li>
+  <li style="counter-increment: prop; padding: 18px 20px; border: 1px solid var(--doc-line); border-radius: 10px; background: var(--doc-surface); display: grid; grid-template-columns: 32px 1fr auto; gap: 14px; align-items: start;">
+    <span style="font-family: var(--doc-serif); font-size: 22px; font-weight: 700; color: var(--doc-accent); line-height: 1; letter-spacing: -0.02em;">03</span>
+    <div>
+      <div style="font-weight: 600; color: var(--doc-ink); margin-bottom: 4px;">Inline diff v2</div>
+      <div style="font-size: 13.5px; color: var(--doc-ink-soft); line-height: 1.55;">
+        Replace line-LCS with token-aware diff that handles HTML attribute reordering. Behind <code style="font-family: var(--doc-mono); font-size: 12.5px; background: var(--doc-line-soft); padding: 1px 6px; border-radius: 4px;">ORFC_DIFF_V2</code>, off by default.
+      </div>
+    </div>
+    <span style="font-size: 11px; padding: 4px 10px; border-radius: 999px; background: #fcf3e2; color: var(--doc-warn); font-weight: 600; letter-spacing: 0.02em; align-self: center;">PLANNED</span>
+  </li>
+</ol>
+
+<!-- Pull quote -->
+<blockquote style="margin: 32px 0; padding: 22px 28px; border-left: 3px solid var(--doc-accent); background: var(--doc-accent-soft); border-radius: 4px;">
+  <p style="margin: 0; font-family: var(--doc-serif); font-size: 19px; line-height: 1.45; color: var(--doc-ink); letter-spacing: -0.005em;">
+    "The doc <em>is</em> the artifact. We've spent two years pretending
+    it's the pull request — every time the doc lost it was because the
+    PR didn't carry intent. HTML support is intent."
+  </p>
+  <footer style="margin-top: 10px; font-size: 12px; color: var(--doc-muted); font-style: normal;">
+    — internal review notes, 2026-04-30
+  </footer>
+</blockquote>
+
+<!-- Risk table -->
+<h2 id="risks" style="font-family: var(--doc-serif); font-size: 24px; letter-spacing: -0.015em; font-weight: 700; margin: 32px 0 14px; color: var(--doc-ink);">Risks &amp; mitigations</h2>
+
+<div style="border: 1px solid var(--doc-line); border-radius: 10px; overflow: hidden; background: var(--doc-surface); margin-bottom: 32px;">
+  <table style="width: 100%; border-collapse: collapse; font-size: 13.5px;">
+    <thead>
+      <tr style="background: var(--doc-line-soft);">
+        <th style="text-align: left; padding: 12px 18px; font-weight: 600; color: var(--doc-ink); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase;">Risk</th>
+        <th style="text-align: left; padding: 12px 18px; font-weight: 600; color: var(--doc-ink); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; width: 110px;">Likelihood</th>
+        <th style="text-align: left; padding: 12px 18px; font-weight: 600; color: var(--doc-ink); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase;">Mitigation</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-top: 1px solid var(--doc-line);">
+        <td style="padding: 14px 18px; vertical-align: top; color: var(--doc-ink);">HTML XSS via missed sanitizer rule</td>
+        <td style="padding: 14px 18px; vertical-align: top;"><span style="color: var(--doc-warn); font-weight: 600;">Medium</span></td>
+        <td style="padding: 14px 18px; vertical-align: top; color: var(--doc-ink-soft);">DOMPurify allow-list test suite; CSP <code style="font-family: var(--doc-mono); font-size: 12px; background: var(--doc-line-soft); padding: 0 4px; border-radius: 3px;">script-src 'self'</code> as a second wall</td>
+      </tr>
+      <tr style="border-top: 1px solid var(--doc-line);">
+        <td style="padding: 14px 18px; vertical-align: top; color: var(--doc-ink);">Comment anchors break on re-rendered HTML</td>
+        <td style="padding: 14px 18px; vertical-align: top;"><span style="color: var(--doc-danger); font-weight: 600;">High</span></td>
+        <td style="padding: 14px 18px; vertical-align: top; color: var(--doc-ink-soft);">Block-AST migration in workstream 2; keep text-snippet fallback during the transition</td>
+      </tr>
+      <tr style="border-top: 1px solid var(--doc-line);">
+        <td style="padding: 14px 18px; vertical-align: top; color: var(--doc-ink);">Diff UX regressing on large HTML files</td>
+        <td style="padding: 14px 18px; vertical-align: top;"><span style="color: var(--doc-warn); font-weight: 600;">Medium</span></td>
+        <td style="padding: 14px 18px; vertical-align: top; color: var(--doc-ink-soft);">Token-aware diff behind a flag; perf budget &lt; 80ms p95 on a 200KB doc</td>
+      </tr>
+      <tr style="border-top: 1px solid var(--doc-line);">
+        <td style="padding: 14px 18px; vertical-align: top; color: var(--doc-ink);">Bundle size from DOMPurify</td>
+        <td style="padding: 14px 18px; vertical-align: top;"><span style="color: var(--doc-positive); font-weight: 600;">Low</span></td>
+        <td style="padding: 14px 18px; vertical-align: top; color: var(--doc-ink-soft);">+8KB on /p/[slug] only — within the 250KB first-load budget</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- API contract -->
+<h2 id="api" style="font-family: var(--doc-serif); font-size: 24px; letter-spacing: -0.015em; font-weight: 700; margin: 32px 0 14px; color: var(--doc-ink);">API contract</h2>
+
+<p style="margin: 0 0 14px;">Existing clients keep working — <code style="font-family: var(--doc-mono); font-size: 12.5px; background: var(--doc-line-soft); padding: 1px 6px; border-radius: 4px;">contentType</code> is optional and defaults to <code style="font-family: var(--doc-mono); font-size: 12.5px; background: var(--doc-line-soft); padding: 1px 6px; border-radius: 4px;">"markdown"</code>. New flow:</p>
+
+<pre style="background: #15161c; color: #e6e7eb; border-radius: 10px; padding: 18px 22px; overflow-x: auto; font-family: var(--doc-mono); font-size: 12.5px; line-height: 1.65; margin: 0 0 32px;"><code><span style="color:#9aa6c0;">POST</span> <span style="color:#e6e7eb;">/api/plans</span>
+<span style="color:#cbb89c;">{</span>
+  <span style="color:#9ec5fe;">"title"</span><span style="color:#cbb89c;">:</span> <span style="color:#9bd49b;">"Q2 platform plan"</span><span style="color:#cbb89c;">,</span>
+  <span style="color:#9ec5fe;">"content"</span><span style="color:#cbb89c;">:</span> <span style="color:#9bd49b;">"&lt;h1&gt;orfc Q2 …"</span><span style="color:#cbb89c;">,</span>
+  <span style="color:#9ec5fe;">"contentType"</span><span style="color:#cbb89c;">:</span> <span style="color:#9bd49b;">"html"</span><span style="color:#cbb89c;">,</span>
+  <span style="color:#9ec5fe;">"folderPath"</span><span style="color:#cbb89c;">:</span> <span style="color:#9bd49b;">"platform/2026"</span><span style="color:#cbb89c;">,</span>
+  <span style="color:#9ec5fe;">"tags"</span><span style="color:#cbb89c;">:</span> <span style="color:#cbb89c;">[</span><span style="color:#9bd49b;">"roadmap"</span><span style="color:#cbb89c;">,</span> <span style="color:#9bd49b;">"infra"</span><span style="color:#cbb89c;">]</span>
+<span style="color:#cbb89c;">}</span>
+
+<span style="color:#9bd49b;">201 Created</span>
+<span style="color:#cbb89c;">{</span>
+  <span style="color:#9ec5fe;">"id"</span><span style="color:#cbb89c;">:</span> <span style="color:#9bd49b;">"…"</span><span style="color:#cbb89c;">,</span> <span style="color:#9ec5fe;">"slug"</span><span style="color:#cbb89c;">:</span> <span style="color:#9bd49b;">"fT9k2…"</span><span style="color:#cbb89c;">,</span>
+  <span style="color:#9ec5fe;">"contentType"</span><span style="color:#cbb89c;">:</span> <span style="color:#9bd49b;">"html"</span>
+<span style="color:#cbb89c;">}</span></code></pre>
+
+<!-- Roadmap timeline -->
+<h2 id="rollout" style="font-family: var(--doc-serif); font-size: 24px; letter-spacing: -0.015em; font-weight: 700; margin: 32px 0 14px; color: var(--doc-ink);">Six-week rollout</h2>
+
+<div style="border: 1px solid var(--doc-line); border-radius: 12px; padding: 28px 24px 32px; background: var(--doc-surface); margin: 0 0 32px;">
+  <svg viewBox="0 0 720 130" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Six-week rollout timeline" style="width: 100%; height: auto; display: block;">
+    <line x1="40" y1="64" x2="680" y2="64" stroke="#ececec" stroke-width="2"/>
+    <line x1="40" y1="64" x2="294" y2="64" stroke="#2c3e8c" stroke-width="2.5" stroke-linecap="round"/>
+
+    <g font-family="ui-sans-serif, system-ui" font-size="11">
+      <circle cx="40" cy="64" r="6" fill="#2c3e8c"/>
+      <text x="40" y="42" text-anchor="middle" fill="#8b8b94" font-size="10">W1</text>
+      <text x="40" y="92" text-anchor="middle" fill="#1b1b1f" font-weight="600">Schema</text>
+      <text x="40" y="106" text-anchor="middle" fill="#8b8b94">migration shipped</text>
+
+      <circle cx="167" cy="64" r="6" fill="#2c3e8c"/>
+      <text x="167" y="42" text-anchor="middle" fill="#8b8b94" font-size="10">W2</text>
+      <text x="167" y="92" text-anchor="middle" fill="#1b1b1f" font-weight="600">Sanitizer</text>
+      <text x="167" y="106" text-anchor="middle" fill="#8b8b94">DOMPurify wired</text>
+
+      <circle cx="294" cy="64" r="9" fill="#fff" stroke="#2c3e8c" stroke-width="3"/>
+      <circle cx="294" cy="64" r="3" fill="#2c3e8c"/>
+      <text x="294" y="42" text-anchor="middle" fill="#2c3e8c" font-weight="700" font-size="10" letter-spacing="0.05em">W3 — NOW</text>
+      <text x="294" y="92" text-anchor="middle" fill="#1b1b1f" font-weight="600">Internal beta</text>
+      <text x="294" y="106" text-anchor="middle" fill="#8b8b94">flag, dogfooding</text>
+
+      <circle cx="421" cy="64" r="6" fill="#fff" stroke="#ececec" stroke-width="2"/>
+      <text x="421" y="42" text-anchor="middle" fill="#b8b8c0" font-size="10">W4</text>
+      <text x="421" y="92" text-anchor="middle" fill="#4a4a52" font-weight="600">Block AST</text>
+      <text x="421" y="106" text-anchor="middle" fill="#b8b8c0">comment anchors</text>
+
+      <circle cx="548" cy="64" r="6" fill="#fff" stroke="#ececec" stroke-width="2"/>
+      <text x="548" y="42" text-anchor="middle" fill="#b8b8c0" font-size="10">W5</text>
+      <text x="548" y="92" text-anchor="middle" fill="#4a4a52" font-weight="600">Open beta</text>
+      <text x="548" y="106" text-anchor="middle" fill="#b8b8c0">all teams opt-in</text>
+
+      <circle cx="675" cy="64" r="6" fill="#fff" stroke="#ececec" stroke-width="2"/>
+      <text x="675" y="42" text-anchor="middle" fill="#b8b8c0" font-size="10">W6</text>
+      <text x="675" y="92" text-anchor="middle" fill="#4a4a52" font-weight="600">GA</text>
+      <text x="675" y="106" text-anchor="middle" fill="#b8b8c0">flag removed</text>
+    </g>
+  </svg>
+</div>
+
+<!-- Open questions -->
+<h2 id="open-questions" style="font-family: var(--doc-serif); font-size: 24px; letter-spacing: -0.015em; font-weight: 700; margin: 32px 0 14px; color: var(--doc-ink);">Open questions</h2>
+
+<ul style="padding-left: 0; list-style: none; margin: 0 0 32px;">
+  <li style="position: relative; padding: 12px 0 12px 28px; border-bottom: 1px solid var(--doc-line-soft); color: var(--doc-ink-soft);">
+    <span style="position: absolute; left: 0; top: 12px; color: var(--doc-accent); font-family: var(--doc-serif); font-weight: 700;">?</span>
+    Do we ship an in-browser HTML editor in Q2, or punt to Q3 and require <code style="font-family: var(--doc-mono); font-size: 12.5px; background: var(--doc-line-soft); padding: 1px 6px; border-radius: 4px;">orfc push design.html</code> as the only authoring path?
+  </li>
+  <li style="position: relative; padding: 12px 0 12px 28px; border-bottom: 1px solid var(--doc-line-soft); color: var(--doc-ink-soft);">
+    <span style="position: absolute; left: 0; top: 12px; color: var(--doc-accent); font-family: var(--doc-serif); font-weight: 700;">?</span>
+    How do we handle existing plans whose markdown contains raw HTML — auto-detect and offer a one-click conversion?
+  </li>
+  <li style="position: relative; padding: 12px 0 12px 28px; color: var(--doc-ink-soft);">
+    <span style="position: absolute; left: 0; top: 12px; color: var(--doc-accent); font-family: var(--doc-serif); font-weight: 700;">?</span>
+    Should the desktop app support HTML out of the box, or stay markdown-first and link out for HTML docs?
+  </li>
+</ul>
+
+<!-- Footer -->
+<div style="margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--doc-line); display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--doc-muted);">
+  <div>
+    <a href="https://github.com/titunian/rfc/pull/new/feat/html-content-type" style="color: var(--doc-accent); text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: 1px;">PR feat/html-content-type</a>
+    <span style="margin: 0 10px; color: #d4d4d8;">·</span>
+    <a href="https://orfc.dev/p/markdown-q1-recap" style="color: var(--doc-accent); text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: 1px;">Q1 recap</a>
+    <span style="margin: 0 10px; color: #d4d4d8;">·</span>
+    <a href="https://orfc.dev/p/agent-skills-rfc" style="color: var(--doc-accent); text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: 1px;">Agent skills</a>
+  </div>
+  <div style="font-variant-numeric: tabular-nums;">RFC-0042 · 10 May 2026</div>
+</div>
+
+</div>

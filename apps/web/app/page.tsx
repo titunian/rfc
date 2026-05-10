@@ -47,8 +47,9 @@ export default function Home() {
             Your team reviews it. You iterate.
           </p>
           <p className="text-[15px] text-[var(--muted)] font-sans leading-relaxed mb-14 max-w-md mx-auto">
-            Share any markdown — architecture docs, implementation plans, RFCs
-            — collect inline feedback, edit in-browser, and track every revision with built-in version history.
+            Share any markdown <em className="not-italic text-[var(--fg-secondary)]">or HTML</em> —
+            architecture docs, implementation plans, RFCs, dashboards with charts —
+            collect inline feedback, edit in-browser, and track every revision with built-in version history.
           </p>
 
           {/* Install */}
@@ -80,6 +81,7 @@ export default function Home() {
                 <div className="pt-2">
                   <span className="text-gray-500 select-none">$ </span>
                   <span className="text-gray-300">orfc push plan.md</span>
+                  <span className="text-gray-500 ml-2"># or design.html</span>
                 </div>
                 <div className="text-green-400/70 text-[13px]">
                   ✓ Published → https://orfc.dev/p/xK7mQ2
@@ -108,7 +110,7 @@ export default function Home() {
               Works with
             </p>
             <p className="text-[13px] text-[var(--muted)] font-sans mb-8">
-              Any tool that generates markdown plans
+              Any tool that generates markdown or HTML plans
             </p>
             <div className="flex items-center justify-center gap-12">
               {/* Cursor */}
@@ -303,7 +305,10 @@ export default function Home() {
                 Publishing a plan
               </h2>
               <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-4">
-                Push any markdown file to get a shareable link. The title is auto-detected from the first <code className="text-[12px] bg-[var(--code-inline-bg)] px-1.5 py-0.5 rounded border border-[var(--border-light)]"># heading</code>.
+                Push any markdown <em className="not-italic">or HTML</em> file to get a shareable link.
+                For markdown, the title is auto-detected from the first <code className="text-[12px] bg-[var(--code-inline-bg)] px-1.5 py-0.5 rounded border border-[var(--border-light)]"># heading</code>;
+                for HTML, from <code className="text-[12px] bg-[var(--code-inline-bg)] px-1.5 py-0.5 rounded border border-[var(--border-light)]">&lt;title&gt;</code> or the first <code className="text-[12px] bg-[var(--code-inline-bg)] px-1.5 py-0.5 rounded border border-[var(--border-light)]">&lt;h1&gt;</code>.
+                HTML docs render the author&apos;s own theme — sanitized, but with inline SVG, charts, and styling preserved.
               </p>
               <div className="bg-[#0d1117] rounded-xl p-4 font-mono text-[13px] text-gray-300 space-y-1.5 mb-4">
                 <div><span className="text-gray-500 select-none">$ </span>orfc push plan.md</div>
@@ -608,7 +613,7 @@ Reviewers can view all past versions and diffs on the web.`}
                     </tr>
                     <tr className="border-b border-[var(--border-light)]">
                       <td className="p-3 font-mono text-[12px]">orfc push &lt;file&gt;</td>
-                      <td className="p-3">Publish a markdown file</td>
+                      <td className="p-3">Publish a markdown or HTML file</td>
                     </tr>
                     <tr className="border-b border-[var(--border-light)]">
                       <td className="p-3 font-mono text-[12px]">orfc pull &lt;slug&gt;</td>

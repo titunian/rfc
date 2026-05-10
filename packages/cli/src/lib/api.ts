@@ -14,6 +14,7 @@ interface PlanDetail {
   slug: string;
   title: string | null;
   content: string;
+  contentType?: "markdown" | "html";
   authorName: string | null;
   createdAt: string;
   updatedAt: string | null;
@@ -71,9 +72,12 @@ export class ApiClient {
   async createPlan(data: {
     title?: string;
     content: string;
+    contentType?: "markdown" | "html";
     accessRule?: string;
     allowedViewers?: string;
     expiresIn?: string;
+    folderPath?: string;
+    tags?: string[];
   }): Promise<PlanResponse> {
     const res = await this.request("/api/plans", {
       method: "POST",
@@ -118,7 +122,15 @@ export class ApiClient {
 
   async updatePlan(
     id: string,
-    data: { title?: string; content: string; accessRule?: string; allowedViewers?: string | null }
+    data: {
+      title?: string;
+      content: string;
+      contentType?: "markdown" | "html";
+      accessRule?: string;
+      allowedViewers?: string | null;
+      folderPath?: string;
+      tags?: string[];
+    }
   ): Promise<PlanResponse> {
     const res = await this.request(`/api/plans/${id}`, {
       method: "PUT",

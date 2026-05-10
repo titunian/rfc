@@ -52,7 +52,7 @@ program
 
   Config is stored in ~/.orfc/config.json. Use "orfc config show" to view.`
   )
-  .version("0.2.0");
+  .version("0.3.0");
 
 program
   .command("login")
@@ -84,6 +84,8 @@ program
   .option("--to <emails>", "Email notification to reviewers (comma-separated email addresses)")
   .option("--slack <webhook>", "Send notification to a Slack webhook URL")
   .option("--expires <duration>", "Auto-expire the plan after a duration (e.g., 7d, 24h, 30m)")
+  .option("--folder <path>", "Place the plan inside a folder (slash-separated, e.g. research/q1)")
+  .option("--tag <tags>", "Attach tags (comma-separated, lowercase-hyphenated, e.g. api,event-sourcing)")
   .option("--no-open", "Don't auto-open the published URL in the browser")
   .action(pushCommand);
 
