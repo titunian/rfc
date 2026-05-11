@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 /**
  * Shared glass-morphic top bar.
@@ -14,12 +14,41 @@ import type { ReactNode } from "react";
  *
  * Children are responsible for their own layout (typically a flex
  * row with a left context slot and a right action cluster).
+ *
+ * Variants:
+ *   - "floating" (default): always elevated chrome (border + shadow +
+ *     glass). Used by /dashboard and /p/[slug] where the bar always
+ *     sits over scrolling content.
+ *   - "scroll-elevate": starts flat (no border, no shadow, no glass)
+ *     and gains chrome on scroll past ~16px. Used by the landing
+ *     page so the bar reads as part of the page until you scroll.
  */
-export function TopBar({ children }: { children?: ReactNode }) {
+export function TopBar({
+  children,
+  variant = "floating",
+}: {
+  children?: ReactNode;
+  variant?: "floating" | "scroll-elevate";
+}) {
+  // Floating variant is always elevated. Scroll-elevate starts unelevated.
+  const [elevated, setElevated] = useState(variant !== "scroll-elevate");
+
+  useEffect(() => {
+    if (variant !== "scroll-elevate") return;
+    const onScroll = () => {
+      setElevated(window.scrollY > 16);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [variant]);
+
   return (
     <header
       data-chrome
-      className="orfc-top-bar sticky top-3 z-40 mx-3 sm:mx-4 rounded-2xl border border-[var(--border)]"
+      data-elevated={elevated ? "true" : "false"}
+      data-variant={variant}
+      className="orfc-top-bar sticky top-3 z-40 mx-3 sm:mx-4 rounded-2xl"
     >
       <div className="relative max-w-[1400px] mx-auto px-3 sm:px-4 h-[44px] flex items-center gap-3">
         <Logo />

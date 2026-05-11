@@ -3,6 +3,14 @@
 import { useState, useEffect, useMemo, useCallback, Suspense } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Folder,
+  FolderOpen,
+  Library,
+  Hash,
+  MoreHorizontal,
+  FileText,
+} from "lucide-react";
 import { TopBar } from "@/components/top-bar";
 
 type Plan = {
@@ -229,17 +237,25 @@ function DashboardInner() {
               active={folderFilter === ALL_PLANS}
               onClick={() => onFolderChange(ALL_PLANS)}
               count={plans.length}
-              icon={<AllIcon />}
+              icon={<Library size={14} strokeWidth={1.6} />}
             >
               All
             </SidebarItem>
-            {folders.map(([folder, count]) => (
+            {folders.map(([folder, count]) => {
+              const isActive = folderFilter === folder;
+              return (
               <SidebarItem
                 key={folder || "__root__"}
-                active={folderFilter === folder}
+                active={isActive}
                 onClick={() => onFolderChange(folder)}
                 count={count}
-                icon={<FolderIcon open={folderFilter === folder} />}
+                icon={
+                  isActive ? (
+                    <FolderOpen size={14} strokeWidth={1.6} />
+                  ) : (
+                    <Folder size={14} strokeWidth={1.6} />
+                  )
+                }
               >
                 {folder === ROOT_FOLDER ? (
                   <span className="italic opacity-80">Root</span>
@@ -247,7 +263,8 @@ function DashboardInner() {
                   folder
                 )}
               </SidebarItem>
-            ))}
+              );
+            })}
           </SidebarSection>
 
           {tags.length > 0 && (
@@ -255,7 +272,7 @@ function DashboardInner() {
               <SidebarItem
                 active={tagFilter === null}
                 onClick={() => onTagChange(null)}
-                icon={<HashIcon dim />}
+                icon={<Hash size={14} strokeWidth={1.6} style={{ opacity: 0.55 }} />}
               >
                 Any tag
               </SidebarItem>
@@ -265,7 +282,7 @@ function DashboardInner() {
                   active={tagFilter === tag}
                   onClick={() => onTagChange(tag)}
                   count={count}
-                  icon={<HashIcon />}
+                  icon={<Hash size={14} strokeWidth={1.6} />}
                 >
                   {tag}
                 </SidebarItem>
@@ -289,9 +306,7 @@ function DashboardInner() {
                   <span>Filtered by</span>
                   {folderFilter !== ALL_PLANS && (
                     <span className="inline-flex items-center gap-1 text-[var(--fg-secondary)]">
-                      <svg className="w-[11px] h-[11px]" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round">
-                        <path d="M1.5 4.5 A1 1 0 0 1 2.5 3.5 H6 L7.5 5 H13.5 A1 1 0 0 1 14.5 6 V11.5 A1 1 0 0 1 13.5 12.5 H2.5 A1 1 0 0 1 1.5 11.5 Z" />
-                      </svg>
+                      <Folder size={11} strokeWidth={1.6} />
                       <span className="font-mono">
                         {folderFilter === ROOT_FOLDER ? "(root)" : folderFilter}
                       </span>
@@ -339,9 +354,11 @@ function DashboardInner() {
           ) : visible.length === 0 ? (
             <div className="py-20 text-center">
               <div className="w-12 h-12 rounded-full bg-[var(--bg)] border border-[var(--border-light)] flex items-center justify-center mx-auto mb-4">
-                <svg className="w-5 h-5 text-[var(--muted)]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                </svg>
+                <FileText
+                  size={20}
+                  strokeWidth={1.5}
+                  className="text-[var(--muted)]"
+                />
               </div>
               <p className="text-[14px] text-[var(--fg-secondary)] font-sans mb-1">
                 {plans.length === 0 ? "No documents yet" : "No documents match the current filter"}
@@ -392,9 +409,7 @@ function DashboardInner() {
                         className="shrink-0 inline-flex items-center gap-1 text-[11.5px] text-[var(--muted)] hover:text-[var(--fg)] transition-colors"
                         title={`Filter by folder: ${plan.folderPath}`}
                       >
-                        <svg className="w-[11px] h-[11px] opacity-70" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round">
-                          <path d="M1.5 4.5 A1 1 0 0 1 2.5 3.5 H6 L7.5 5 H13.5 A1 1 0 0 1 14.5 6 V11.5 A1 1 0 0 1 13.5 12.5 H2.5 A1 1 0 0 1 1.5 11.5 Z" />
-                        </svg>
+                        <Folder size={11} strokeWidth={1.6} className="opacity-70" />
                         <span className="font-mono opacity-90">{plan.folderPath}</span>
                       </button>
                     )}
@@ -438,11 +453,7 @@ function DashboardInner() {
                         className="absolute right-0 -top-3 p-1 rounded-md opacity-0 group-hover:opacity-100 hover:bg-[var(--bg)] text-[var(--muted)] hover:text-[var(--fg)] transition-all duration-100"
                         aria-label="Row actions"
                       >
-                        <svg className="w-[14px] h-[14px]" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                          <circle cx="5" cy="12" r="1" />
-                          <circle cx="12" cy="12" r="1" />
-                          <circle cx="19" cy="12" r="1" />
-                        </svg>
+                        <MoreHorizontal size={14} strokeWidth={1.8} />
                       </button>
                       {menuOpenFor === plan.id && (
                         <div
@@ -517,7 +528,7 @@ function SidebarItem({
       {icon && (
         <span
           className={`shrink-0 w-[14px] h-[14px] flex items-center justify-center transition-colors ${
-            active ? "text-[var(--accent)]" : "text-[var(--muted)] group-hover:text-[var(--fg-secondary)]"
+            active ? "text-[var(--fg)]" : "text-[var(--muted)] group-hover:text-[var(--fg-secondary)]"
           }`}
           aria-hidden="true"
         >
@@ -534,45 +545,3 @@ function SidebarItem({
   );
 }
 
-function FolderIcon({ open = false }: { open?: boolean }) {
-  // SF-Symbols-inspired folder: closed by default, slightly opened
-  // when the folder is the active filter. Stroked, not filled.
-  return open ? (
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round">
-      <path d="M1.5 4.5 A1 1 0 0 1 2.5 3.5 H6.5 L7.5 4.5 H13.5 A1 1 0 0 1 14.5 5.5 V6 H1.5 Z" />
-      <path d="M1.5 6 H14.5 L13.5 12 A1 1 0 0 1 12.5 12.5 H3 A1 1 0 0 1 2 12 Z" />
-    </svg>
-  ) : (
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round">
-      <path d="M1.5 4.5 A1 1 0 0 1 2.5 3.5 H6 L7.5 5 H13.5 A1 1 0 0 1 14.5 6 V11.5 A1 1 0 0 1 13.5 12.5 H2.5 A1 1 0 0 1 1.5 11.5 Z" />
-    </svg>
-  );
-}
-
-function AllIcon() {
-  return (
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round">
-      <rect x="2" y="3" width="12" height="3" rx="0.5" />
-      <rect x="2" y="7" width="12" height="3" rx="0.5" />
-      <rect x="2" y="11" width="12" height="3" rx="0.5" />
-    </svg>
-  );
-}
-
-function HashIcon({ dim = false }: { dim?: boolean }) {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.3"
-      strokeLinecap="round"
-      style={dim ? { opacity: 0.5 } : undefined}
-    >
-      <path d="M6 2.5 L4.5 13.5" />
-      <path d="M11.5 2.5 L10 13.5" />
-      <path d="M2.5 6 H13.5" />
-      <path d="M2.5 10 H13.5" />
-    </svg>
-  );
-}

@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default function Home() {
   return (
     <div className="min-h-screen bg-[var(--app,var(--bg-warm))] pt-3 flex flex-col">
-      <TopBar>
+      <TopBar variant="scroll-elevate">
         <div />
         <div className="flex items-center gap-4">
           <a
@@ -46,9 +46,10 @@ export default function Home() {
             Your team reviews it. You iterate.
           </p>
           <p className="text-[15px] text-[var(--muted)] font-sans leading-relaxed mb-8 max-w-md mx-auto">
-            Share any markdown <em className="not-italic text-[var(--fg-secondary)]">or HTML</em> —
-            architecture docs, implementation plans, RFCs, dashboards with charts —
-            collect inline feedback, edit in-browser, and track every revision with built-in version history.
+            Push markdown <em className="not-italic text-[var(--fg-secondary)]">or HTML</em> —
+            RFCs, architecture docs, implementation plans, dashboards with charts.
+            Inline review, in-browser editing, full version history.
+            Organize with folders and tags.
           </p>
 
           {/* What's new — small pill linking to the handbook */}
@@ -96,8 +97,11 @@ export default function Home() {
                 </div>
                 <div className="pt-2">
                   <span className="text-gray-500 select-none">$ </span>
-                  <span className="text-gray-300">orfc push plan.md</span>
-                  <span className="text-gray-500 ml-2"># or design.html</span>
+                  <span className="text-gray-300">orfc push design.html</span>
+                  <span className="text-gray-500 ml-2"># or plan.md</span>
+                </div>
+                <div className="text-gray-300 text-[13px] pl-3">
+                  <span className="text-gray-500">  </span>--folder &quot;Q2 Planning&quot; --tag architecture
                 </div>
                 <div className="text-green-400/70 text-[13px]">
                   ✓ Published → https://orfc.dev/p/xK7mQ2
@@ -126,7 +130,7 @@ export default function Home() {
               Works with
             </p>
             <p className="text-[13px] text-[var(--muted)] font-sans mb-8">
-              Any tool that generates markdown or HTML plans
+              Any agent that writes markdown or HTML
             </p>
             <div className="flex items-center justify-center gap-12">
               {/* Cursor */}
@@ -267,7 +271,7 @@ export default function Home() {
                   1
                 </div>
                 <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed">
-                  Your agent generates a plan. Or write one yourself.
+                  Your agent writes a plan in markdown or HTML.
                 </p>
               </div>
               <div>
@@ -275,7 +279,7 @@ export default function Home() {
                   2
                 </div>
                 <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed">
-                  Push it. Share the link with your team for review.
+                  Push it. Share the link. Reviewers comment inline.
                 </p>
               </div>
               <div>
@@ -283,7 +287,7 @@ export default function Home() {
                   3
                 </div>
                 <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed">
-                  Pull feedback. Let your agent iterate. Ship with confidence.
+                  Pull the feedback. Iterate. Ship.
                 </p>
               </div>
             </div>
@@ -332,14 +336,44 @@ export default function Home() {
                 <div className="text-gray-500 text-[12px]"># link copied to clipboard, browser opens automatically</div>
               </div>
               <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-3">
-                You can also pipe from stdin, set a custom title, or update an existing plan:
+                Pipe from stdin, set a custom title, organize with folders and tags, or update an existing plan:
               </p>
               <div className="bg-[#0d1117] rounded-xl p-4 font-mono text-[13px] text-gray-300 space-y-1.5">
                 <div><span className="text-gray-500 select-none">$ </span>cat plan.md | orfc push</div>
                 <div><span className="text-gray-500 select-none">$ </span>orfc push plan.md --title &quot;Q2 Architecture&quot;</div>
+                <div><span className="text-gray-500 select-none">$ </span>orfc push plan.md --folder &quot;Q2 Planning&quot; --tag rfc <span className="text-gray-500"># organize</span></div>
                 <div><span className="text-gray-500 select-none">$ </span>orfc push plan.md --update xK7mQ2 <span className="text-gray-500"># update existing</span></div>
                 <div><span className="text-gray-500 select-none">$ </span>orfc push plan.md --expires 7d <span className="text-gray-500"># auto-expire in 7 days</span></div>
               </div>
+            </section>
+
+            {/* Organizing plans */}
+            <section>
+              <h2 className="text-[18px] font-semibold text-[var(--fg)] font-sans mb-3 tracking-tight">
+                Folders & tags
+              </h2>
+              <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-4">
+                Group plans into folders for projects, releases, or teams. Add tags
+                for cross-cutting categories (rfc, design, postmortem). The dashboard
+                shows a folder tree on the left and a tag filter on top — both also
+                editable per-row.
+              </p>
+              <div className="bg-[#0d1117] rounded-xl p-4 font-mono text-[13px] text-gray-300 space-y-1.5">
+                <div><span className="text-gray-500 select-none">$ </span>orfc push plan.md --folder &quot;Q2 Planning/Auth&quot; <span className="text-gray-500"># nested paths</span></div>
+                <div><span className="text-gray-500 select-none">$ </span>orfc push plan.md --tag rfc --tag draft <span className="text-gray-500"># multiple tags</span></div>
+              </div>
+            </section>
+
+            {/* In-page navigation */}
+            <section>
+              <h2 className="text-[18px] font-semibold text-[var(--fg)] font-sans mb-3 tracking-tight">
+                In-page navigation
+              </h2>
+              <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed">
+                Markdown plans render a sticky sub-nav built from their headings,
+                scroll-tracked so reviewers can jump straight to the section they
+                care about. Long RFCs stay readable.
+              </p>
             </section>
 
             {/* Access control */}
@@ -433,6 +467,9 @@ export default function Home() {
               <h2 className="text-[18px] font-semibold text-[var(--fg)] font-sans mb-3 tracking-tight">
                 Managing plans
               </h2>
+              <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-4">
+                The dashboard at <code className="text-[12px] bg-[var(--code-inline-bg)] px-1.5 py-0.5 rounded border border-[var(--border-light)]">orfc.dev/dashboard</code> lists every plan you&apos;ve published with a folder tree, tag filter, and per-row controls to move or retag. The CLI mirrors the same primitives.
+              </p>
               <div className="bg-[#0d1117] rounded-xl p-4 font-mono text-[13px] text-gray-300 space-y-1.5">
                 <div><span className="text-gray-500 select-none">$ </span>orfc list <span className="text-gray-500"># list all your published plans</span></div>
                 <div><span className="text-gray-500 select-none">$ </span>orfc open xK7mQ2 <span className="text-gray-500"># open in browser</span></div>
@@ -561,7 +598,7 @@ npm install -g @orfc/cli
 orfc login
 
 ### Workflow
-1. Write your implementation plan as a markdown file (plan.md)
+1. Write your implementation plan as a markdown (plan.md) or HTML (design.html) file
 2. Publish it for review:
    orfc push plan.md --viewers "@company.com" --to reviewer@company.com
 3. Wait for the reviewer to leave inline comments on orfc.dev
@@ -578,9 +615,11 @@ orfc login
 --to "a@co.com,b@co.com" # email reviewers
 --update <slug>          # update existing plan
 --title "My Plan"        # custom title
+--folder "Q2/Auth"       # nested folder path
+--tag rfc --tag draft    # one or more tags
 
 ### Commands
-orfc push <file>    # publish a plan
+orfc push <file>    # publish a plan (markdown or HTML)
 orfc pull <slug>    # pull plan with inline comments
 orfc edit <slug>    # pull, edit in $EDITOR, push back
 orfc comments <slug> # view comments
@@ -670,7 +709,7 @@ Reviewers can view all past versions and diffs on the web.`}
       {/* Footer */}
       <footer className="py-8 text-center border-t border-[var(--border-light)]">
         <p className="text-[12px] text-[var(--muted)] font-sans">
-          Open source · Works with any tool that has a terminal
+          Open source · Works with any agent that has a terminal
         </p>
       </footer>
     </div>
