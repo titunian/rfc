@@ -8,6 +8,7 @@ import rehypeHighlight from "rehype-highlight";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { CommentSidebar } from "./comment-sidebar";
 import { SelectionPopover } from "./selection-popover";
+import { TopBar } from "./top-bar";
 import { MermaidBlock } from "./mermaid-block";
 import { PlanEditor } from "./plan-editor";
 import { VersionHistory } from "./version-history";
@@ -522,38 +523,24 @@ export function PlanView({
   return (
     <div className="min-h-screen bg-[var(--app,var(--bg-warm))] pt-3">
       {/* Header */}
-      <header
-        data-chrome
-        className="sticky top-3 z-40 mx-3 sm:mx-4 rounded-2xl border border-[var(--border)]"
-        style={{
-          background: "var(--header-bg)",
-          backdropFilter: "saturate(180%) blur(20px)",
-          WebkitBackdropFilter: "saturate(180%) blur(20px)",
-        }}
-      >
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-5 h-[44px] flex items-center justify-between gap-4">
-          {/* Brand + plan crumb. The wordmark is the orfc home link; the
-              plan title sits after a hairline divider so users always
-              know which doc they're in. Linear / Things pattern. */}
-          <div className="flex items-center gap-3 min-w-0">
-            <a
-              href="/"
-              className="text-[13.5px] font-semibold tracking-[-0.012em] text-[var(--fg)] hover:text-[var(--fg-secondary)] transition-colors shrink-0"
-              aria-label="orfc home"
-            >
-              orfc
-            </a>
-            {activeTitle && (
-              <>
-                <span className="text-[var(--border)] select-none" aria-hidden="true">
-                  /
-                </span>
-                <span className="text-[13px] text-[var(--fg-secondary)] truncate min-w-0 tracking-[-0.005em]">
-                  {activeTitle}
-                </span>
-              </>
-            )}
-          </div>
+      <TopBar>
+        {/* Plan title crumb — sits after the orfc logo so the user
+            always knows which doc they're in. */}
+        <div className="flex items-center gap-2 min-w-0">
+          {activeTitle && (
+            <>
+              <span
+                className="text-[var(--border)] select-none shrink-0"
+                aria-hidden="true"
+              >
+                /
+              </span>
+              <span className="text-[13px] text-[var(--fg-secondary)] truncate min-w-0 tracking-[-0.005em]">
+                {activeTitle}
+              </span>
+            </>
+          )}
+        </div>
 
           {/* Right cluster */}
           <div className="flex items-center gap-2 min-w-0">
@@ -877,8 +864,7 @@ export function PlanView({
               </div>
             )}
           </div>
-        </div>
-      </header>
+      </TopBar>
 
       {/* Permissions modal (owner only) */}
       {settingsOpen && isOwner && (

@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useCallback, Suspense } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { TopBar } from "@/components/top-bar";
 
 type Plan = {
   id: string;
@@ -204,37 +205,21 @@ function DashboardInner() {
 
   return (
     <div className="min-h-screen bg-[var(--app,var(--bg-warm))] pt-3">
-      {/* Floating rounded header. Same chrome as the plan view so the
-          app feels like one cohesive tool. */}
-      <header
-        className="sticky top-3 z-40 mx-3 sm:mx-4 rounded-2xl border border-[var(--border)]"
-        style={{
-          background: "var(--header-bg)",
-          backdropFilter: "saturate(180%) blur(20px)",
-          WebkitBackdropFilter: "saturate(180%) blur(20px)",
-        }}
-      >
-        <div className="max-w-6xl mx-auto px-4 sm:px-5 h-[44px] flex items-center justify-between">
-          <a
-            href="/"
-            className="text-[13.5px] font-semibold tracking-[-0.012em] text-[var(--fg)] hover:text-[var(--fg-secondary)] transition-colors"
-            aria-label="orfc home"
+      <TopBar>
+        {/* Left slot empty on dashboard — the logo carries the context. */}
+        <div />
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="text-[12.5px] text-[var(--muted)] truncate max-w-[220px]">
+            {session?.user?.email}
+          </span>
+          <button
+            onClick={() => signOut({ callbackUrl: "/" })}
+            className="text-[12px] text-[var(--muted)] hover:text-[var(--fg)] transition-colors"
           >
-            orfc
-          </a>
-          <div className="flex items-center gap-3 min-w-0">
-            <span className="text-[12.5px] text-[var(--muted)] truncate max-w-[220px]">
-              {session?.user?.email}
-            </span>
-            <button
-              onClick={() => signOut({ callbackUrl: "/" })}
-              className="text-[12px] text-[var(--muted)] hover:text-[var(--fg)] transition-colors"
-            >
-              Log out
-            </button>
-          </div>
+            Log out
+          </button>
         </div>
-      </header>
+      </TopBar>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-10 pb-16 grid grid-cols-[200px_1fr] gap-10">
         {/* Sidebar: folder tree + tag filter */}

@@ -94,7 +94,8 @@ html.dark *:hover::-webkit-scrollbar-thumb {
   --blockquote-border: #c4a882;
   --code-inline-bg: #f3f4f6;
   --table-stripe: #fafaf9;
-  --header-bg: rgba(255, 255, 255, 0.72);
+  /* Lower alpha so saturate+blur actually reads as glass. */
+  --header-bg: rgba(255, 255, 255, 0.62);
   --button-hover: #f5f4f1;
   --surface: #ffffff;
   --surface-subtle: #fafaf8;
@@ -138,7 +139,7 @@ html.dark {
   --blockquote-border: #8a7455;
   --code-inline-bg: #1c1d21;
   --table-stripe: #17181c;
-  --header-bg: rgba(14, 14, 16, 0.72);
+  --header-bg: rgba(20, 20, 23, 0.5);
   --button-hover: #1c1d21;
   --surface: #17181c;
   --surface-subtle: #16171b;
@@ -175,6 +176,57 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+}
+
+/* ========================================
+   Glass-morphic top bar
+   ----------------------------------------
+   Used by every page so the chrome reads as one tool. The trick is:
+   a) Heavy saturate + blur on the backdrop so the canvas color
+      saturates through.
+   b) A subtle top-edge inner highlight via ::before — this is what
+      makes a flat blur-pane look like glass instead of a frosted
+      sticker.
+   c) A whisper of shadow underneath so it floats off the canvas.
+   ======================================== */
+.orfc-top-bar {
+  background: var(--header-bg);
+  -webkit-backdrop-filter: saturate(180%) blur(28px);
+  backdrop-filter: saturate(180%) blur(28px);
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.02),
+    0 8px 24px rgba(15, 15, 20, 0.04);
+  position: sticky;
+  isolation: isolate;
+}
+.orfc-top-bar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.45) 0%,
+    rgba(255, 255, 255, 0) 38%
+  );
+  mix-blend-mode: overlay;
+  opacity: 0.6;
+}
+html.dark .orfc-top-bar {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 1px 0 rgba(0, 0, 0, 0.4),
+    0 12px 32px rgba(0, 0, 0, 0.3);
+}
+html.dark .orfc-top-bar::before {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.06) 0%,
+    rgba(255, 255, 255, 0) 50%
+  );
+  mix-blend-mode: normal;
+  opacity: 1;
 }
 
 /* ========================================
