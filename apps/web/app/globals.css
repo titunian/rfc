@@ -88,9 +88,14 @@ html.dark *:hover::-webkit-scrollbar-thumb {
      read as "half-baked". Everything is on one cool-neutral ramp now,
      with a 1pt nudge of warmth in --bg-warm so the stack doesn't go
      cold/clinical. */
-  --app: #ececef;          /* slightly deeper canvas — gives cards real lift */
-  --bg: #ffffff;           /* focal sheet — paper white */
-  --bg-warm: #f6f6f8;      /* page surface — one stop down from the sheet */
+  /* Page surface goes Anthropic-style warm cream so it stops reading
+     as "faded". Doc card stays pure white as the focal sheet; the
+     canvas edge is a slightly deeper cream so cards still get lift.
+     Borders + chrome stay neutral — only the dominant surface carries
+     the warmth so we don't reintroduce the warm/cool clash. */
+  --app: #efece4;          /* warm canvas under floating chrome */
+  --bg: #ffffff;           /* focal doc sheet — pure white */
+  --bg-warm: #fbfaf5;      /* page surface — warm cream */
   --fg: #1c1d20;           /* near-black, faintly cool — easier on the eye than #000 */
   --fg-secondary: #55575c; /* true secondary tier (was #3f3f46 — read as primary) */
   --muted: #8a8c92;        /* tertiary / metadata */
