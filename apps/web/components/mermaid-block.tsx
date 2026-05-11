@@ -20,7 +20,8 @@ export function MermaidBlock({ chart }: { chart: string }) {
           mermaid.initialize({
             startOnLoad: false,
             theme: "neutral",
-            fontFamily: "var(--font-inter), system-ui, sans-serif",
+            fontFamily:
+              '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif',
             fontSize: 14,
             flowchart: {
               htmlLabels: true,

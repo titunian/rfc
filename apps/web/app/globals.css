@@ -174,9 +174,12 @@ body {
    ======================================== */
 
 .prose {
-  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  /* System stack — inherits from <body>, so this is just a guardrail
+     in case a parent reset font-family. The Inter reference here was
+     left over and silently dropped after we removed Google Fonts. */
+  font-family: inherit;
   font-size: 0.9375rem;      /* 15px */
-  line-height: 1.65;
+  line-height: 1.7;
   max-width: 68ch;
   color: var(--fg-secondary);
   font-weight: 400;
@@ -191,11 +194,11 @@ body {
 .prose h2,
 .prose h3,
 .prose h4 {
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: inherit;
   color: var(--fg);
   font-weight: 600;
-  letter-spacing: -0.02em;
-  scroll-margin-top: 68px;
+  letter-spacing: -0.018em;
+  scroll-margin-top: 80px;
 }
 
 .prose h1 {
@@ -362,15 +365,18 @@ body {
 
 /* --- Code blocks --- */
 .prose pre {
-  background: #1a1a2e;
-  color: #e2e8f0;
+  /* Was #1a1a2e (purple-tinted) which read as a "generic AI app"
+     accent. Neutral charcoal is calmer and lets the syntax colors
+     do the work. */
+  background: #0e0e11;
+  color: #e6e7eb;
   padding: 16px 20px;
-  border-radius: 8px;
+  border-radius: 10px;
   overflow-x: auto;
   margin: 1.25em 0;
   font-size: 0.8125em;
   line-height: 1.6;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .prose pre code {

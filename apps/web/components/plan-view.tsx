@@ -527,27 +527,33 @@ export function PlanView({
         className="border-b border-[var(--border-light)] sticky top-0 z-40"
         style={{
           background: "var(--header-bg)",
-          backdropFilter: "saturate(180%) blur(14px)",
-          WebkitBackdropFilter: "saturate(180%) blur(14px)",
+          backdropFilter: "saturate(180%) blur(20px)",
+          WebkitBackdropFilter: "saturate(180%) blur(20px)",
         }}
       >
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-[56px] flex items-center justify-between gap-4">
-          {/* Brand */}
-          <a
-            href="/"
-            className="group flex items-center gap-2 shrink-0"
-            aria-label="orfc home"
-          >
-            <span
-              className="inline-flex items-center justify-center h-6 w-6 rounded-[7px] bg-[var(--fg)] text-[var(--bg)] text-[11px] font-bold tracking-tight shadow-sm group-hover:scale-105 transition-transform"
-              aria-hidden="true"
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-[48px] flex items-center justify-between gap-4">
+          {/* Brand + plan crumb. The wordmark is the orfc home link; the
+              plan title sits after a hairline divider so users always
+              know which doc they're in. Linear / Things pattern. */}
+          <div className="flex items-center gap-3 min-w-0">
+            <a
+              href="/"
+              className="text-[13.5px] font-semibold tracking-[-0.012em] text-[var(--fg)] hover:text-[var(--fg-secondary)] transition-colors shrink-0"
+              aria-label="orfc home"
             >
-              o
-            </span>
-            <span className="text-[15px] font-semibold tracking-[-0.01em] font-sans text-[var(--fg)] group-hover:text-[var(--fg-secondary)] transition-colors">
               orfc
-            </span>
-          </a>
+            </a>
+            {activeTitle && (
+              <>
+                <span className="text-[var(--border)] select-none" aria-hidden="true">
+                  /
+                </span>
+                <span className="text-[13px] text-[var(--fg-secondary)] truncate min-w-0 tracking-[-0.005em]">
+                  {activeTitle}
+                </span>
+              </>
+            )}
+          </div>
 
           {/* Right cluster */}
           <div className="flex items-center gap-2 min-w-0">
@@ -1042,45 +1048,65 @@ export function PlanView({
             </div>
           )}
 
-          {/* Title block */}
-          <div className="max-w-[68ch] mx-auto mb-6">
+          {/* Title block. Editorial weight, generous breathing room.
+              Meta row uses opacity hierarchy + a hairline separator
+              instead of typographic dots. */}
+          <div
+            className={`mx-auto mb-10 ${
+              contentType === "html" ? "max-w-[940px]" : "max-w-[68ch]"
+            }`}
+          >
             {plan.folderPath && (
-              <div className="text-[12px] font-mono text-[var(--muted)] mb-2 truncate">
-                {plan.folderPath}/
+              <div className="flex items-center gap-1.5 mb-5 text-[11px] tracking-[0.06em] uppercase text-[var(--muted)]">
+                {plan.folderPath.split("/").map((part, i, arr) => (
+                  <span key={i} className="flex items-center gap-1.5">
+                    {i > 0 && (
+                      <span className="text-[var(--border)]" aria-hidden="true">
+                        ›
+                      </span>
+                    )}
+                    <span className={i === arr.length - 1 ? "text-[var(--fg-secondary)] font-medium" : ""}>
+                      {part}
+                    </span>
+                  </span>
+                ))}
               </div>
             )}
-            <h1 className="text-[1.25rem] sm:text-[1.5rem] font-semibold tracking-[-0.02em] font-sans leading-[1.3] mb-2 text-[var(--fg)]">
+
+            <h1
+              className="text-[28px] sm:text-[34px] font-semibold leading-[1.1] text-[var(--fg)] mb-5"
+              style={{ letterSpacing: "-0.022em" }}
+            >
               {activeTitle || "Untitled"}
             </h1>
+
             {!previewVersion && (
-            <div className="flex items-center gap-2 text-[12px] text-[var(--muted)] font-sans flex-wrap">
-              {authorDisplay && (
-                <span className="font-medium text-[var(--fg-secondary)]">
-                  {authorDisplay}
-                </span>
-              )}
-              {authorDisplay && (
-                <span className="text-[var(--border)]" aria-hidden="true">
-                  ·
-                </span>
-              )}
-              <time>{formatDate(plan.createdAt)}</time>
-              {plan.tags && plan.tags.length > 0 && (
-                <>
-                  <span className="text-[var(--border)]" aria-hidden="true">·</span>
-                  <span className="flex items-center gap-1.5 flex-wrap">
+              <div className="flex items-center gap-3 text-[12.5px] text-[var(--muted)] flex-wrap">
+                {authorDisplay && (
+                  <span className="text-[var(--fg-secondary)] font-medium">
+                    {authorDisplay}
+                  </span>
+                )}
+                <time className="tabular" data-num>
+                  {formatDate(plan.createdAt)}
+                </time>
+                {plan.tags && plan.tags.length > 0 && (
+                  <span className="flex items-center gap-2 flex-wrap">
+                    <span
+                      className="inline-block h-3 w-px bg-[var(--border)] shrink-0"
+                      aria-hidden="true"
+                    />
                     {plan.tags.map((t) => (
                       <span
                         key={t}
-                        className="text-[11px] font-mono text-[var(--muted)] bg-[var(--bg)] border border-[var(--border-light)] px-1.5 py-0.5 rounded-full"
+                        className="text-[11.5px] font-mono opacity-80"
                       >
                         #{t}
                       </span>
                     ))}
                   </span>
-                </>
-              )}
-            </div>
+                )}
+              </div>
             )}
           </div>
 
