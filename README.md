@@ -2,7 +2,7 @@
 
 # orfc
 
-**The place your AI agent's documents land for human review.**
+**The place your agent's documents land for human review.**
 
 Publish markdown or HTML docs · collect inline feedback · pull comments back as parseable blocks · iterate.
 
@@ -14,7 +14,7 @@ Publish markdown or HTML docs · collect inline feedback · pull comments back a
 
 ## Why
 
-Most AI agents today write code straight into your repo. Good ones write the **plan first** — an architecture doc, an RFC, a migration design — and want a human to sanity-check it before any code lands.
+Most agents today write code straight into your repo. Good ones write the **plan first** — an architecture doc, an RFC, a migration design — and want a human to sanity-check it before any code lands.
 
 That review loop is broken. Slack threads lose context. PR comments only work after the code exists. Google Docs strips out your code blocks and SVG diagrams.
 

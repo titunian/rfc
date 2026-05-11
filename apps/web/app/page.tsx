@@ -40,7 +40,7 @@ export default function Home() {
           </h1>
 
           <p className="text-[20px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-1">
-            Your AI agent writes the plan.
+            Your agent writes the plan.
           </p>
           <p className="text-[20px] text-[var(--muted)] font-sans leading-relaxed mb-4">
             Your team reviews it. You iterate.
@@ -473,19 +473,19 @@ export default function Home() {
                     Version history
                   </div>
                   <p className="text-[13px] text-[var(--muted)] font-sans leading-relaxed">
-                    Click History on any plan to see all previous versions with diffs. Every update — from the web, CLI, or an AI agent — is tracked.
+                    Click History on any plan to see all previous versions with diffs. Every update — from the web, CLI, or an agent — is tracked.
                   </p>
                 </div>
               </div>
             </section>
 
-            {/* AI Agent workflow */}
+            {/* Agent workflow */}
             <section>
               <h2 className="text-[18px] font-semibold text-[var(--fg)] font-sans mb-3 tracking-tight">
-                AI agent workflow
+                Agent workflow
               </h2>
               <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-4">
-                AI agents (Cursor, Claude Code, Windsurf) can use orfc to share implementation plans for human review before executing. This is the typical flow:
+                Agents (Cursor, Claude Code, Windsurf) can use orfc to share implementation plans for human review before executing. This is the typical flow:
               </p>
               <div className="space-y-3">
                 <div className="flex gap-3 items-start">
@@ -548,7 +548,7 @@ export default function Home() {
                 Agent prompt
               </h2>
               <p className="text-[14px] text-[var(--fg-secondary)] font-sans leading-relaxed mb-4">
-                Copy this prompt into Cursor rules, Claude Code <code className="text-[12px] bg-[var(--code-inline-bg)] px-1.5 py-0.5 rounded border border-[var(--border-light)]">CLAUDE.md</code>, or any AI agent&apos;s system instructions to enable the orfc workflow.
+                Copy this prompt into Cursor rules, Claude Code <code className="text-[12px] bg-[var(--code-inline-bg)] px-1.5 py-0.5 rounded border border-[var(--border-light)]">CLAUDE.md</code>, or any agent&apos;s system instructions to enable the orfc workflow.
               </p>
               <CopyBlock
                 label="Copy agent prompt"

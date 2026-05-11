@@ -193,7 +193,7 @@ function scaffoldAgentFiles(): void {
   }
 
   console.log(`
-  AI agents will now understand orfc in this project:
+  Agents will now understand orfc in this project:
 
     Claude Code  →  .claude/CLAUDE.md + /orfc-push, /orfc-pull, /orfc-review skills
     Cursor       →  .cursor/rules/orfc.md

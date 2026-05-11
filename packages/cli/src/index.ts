@@ -20,7 +20,7 @@ program
     `orfc — publish markdown plans, get inline feedback from your team.
 
   Workflow:
-    1. Write a plan in markdown (or let your AI agent generate one)
+    1. Write a plan in markdown (or let your agent generate one)
     2. orfc push plan.md          → publishes to orfc.dev, returns a URL
     3. Share the URL with reviewers → they sign in and leave inline comments
     4. orfc pull <slug>            → pulls comments back into your markdown
@@ -39,8 +39,8 @@ program
     --viewers "a@co.com,b@co.com"         # only specific emails can view
     The plan author always has access regardless of viewer restrictions.
 
-  AI agent usage:
-    AI agents (Cursor, Claude Code, Windsurf, etc.) can use orfc to share
+  Agent usage:
+    Agents (Cursor, Claude Code, Windsurf, etc.) can use orfc to share
     implementation plans for human review before executing. Typical flow:
       1. Agent generates a markdown plan
       2. Agent runs: orfc push plan.md --viewers "@yourcompany.com" --to you@yourcompany.com
@@ -98,9 +98,9 @@ program
     "    On: \"the specific text they highlighted\"\n" +
     "    > Their feedback here\n" +
     "    -->\n\n" +
-    "  Pipe to a file for AI revision:\n" +
+    "  Pipe to a file for agent revision:\n" +
     "    orfc pull xK7mQ2 > feedback.md\n\n" +
-    "  The AI agent can then read feedback.md, address each comment,\n" +
+    "  The agent can then read feedback.md, address each comment,\n" +
     "  remove the comment blocks, and push the updated version."
   )
   .option("--include-resolved", "Include resolved comments (by default only unresolved are shown)")
@@ -155,10 +155,10 @@ program
     "Interactive setup wizard. Configures server URL and default settings.\n" +
     "  Config is stored at ~/.orfc/config.json.\n" +
     "  Usually not needed — defaults point to https://orfc.dev.\n\n" +
-    "  --agent   Scaffold AI agent integration files (.claude/CLAUDE.md,\n" +
+    "  --agent   Scaffold agent integration files (.claude/CLAUDE.md,\n" +
     "            slash commands) so Claude Code and Codex understand orfc."
   )
-  .option("--agent", "Scaffold AI agent integration files for Claude Code / Codex")
+  .option("--agent", "Scaffold agent integration files for Claude Code / Codex")
   .action(initCommand);
 
 program
