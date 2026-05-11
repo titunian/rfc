@@ -2,12 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Force a visible selection highlight. Browser defaults can come
-   through as nearly-invisible on warm-white themes, and Tailwind's
-   preflight + iA-Writer-style CSS resets sometimes flatten the
-   selection background to 'inherit' which renders transparent
-   inside themed surfaces. Pin it to the accent token so docs in
-   either light or dark mode show clearly when text is grabbed. */
+/* ========================================
+   Type rendering
+   ----------------------------------------
+   Tailwind's `antialiased` class sets -webkit-font-smoothing but
+   not text-rendering or letter-spacing. Set these globally so SF
+   Pro Text renders the way it does in native Mac apps — sharp
+   small UI, slightly tightened tracking on display sizes.
+   ======================================== */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1, "ss01";
+}
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.003em;
+}
+/* Headings get tighter tracking, like Linear / Fantastical. */
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.012em;
+}
+/* Numerals tabular by default for any column-aligned counts. */
+[data-num], .tabular { font-variant-numeric: tabular-nums; }
+
+/* Force a visible selection highlight. */
 ::selection {
   background: color-mix(in oklab, var(--accent) 26%, transparent);
   color: var(--fg);
@@ -15,6 +35,42 @@
 ::-moz-selection {
   background: color-mix(in oklab, var(--accent) 26%, transparent);
   color: var(--fg);
+}
+
+/* ========================================
+   Scrollbars — quiet at rest, visible on hover
+   ======================================== */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.2s ease-out;
+}
+*:hover {
+  scrollbar-color: var(--scroll-thumb, rgba(0, 0, 0, 0.18)) transparent;
+}
+html.dark *:hover {
+  scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*:hover::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+  background-clip: padding-box;
+}
+html.dark *:hover::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  background-clip: padding-box;
 }
 
 :root {

@@ -279,85 +279,99 @@ export default function DashboardPage() {
               )}
             </div>
           ) : (
-            <div className="space-y-px">
+            <div className="-mx-3">
               {visible.map((plan) => (
                 <div
                   key={plan.id}
-                  className="group relative flex items-start justify-between py-3.5 px-4 -mx-4 rounded-lg hover:bg-[var(--bg)] transition-all duration-150"
+                  className="group relative grid grid-cols-[1fr_auto] items-center gap-4 py-2 px-3 rounded-md hover:bg-[var(--button-hover)] transition-colors duration-100"
                 >
-                  <a href={`/p/${plan.slug}`} className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2.5 flex-wrap">
-                      <h2 className="text-[14px] font-medium text-[var(--fg)] font-sans truncate group-hover:text-[var(--accent)] transition-colors">
-                        {plan.title || "Untitled"}
-                      </h2>
-                      <span
-                        className={`shrink-0 text-[10px] font-semibold font-sans uppercase tracking-wider px-1.5 py-0.5 rounded-full ${
-                          plan.accessRule === "anyone"
-                            ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300"
-                            : "bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300"
-                        }`}
-                      >
-                        {plan.accessRule === "anyone" ? "Public" : "Private"}
-                      </span>
-                      {(plan.tags ?? []).map((t) => (
-                        <span
-                          key={t}
-                          className="text-[11px] font-mono text-[var(--muted)] bg-[var(--bg)] border border-[var(--border-light)] px-1.5 py-0.5 rounded-full"
-                        >
-                          #{t}
-                        </span>
-                      ))}
-                    </div>
-                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                      {plan.folderPath && (
-                        <>
-                          <span className="text-[12px] text-[var(--muted)] font-mono">
-                            {plan.folderPath}/
-                          </span>
-                          <span className="text-[12px] text-[var(--border)]">·</span>
-                        </>
-                      )}
-                      <span className="text-[12px] text-[var(--muted)] font-sans">
-                        {formatDate(plan.createdAt)}
-                      </span>
-                      <span className="text-[12px] text-[var(--border)]">·</span>
-                      <span className="text-[12px] text-[var(--muted)] font-sans font-mono">
-                        {plan.slug}
-                      </span>
-                    </div>
-                  </a>
-                  <div className="relative shrink-0 ml-4">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setMenuOpenFor(menuOpenFor === plan.id ? null : plan.id);
-                      }}
-                      className="p-1.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[var(--bg-sidebar)]"
-                      aria-label="Row actions"
+                  <a
+                    href={`/p/${plan.slug}`}
+                    className="min-w-0 flex items-center gap-2.5"
+                  >
+                    {/* Type indicator — 1 char, opacity-based, no chip */}
+                    <span
+                      className={`shrink-0 inline-flex items-center justify-center w-4 text-[11px] tabular ${
+                        plan.accessRule === "anyone"
+                          ? "text-[var(--fg-secondary)]"
+                          : "text-[var(--muted)]"
+                      }`}
+                      title={plan.accessRule === "anyone" ? "Public" : "Private"}
+                      aria-hidden="true"
                     >
-                      <svg className="w-4 h-4 text-[var(--muted)]" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
-                        <circle cx="5" cy="12" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" />
-                      </svg>
-                    </button>
-                    {menuOpenFor === plan.id && (
-                      <div
-                        className="absolute right-0 top-full mt-1 w-48 py-1 rounded-lg bg-[var(--bg)] border border-[var(--border-light)] shadow-lg z-30 text-[13px]"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <button
-                          onClick={() => moveToFolder(plan)}
-                          className="w-full text-left px-3 py-1.5 hover:bg-[var(--bg-sidebar)] transition-colors"
-                        >
-                          Move to folder…
-                        </button>
-                        <button
-                          onClick={() => editTags(plan)}
-                          className="w-full text-left px-3 py-1.5 hover:bg-[var(--bg-sidebar)] transition-colors"
-                        >
-                          Edit tags…
-                        </button>
-                      </div>
+                      {plan.accessRule === "anyone" ? "○" : "●"}
+                    </span>
+
+                    <span className="text-[13.5px] text-[var(--fg)] truncate group-hover:text-[var(--accent)] transition-colors">
+                      {plan.title || "Untitled"}
+                    </span>
+
+                    {plan.folderPath && (
+                      <span className="shrink-0 text-[11.5px] text-[var(--muted)] font-mono opacity-70">
+                        {plan.folderPath}
+                      </span>
                     )}
+
+                    {(plan.tags ?? []).slice(0, 3).map((t) => (
+                      <span
+                        key={t}
+                        className="shrink-0 text-[11px] font-mono text-[var(--muted)] opacity-80"
+                      >
+                        #{t}
+                      </span>
+                    ))}
+                    {(plan.tags ?? []).length > 3 && (
+                      <span className="shrink-0 text-[11px] text-[var(--muted)] opacity-60">
+                        +{(plan.tags ?? []).length - 3}
+                      </span>
+                    )}
+                  </a>
+
+                  {/* Right-aligned meta + actions. Date is the resting
+                      column; the dot-menu replaces it on hover. */}
+                  <div className="flex items-center justify-end gap-3 shrink-0">
+                    <span
+                      className="text-[11.5px] text-[var(--muted)] tabular w-[64px] text-right group-hover:opacity-0 transition-opacity"
+                      data-num
+                    >
+                      {formatDate(plan.createdAt)}
+                    </span>
+
+                    <div className="relative">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMenuOpenFor(menuOpenFor === plan.id ? null : plan.id);
+                        }}
+                        className="absolute right-0 -top-3 p-1 rounded-md opacity-0 group-hover:opacity-100 hover:bg-[var(--bg)] text-[var(--muted)] hover:text-[var(--fg)] transition-all duration-100"
+                        aria-label="Row actions"
+                      >
+                        <svg className="w-[14px] h-[14px]" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                          <circle cx="5" cy="12" r="1" />
+                          <circle cx="12" cy="12" r="1" />
+                          <circle cx="19" cy="12" r="1" />
+                        </svg>
+                      </button>
+                      {menuOpenFor === plan.id && (
+                        <div
+                          className="absolute right-0 top-5 w-44 py-1 rounded-lg bg-[var(--bg)] border border-[var(--border)] shadow-[0_8px_24px_rgba(0,0,0,0.08)] z-30 text-[12.5px]"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <button
+                            onClick={() => moveToFolder(plan)}
+                            className="w-full text-left px-3 py-1.5 text-[var(--fg-secondary)] hover:bg-[var(--button-hover)] hover:text-[var(--fg)] transition-colors"
+                          >
+                            Move to folder…
+                          </button>
+                          <button
+                            onClick={() => editTags(plan)}
+                            className="w-full text-left px-3 py-1.5 text-[var(--fg-secondary)] hover:bg-[var(--button-hover)] hover:text-[var(--fg)] transition-colors"
+                          >
+                            Edit tags…
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}

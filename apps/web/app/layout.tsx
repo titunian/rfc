@@ -1,21 +1,12 @@
 import type { Metadata } from "next";
-import { Inter, Source_Serif_4 } from "next/font/google";
 import { AuthProvider } from "@/components/session-provider";
 import "highlight.js/styles/github-dark.css";
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-inter",
-});
-
-const sourceSerif = Source_Serif_4({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-serif",
-  weight: ["400", "600", "700"],
-});
+// Intentionally no Google Fonts. System stacks (SF Pro Text on Apple,
+// Segoe UI on Windows, system-ui elsewhere) signal "this is a tool,
+// not a web app" — and small UI sizes render sharper than Inter
+// imported over the wire. See globals.css for the full stack.
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.orfc.dev"),
@@ -41,11 +32,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} ${sourceSerif.variable}`}
-      suppressHydrationWarning
-    >
+    <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
       </head>
