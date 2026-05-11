@@ -537,43 +537,75 @@ html.dark .orfc-top-bar[data-elevated="true"]::before {
 }
 
 /* --- Tables ---
-   Modern data-table look: no outer rounded box, no zebra stripes,
-   no uppercase-tracked header. Just hairline dividers + a heavier
-   underline under the header row. Reads like Linear / GitHub. */
+   Reference: Stripe docs, Linear changelogs, Vercel docs. The trick
+   is: zero outer chrome, the rows do all the work. Subtle header
+   underline. Hairline row dividers. First column carries primary
+   color + weight so it visually reads as the "label". Hover state
+   on rows for scannable lookup tables. Tabular nums everywhere so
+   numeric columns align without thinking about it. */
 .prose table {
   border-collapse: collapse;
   width: 100%;
-  margin: 1.5em 0;
-  font-size: 0.875em;
+  margin: 1.75em 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  font-variant-numeric: tabular-nums;
+}
+
+.prose thead tr {
+  border-bottom: 1px solid var(--border);
+}
+.prose tbody tr {
+  border-bottom: 1px solid var(--border-light);
+  transition: background-color 0.12s ease-out;
+}
+.prose tbody tr:last-child {
+  border-bottom: none;
+}
+.prose tbody tr:hover {
+  background: var(--surface-subtle);
 }
 
 .prose th {
-  background: transparent;
   font-weight: 600;
-  font-size: 0.875em;
-  color: var(--fg);
-  padding: 10px 14px 10px 0;
+  font-size: 0.78em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
   text-align: left;
-  border-bottom: 1px solid var(--border);
-  letter-spacing: -0.005em;
-  text-transform: none;
-}
-.prose th:not(:last-child) {
-  padding-right: 24px;
+  padding: 6px 0 10px;
+  white-space: nowrap;
 }
 
 .prose td {
-  padding: 10px 14px 10px 0;
-  border-bottom: 1px solid var(--border-light);
+  padding: 12px 0;
   color: var(--fg-secondary);
   vertical-align: top;
 }
-.prose td:not(:last-child) {
-  padding-right: 24px;
+
+/* First column carries the "label" — primary text color so the row
+   has a visual hook. Saves the reader's eye from working the grid. */
+.prose td:first-child {
+  color: var(--fg);
+  font-weight: 500;
 }
 
-.prose tr:last-child td {
-  border-bottom: none;
+/* Inner cell gutter via right-padding on non-last cells; cleaner than
+   universal cell-padding because it doesn't push the first cell off
+   the page-left edge. */
+.prose th:not(:last-child),
+.prose td:not(:last-child) {
+  padding-right: 28px;
+}
+
+/* Inline code inside cells gets a tighter, less boxy treatment than
+   inline code in prose body — tables already provide structure. */
+.prose td code,
+.prose th code {
+  background: var(--code-inline-bg);
+  border: none;
+  padding: 1px 5px;
+  font-size: 0.86em;
 }
 
 /* --- Horizontal rules --- */
