@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback, Suspense } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 type Plan = {
   id: string;
@@ -19,18 +19,73 @@ type Plan = {
 const ALL_PLANS = "__all__";
 const ROOT_FOLDER = "";
 
+// Next 14 requires components that use useSearchParams to be wrapped
+// in a Suspense boundary, otherwise the whole route opts out of static
+// prerender with a build-time error. The wrapper below is the bare
+// minimum to satisfy that — the actual work is in DashboardInner.
 export default function DashboardPage() {
+  return (
+    <Suspense fallback={null}>
+      <DashboardInner />
+    </Suspense>
+  );
+}
+
+function DashboardInner() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Filter state. folderFilter === ALL_PLANS means "no folder filter";
-  // folderFilter === "" means "plans at the root only".
-  const [folderFilter, setFolderFilter] = useState<string>(ALL_PLANS);
-  const [tagFilter, setTagFilter] = useState<string | null>(null);
+  // Filter state, seeded from URL so /dashboard?folder=x&tag=y is
+  // a shareable view. folderFilter === ALL_PLANS = no folder filter;
+  // folderFilter === "" = root-only.
+  const urlFolder = searchParams.get("folder");
+  const urlTag = searchParams.get("tag");
+  const [folderFilter, setFolderFilter] = useState<string>(
+    urlFolder !== null ? urlFolder : ALL_PLANS,
+  );
+  const [tagFilter, setTagFilter] = useState<string | null>(urlTag);
   const [menuOpenFor, setMenuOpenFor] = useState<string | null>(null);
+
+  // Push filter changes to the URL so they're bookmarkable and the
+  // back button works as a viewer expects.
+  const updateUrl = useCallback(
+    (folder: string, tag: string | null) => {
+      const params = new URLSearchParams();
+      if (folder !== ALL_PLANS) params.set("folder", folder);
+      if (tag) params.set("tag", tag);
+      const qs = params.toString();
+      router.replace(qs ? `/dashboard?${qs}` : "/dashboard", { scroll: false });
+    },
+    [router],
+  );
+
+  const onFolderChange = useCallback(
+    (next: string) => {
+      setFolderFilter(next);
+      updateUrl(next, tagFilter);
+    },
+    [tagFilter, updateUrl],
+  );
+
+  const onTagChange = useCallback(
+    (next: string | null) => {
+      setTagFilter(next);
+      updateUrl(folderFilter, next);
+    },
+    [folderFilter, updateUrl],
+  );
+
+  // If the URL changes (e.g. clicking a tag chip on a plan page → /dashboard?tag=foo),
+  // sync state back from the URL.
+  useEffect(() => {
+    const f = searchParams.get("folder");
+    setFolderFilter(f !== null ? f : ALL_PLANS);
+    setTagFilter(searchParams.get("tag"));
+  }, [searchParams]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -148,32 +203,32 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-warm)]">
-      {/* Header */}
+    <div className="min-h-screen bg-[var(--app,var(--bg-warm))] pt-3">
+      {/* Floating rounded header. Same chrome as the plan view so the
+          app feels like one cohesive tool. */}
       <header
-        className="border-b border-[var(--border-light)] sticky top-0 z-40"
+        className="sticky top-3 z-40 mx-3 sm:mx-4 rounded-2xl border border-[var(--border)]"
         style={{
           background: "var(--header-bg)",
-          backdropFilter: "saturate(180%) blur(14px)",
-          WebkitBackdropFilter: "saturate(180%) blur(14px)",
+          backdropFilter: "saturate(180%) blur(20px)",
+          WebkitBackdropFilter: "saturate(180%) blur(20px)",
         }}
       >
-        <div className="max-w-6xl mx-auto px-6 h-[56px] flex items-center justify-between">
-          <a href="/" className="group flex items-center gap-2" aria-label="orfc home">
-            <span className="inline-flex items-center justify-center h-6 w-6 rounded-[7px] bg-[var(--fg)] text-[var(--bg)] text-[11px] font-bold tracking-tight shadow-sm group-hover:scale-105 transition-transform">
-              o
-            </span>
-            <span className="text-[15px] font-semibold tracking-[-0.01em] font-sans text-[var(--fg)] group-hover:text-[var(--fg-secondary)] transition-colors">
-              orfc
-            </span>
+        <div className="max-w-6xl mx-auto px-4 sm:px-5 h-[44px] flex items-center justify-between">
+          <a
+            href="/"
+            className="text-[13.5px] font-semibold tracking-[-0.012em] text-[var(--fg)] hover:text-[var(--fg-secondary)] transition-colors"
+            aria-label="orfc home"
+          >
+            orfc
           </a>
-          <div className="flex items-center gap-3">
-            <span className="text-[13px] text-[var(--fg-secondary)] font-sans truncate max-w-[220px]">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-[12.5px] text-[var(--muted)] truncate max-w-[220px]">
               {session?.user?.email}
             </span>
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="text-[12px] text-[var(--muted)] hover:text-[var(--fg)] font-sans transition-colors"
+              className="text-[12px] text-[var(--muted)] hover:text-[var(--fg)] transition-colors"
             >
               Log out
             </button>
@@ -181,14 +236,15 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-6 py-10 grid grid-cols-[220px_1fr] gap-8">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-10 pb-16 grid grid-cols-[200px_1fr] gap-10">
         {/* Sidebar: folder tree + tag filter */}
-        <aside className="text-[13px] font-sans">
+        <aside className="text-[13px]">
           <SidebarSection label="Folders">
             <SidebarItem
               active={folderFilter === ALL_PLANS}
-              onClick={() => setFolderFilter(ALL_PLANS)}
+              onClick={() => onFolderChange(ALL_PLANS)}
               count={plans.length}
+              icon={<AllIcon />}
             >
               All
             </SidebarItem>
@@ -196,12 +252,15 @@ export default function DashboardPage() {
               <SidebarItem
                 key={folder || "__root__"}
                 active={folderFilter === folder}
-                onClick={() => setFolderFilter(folder)}
+                onClick={() => onFolderChange(folder)}
                 count={count}
+                icon={<FolderIcon open={folderFilter === folder} />}
               >
-                <span className="font-mono text-[12px]">
-                  {folder === ROOT_FOLDER ? "(root)" : folder}
-                </span>
+                {folder === ROOT_FOLDER ? (
+                  <span className="italic opacity-80">Root</span>
+                ) : (
+                  folder
+                )}
               </SidebarItem>
             ))}
           </SidebarSection>
@@ -210,7 +269,8 @@ export default function DashboardPage() {
             <SidebarSection label="Tags">
               <SidebarItem
                 active={tagFilter === null}
-                onClick={() => setTagFilter(null)}
+                onClick={() => onTagChange(null)}
+                icon={<HashIcon dim />}
               >
                 Any tag
               </SidebarItem>
@@ -218,10 +278,11 @@ export default function DashboardPage() {
                 <SidebarItem
                   key={tag}
                   active={tagFilter === tag}
-                  onClick={() => setTagFilter(tag)}
+                  onClick={() => onTagChange(tag)}
                   count={count}
+                  icon={<HashIcon />}
                 >
-                  <span className="font-mono text-[12px]">#{tag}</span>
+                  {tag}
                 </SidebarItem>
               ))}
             </SidebarSection>
@@ -230,13 +291,44 @@ export default function DashboardPage() {
 
         {/* Main list */}
         <div>
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-[1.25rem] font-semibold tracking-tight font-sans text-[var(--fg)]">
-              My documents
-            </h1>
-            <span className="text-[13px] text-[var(--muted)] font-sans">
+          <div className="flex items-baseline justify-between mb-8 gap-4">
+            <div>
+              <h1
+                className="text-[26px] font-semibold leading-[1.1] text-[var(--fg)]"
+                style={{ letterSpacing: "-0.022em" }}
+              >
+                Documents
+              </h1>
+              {(folderFilter !== ALL_PLANS || tagFilter) && (
+                <div className="mt-2 flex items-center gap-2 text-[12px] text-[var(--muted)]">
+                  <span>Filtered by</span>
+                  {folderFilter !== ALL_PLANS && (
+                    <span className="inline-flex items-center gap-1 text-[var(--fg-secondary)]">
+                      <svg className="w-[11px] h-[11px]" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round">
+                        <path d="M1.5 4.5 A1 1 0 0 1 2.5 3.5 H6 L7.5 5 H13.5 A1 1 0 0 1 14.5 6 V11.5 A1 1 0 0 1 13.5 12.5 H2.5 A1 1 0 0 1 1.5 11.5 Z" />
+                      </svg>
+                      <span className="font-mono">
+                        {folderFilter === ROOT_FOLDER ? "(root)" : folderFilter}
+                      </span>
+                    </span>
+                  )}
+                  {tagFilter && (
+                    <span className="font-mono text-[var(--fg-secondary)]">#{tagFilter}</span>
+                  )}
+                  <button
+                    onClick={() => {
+                      onFolderChange(ALL_PLANS);
+                      onTagChange(null);
+                    }}
+                    className="text-[var(--muted)] hover:text-[var(--fg)] transition-colors underline underline-offset-2 decoration-dotted"
+                  >
+                    Clear
+                  </button>
+                </div>
+              )}
+            </div>
+            <span className="text-[12.5px] text-[var(--muted)] tabular shrink-0" data-num>
               {visible.length} {visible.length === 1 ? "doc" : "docs"}
-              {folderFilter !== ALL_PLANS || tagFilter ? " (filtered)" : ""}
             </span>
           </div>
 
@@ -285,10 +377,7 @@ export default function DashboardPage() {
                   key={plan.id}
                   className="group relative grid grid-cols-[1fr_auto] items-center gap-4 py-2 px-3 rounded-md hover:bg-[var(--button-hover)] transition-colors duration-100"
                 >
-                  <a
-                    href={`/p/${plan.slug}`}
-                    className="min-w-0 flex items-center gap-2.5"
-                  >
+                  <div className="min-w-0 flex items-center gap-2.5">
                     {/* Type indicator — 1 char, opacity-based, no chip */}
                     <span
                       className={`shrink-0 inline-flex items-center justify-center w-4 text-[11px] tabular ${
@@ -302,30 +391,48 @@ export default function DashboardPage() {
                       {plan.accessRule === "anyone" ? "○" : "●"}
                     </span>
 
-                    <span className="text-[13.5px] text-[var(--fg)] truncate group-hover:text-[var(--accent)] transition-colors">
+                    <a
+                      href={`/p/${plan.slug}`}
+                      className="text-[13.5px] text-[var(--fg)] truncate group-hover:text-[var(--accent)] transition-colors"
+                    >
                       {plan.title || "Untitled"}
-                    </span>
+                    </a>
 
                     {plan.folderPath && (
-                      <span className="shrink-0 text-[11.5px] text-[var(--muted)] font-mono opacity-70">
-                        {plan.folderPath}
-                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onFolderChange(plan.folderPath);
+                        }}
+                        className="shrink-0 inline-flex items-center gap-1 text-[11.5px] text-[var(--muted)] hover:text-[var(--fg)] transition-colors"
+                        title={`Filter by folder: ${plan.folderPath}`}
+                      >
+                        <svg className="w-[11px] h-[11px] opacity-70" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round">
+                          <path d="M1.5 4.5 A1 1 0 0 1 2.5 3.5 H6 L7.5 5 H13.5 A1 1 0 0 1 14.5 6 V11.5 A1 1 0 0 1 13.5 12.5 H2.5 A1 1 0 0 1 1.5 11.5 Z" />
+                        </svg>
+                        <span className="font-mono opacity-90">{plan.folderPath}</span>
+                      </button>
                     )}
 
                     {(plan.tags ?? []).slice(0, 3).map((t) => (
-                      <span
+                      <button
                         key={t}
-                        className="shrink-0 text-[11px] font-mono text-[var(--muted)] opacity-80"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onTagChange(t);
+                        }}
+                        className="shrink-0 text-[11px] font-mono text-[var(--muted)] hover:text-[var(--fg)] transition-colors"
+                        title={`Filter by tag: ${t}`}
                       >
                         #{t}
-                      </span>
+                      </button>
                     ))}
                     {(plan.tags ?? []).length > 3 && (
                       <span className="shrink-0 text-[11px] text-[var(--muted)] opacity-60">
                         +{(plan.tags ?? []).length - 3}
                       </span>
                     )}
-                  </a>
+                  </div>
 
                   {/* Right-aligned meta + actions. Date is the resting
                       column; the dot-menu replaces it on hover. */}
@@ -404,28 +511,83 @@ function SidebarItem({
   active,
   onClick,
   count,
+  icon,
   children,
 }: {
   active: boolean;
   onClick: () => void;
   count?: number;
+  icon?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center justify-between gap-2 px-2 py-1.5 rounded-md text-left transition-colors ${
+      className={`group w-full flex items-center gap-2 px-2 py-[5px] rounded-md text-left transition-colors duration-100 ${
         active
-          ? "bg-[var(--bg)] text-[var(--fg)] font-medium"
-          : "text-[var(--fg-secondary)] hover:bg-[var(--bg)]"
+          ? "bg-[var(--button-hover)] text-[var(--fg)]"
+          : "text-[var(--fg-secondary)] hover:bg-[var(--button-hover)] hover:text-[var(--fg)]"
       }`}
     >
-      <span className="truncate">{children}</span>
+      {icon && (
+        <span
+          className={`shrink-0 w-[14px] h-[14px] flex items-center justify-center transition-colors ${
+            active ? "text-[var(--accent)]" : "text-[var(--muted)] group-hover:text-[var(--fg-secondary)]"
+          }`}
+          aria-hidden="true"
+        >
+          {icon}
+        </span>
+      )}
+      <span className={`truncate flex-1 ${active ? "font-medium" : ""}`}>{children}</span>
       {count !== undefined && (
-        <span className="text-[11px] text-[var(--muted)] font-mono shrink-0">
+        <span className="text-[11px] text-[var(--muted)] tabular shrink-0">
           {count}
         </span>
       )}
     </button>
+  );
+}
+
+function FolderIcon({ open = false }: { open?: boolean }) {
+  // SF-Symbols-inspired folder: closed by default, slightly opened
+  // when the folder is the active filter. Stroked, not filled.
+  return open ? (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round">
+      <path d="M1.5 4.5 A1 1 0 0 1 2.5 3.5 H6.5 L7.5 4.5 H13.5 A1 1 0 0 1 14.5 5.5 V6 H1.5 Z" />
+      <path d="M1.5 6 H14.5 L13.5 12 A1 1 0 0 1 12.5 12.5 H3 A1 1 0 0 1 2 12 Z" />
+    </svg>
+  ) : (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round">
+      <path d="M1.5 4.5 A1 1 0 0 1 2.5 3.5 H6 L7.5 5 H13.5 A1 1 0 0 1 14.5 6 V11.5 A1 1 0 0 1 13.5 12.5 H2.5 A1 1 0 0 1 1.5 11.5 Z" />
+    </svg>
+  );
+}
+
+function AllIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round">
+      <rect x="2" y="3" width="12" height="3" rx="0.5" />
+      <rect x="2" y="7" width="12" height="3" rx="0.5" />
+      <rect x="2" y="11" width="12" height="3" rx="0.5" />
+    </svg>
+  );
+}
+
+function HashIcon({ dim = false }: { dim?: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.3"
+      strokeLinecap="round"
+      style={dim ? { opacity: 0.5 } : undefined}
+    >
+      <path d="M6 2.5 L4.5 13.5" />
+      <path d="M11.5 2.5 L10 13.5" />
+      <path d="M2.5 6 H13.5" />
+      <path d="M2.5 10 H13.5" />
+    </svg>
   );
 }

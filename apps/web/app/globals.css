@@ -74,15 +74,19 @@ html.dark *:hover::-webkit-scrollbar-thumb {
 }
 
 :root {
+  /* Light palette — calmer, neutral grays. The previous warm-white
+     (#faf9f7) on top of pure white felt washed; this lightly-tinted
+     stack (--app vs. --bg-warm vs. --bg) reads as layered paper. */
+  --app: #f3f3f4;
   --bg: #ffffff;
-  --bg-warm: #faf9f7;
-  --fg: #1a1a1a;
-  --fg-secondary: #374151;
-  --muted: #9ca3af;
-  --border: #e5e7eb;
-  --border-light: #f3f4f6;
-  --accent: #2563eb;
-  --accent-light: #dbeafe;
+  --bg-warm: #f7f7f8;
+  --fg: #18181b;
+  --fg-secondary: #3f3f46;
+  --muted: #8a8a90;
+  --border: #e4e4e7;
+  --border-light: #ededef;
+  --accent: #2456e3;
+  --accent-light: #dbe2f7;
   --comment-highlight: rgba(250, 204, 21, 0.22);
   --comment-highlight-hover: rgba(250, 204, 21, 0.38);
   --comment-highlight-active: rgba(250, 204, 21, 0.48);
@@ -114,13 +118,17 @@ html.dark *:hover::-webkit-scrollbar-thumb {
 }
 
 html.dark {
-  --bg: #0e0e10;
-  --bg-warm: #131316;
-  --fg: #f3f4f6;
-  --fg-secondary: #d1d5db;
-  --muted: #8b8d94;
-  --border: #2a2b30;
-  --border-light: #1e1f23;
+  /* Dark palette — three layers with subtle warmth.
+     --app is the outermost canvas (under the floating header / cards),
+     --bg-warm is the "page" surface, --bg is the doc card itself. */
+  --app: #08080a;
+  --bg: #141417;
+  --bg-warm: #0e0e11;
+  --fg: #f5f5f7;
+  --fg-secondary: #d4d4d8;
+  --muted: #8a8a90;
+  --border: #27272b;
+  --border-light: #1d1d20;
   --accent: #7aa7ff;
   --accent-light: #1e2a44;
   --comment-highlight: rgba(250, 204, 21, 0.18);

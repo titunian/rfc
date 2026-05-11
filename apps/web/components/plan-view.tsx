@@ -520,18 +520,18 @@ export function PlanView({
   const showToc = canView && toc.length > 2;
 
   return (
-    <div className="min-h-screen bg-[var(--bg-warm)]">
+    <div className="min-h-screen bg-[var(--app,var(--bg-warm))] pt-3">
       {/* Header */}
       <header
         data-chrome
-        className="border-b border-[var(--border-light)] sticky top-0 z-40"
+        className="sticky top-3 z-40 mx-3 sm:mx-4 rounded-2xl border border-[var(--border)]"
         style={{
           background: "var(--header-bg)",
           backdropFilter: "saturate(180%) blur(20px)",
           WebkitBackdropFilter: "saturate(180%) blur(20px)",
         }}
       >
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-[48px] flex items-center justify-between gap-4">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-5 h-[44px] flex items-center justify-between gap-4">
           {/* Brand + plan crumb. The wordmark is the orfc home link; the
               plan title sits after a hairline divider so users always
               know which doc they're in. Linear / Things pattern. */}
@@ -968,7 +968,7 @@ export function PlanView({
         {showToc && (
           <nav
             data-chrome
-            className="w-[220px] shrink-0 sticky top-[57px] h-[calc(100vh-57px)] overflow-y-auto py-8 pl-6 pr-2 hidden lg:block"
+            className="w-[220px] shrink-0 sticky top-[68px] h-[calc(100vh-68px)] overflow-y-auto py-8 pl-6 pr-2 hidden lg:block"
           >
             <p className="text-[11px] uppercase tracking-[0.1em] text-[var(--muted)] font-sans font-medium mb-3">
               On this page
@@ -1049,8 +1049,8 @@ export function PlanView({
           )}
 
           {/* Title block. Editorial weight, generous breathing room.
-              Meta row uses opacity hierarchy + a hairline separator
-              instead of typographic dots. */}
+              Folder breadcrumb segments and tags are now clickable —
+              they deep-link into the dashboard's filtered view. */}
           <div
             className={`mx-auto mb-10 ${
               contentType === "html" ? "max-w-[940px]" : "max-w-[68ch]"
@@ -1058,18 +1058,27 @@ export function PlanView({
           >
             {plan.folderPath && (
               <div className="flex items-center gap-1.5 mb-5 text-[11px] tracking-[0.06em] uppercase text-[var(--muted)]">
-                {plan.folderPath.split("/").map((part, i, arr) => (
-                  <span key={i} className="flex items-center gap-1.5">
-                    {i > 0 && (
-                      <span className="text-[var(--border)]" aria-hidden="true">
-                        ›
-                      </span>
-                    )}
-                    <span className={i === arr.length - 1 ? "text-[var(--fg-secondary)] font-medium" : ""}>
-                      {part}
+                {plan.folderPath.split("/").map((part, i, arr) => {
+                  const segPath = arr.slice(0, i + 1).join("/");
+                  const isLast = i === arr.length - 1;
+                  return (
+                    <span key={i} className="flex items-center gap-1.5">
+                      {i > 0 && (
+                        <span className="text-[var(--border)]" aria-hidden="true">
+                          ›
+                        </span>
+                      )}
+                      <a
+                        href={`/dashboard?folder=${encodeURIComponent(segPath)}`}
+                        className={`hover:text-[var(--accent)] transition-colors ${
+                          isLast ? "text-[var(--fg-secondary)] font-medium" : ""
+                        }`}
+                      >
+                        {part}
+                      </a>
                     </span>
-                  </span>
-                ))}
+                  );
+                })}
               </div>
             )}
 
@@ -1097,12 +1106,13 @@ export function PlanView({
                       aria-hidden="true"
                     />
                     {plan.tags.map((t) => (
-                      <span
+                      <a
                         key={t}
-                        className="text-[11.5px] font-mono opacity-80"
+                        href={`/dashboard?tag=${encodeURIComponent(t)}`}
+                        className="text-[11.5px] font-mono opacity-80 hover:opacity-100 hover:text-[var(--accent)] transition-colors"
                       >
                         #{t}
-                      </span>
+                      </a>
                     ))}
                   </span>
                 )}
@@ -1317,7 +1327,7 @@ export function PlanView({
               className="fixed inset-0 bg-black/20 z-40 lg:hidden"
               onClick={() => setSidebarOpen(false)}
             />
-            <div className="fixed right-0 top-[57px] h-[calc(100vh-57px)] z-50 lg:relative lg:top-auto lg:h-auto lg:z-auto">
+            <div className="fixed right-0 top-[68px] h-[calc(100vh-68px)] z-50 lg:relative lg:top-auto lg:h-auto lg:z-auto">
               <CommentSidebar
                 comments={comments}
                 activeCommentId={activeCommentId}
@@ -1335,7 +1345,7 @@ export function PlanView({
               className="fixed inset-0 bg-black/20 z-40 lg:hidden"
               onClick={() => setHistoryOpen(false)}
             />
-            <div className="fixed right-0 top-[57px] h-[calc(100vh-57px)] z-50 lg:relative lg:top-auto lg:h-auto lg:z-auto">
+            <div className="fixed right-0 top-[68px] h-[calc(100vh-68px)] z-50 lg:relative lg:top-auto lg:h-auto lg:z-auto">
               <VersionHistory
                 planId={plan.id}
                 onClose={() => {
