@@ -269,20 +269,22 @@ function DashboardInner() {
 
           {tags.length > 0 && (
             <SidebarSection label="Tags">
-              <SidebarItem
-                active={tagFilter === null}
-                onClick={() => onTagChange(null)}
-                icon={<Hash size={14} strokeWidth={1.6} style={{ opacity: 0.55 }} />}
-              >
-                Any tag
-              </SidebarItem>
+              {/* Dropped the "Any tag" reset item — redundant with the
+                  "All" folder above and with the Clear chip that
+                  surfaces under the page title when a tag is active.
+                  The "#" glyph sits in the icon slot so tags stay
+                  aligned with folder rows. */}
               {tags.map(([tag, count]) => (
                 <SidebarItem
                   key={tag}
                   active={tagFilter === tag}
                   onClick={() => onTagChange(tag)}
                   count={count}
-                  icon={<Hash size={14} strokeWidth={1.6} />}
+                  icon={
+                    <span className="text-[12.5px] font-medium leading-none">
+                      #
+                    </span>
+                  }
                 >
                   {tag}
                 </SidebarItem>

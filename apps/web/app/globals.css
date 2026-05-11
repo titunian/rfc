@@ -93,9 +93,12 @@ html.dark *:hover::-webkit-scrollbar-thumb {
      canvas edge is a slightly deeper cream so cards still get lift.
      Borders + chrome stay neutral — only the dominant surface carries
      the warmth so we don't reintroduce the warm/cool clash. */
-  --app: #efece4;          /* warm canvas under floating chrome */
+  /* Dialed back from the cream pass — that read "too warm" (yellow).
+     Now: a near-white page with the *suggestion* of warmth. Anthropic
+     palette without the saturation. */
+  --app: #ededeb;          /* canvas — barely-there warm gray */
   --bg: #ffffff;           /* focal doc sheet — pure white */
-  --bg-warm: #fbfaf5;      /* page surface — warm cream */
+  --bg-warm: #fafaf8;      /* page surface — almost white, hint of warmth */
   --fg: #1c1d20;           /* near-black, faintly cool — easier on the eye than #000 */
   --fg-secondary: #55575c; /* true secondary tier (was #3f3f46 — read as primary) */
   --muted: #8a8c92;        /* tertiary / metadata */
@@ -533,38 +536,40 @@ html.dark .orfc-top-bar[data-elevated="true"]::before {
   font-weight: 600;
 }
 
-/* --- Tables --- */
+/* --- Tables ---
+   Modern data-table look: no outer rounded box, no zebra stripes,
+   no uppercase-tracked header. Just hairline dividers + a heavier
+   underline under the header row. Reads like Linear / GitHub. */
 .prose table {
-  border-collapse: separate;
-  border-spacing: 0;
+  border-collapse: collapse;
   width: 100%;
-  margin: 1.25em 0;
+  margin: 1.5em 0;
   font-size: 0.875em;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid var(--border);
 }
 
 .prose th {
-  background: var(--bg-warm);
-  font-weight: 500;
-  font-size: 0.8125em;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--muted);
-  padding: 8px 14px;
+  background: transparent;
+  font-weight: 600;
+  font-size: 0.875em;
+  color: var(--fg);
+  padding: 10px 14px 10px 0;
   text-align: left;
   border-bottom: 1px solid var(--border);
+  letter-spacing: -0.005em;
+  text-transform: none;
+}
+.prose th:not(:last-child) {
+  padding-right: 24px;
 }
 
 .prose td {
-  padding: 8px 14px;
+  padding: 10px 14px 10px 0;
   border-bottom: 1px solid var(--border-light);
   color: var(--fg-secondary);
+  vertical-align: top;
 }
-
-.prose tr:nth-child(even) td {
-  background: var(--table-stripe);
+.prose td:not(:last-child) {
+  padding-right: 24px;
 }
 
 .prose tr:last-child td {
